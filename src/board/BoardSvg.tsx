@@ -1,11 +1,14 @@
-import type { Ref } from "react";
+import type { ReactNode, Ref } from "react";
 import type { Point } from "../model/types";
 import type { BoardSnapshot } from "../model/resolve";
 import { APRON } from "../pitch/formats";
 import { PitchMarkings } from "./PitchMarkings";
 import { PlayerToken } from "./entities/PlayerToken";
 import { BallGlyph } from "./entities/BallGlyph";
-import { ConeGlyph } from "./entities/ConeGlyph";
+import { EquipmentGlyph } from "./entities/EquipmentGlyph";
+import { ArrowGlyph } from "./annotations/ArrowGlyph";
+import { ZoneGlyph } from "./annotations/ZoneGlyph";
+import { LabelGlyph } from "./annotations/LabelGlyph";
 import { svgPoint } from "./svgPoint";
 
 export interface BoardSvgProps {
@@ -20,6 +23,8 @@ export interface BoardSvgProps {
   onBoardPointerUp?: (pt: Point, e: React.PointerEvent<SVGSVGElement>) => void;
   svgRef?: Ref<SVGSVGElement>;
   className?: string;
+  /** Editor-only overlay (drag previews, handles) drawn above everything. */
+  children?: ReactNode;
 }
 
 /**
@@ -38,13 +43,22 @@ export function BoardSvg({
   onBoardPointerUp,
   svgRef,
   className,
+  children,
 }: BoardSvgProps) {
-  const { spec, gridOn, teams, items } = snapshot;
+  const { spec, gridOn, teams, items, annotations } = snapshot;
   const vbW = spec.length + 2 * APRON;
   const vbH = spec.width + 2 * APRON;
   const s = spec.tokenScale;
 
   const interactive = !!(onBoardPointerDown || onEntityPointerDown);
+  const grabFor = (id: string) =>
+    onEntityPointerDown
+      ? (e: React.PointerEvent<SVGGElement>) => onEntityPointerDown(id, e)
+      : undefined;
+
+  const zones = annotations.filter((a) => a.entity.kind === "zone");
+  const arrows = annotations.filter((a) => a.entity.kind === "arrow");
+  const labels = annotations.filter((a) => a.entity.kind === "label");
 
   return (
     <svg
@@ -76,11 +90,34 @@ export function BoardSvg({
     >
       <rect x={-APRON} y={-APRON} width={vbW} height={vbH} fill="#3e7d50" />
       <PitchMarkings spec={spec} gridOn={gridOn} />
+      {zones.map((a) => (
+        <ZoneGlyph
+          key={a.entity.id}
+          annotation={a.entity}
+          scale={s}
+          opacity={a.opacity}
+          selected={selection?.has(a.entity.id)}
+          onPointerDown={grabFor(a.entity.id)}
+        />
+      ))}
+      {arrows.map(
+        (a) =>
+          a.from &&
+          a.to && (
+            <ArrowGlyph
+              key={a.entity.id}
+              annotation={a.entity}
+              from={a.from}
+              to={a.to}
+              scale={s}
+              opacity={a.opacity}
+              selected={selection?.has(a.entity.id)}
+              onPointerDown={grabFor(a.entity.id)}
+            />
+          )
+      )}
       {items.map(({ entity, pose }) => {
         const selected = selection?.has(entity.id);
-        const grab = onEntityPointerDown
-          ? (e: React.PointerEvent<SVGGElement>) => onEntityPointerDown(entity.id, e)
-          : undefined;
         switch (entity.kind) {
           case "player":
             return (
@@ -91,28 +128,51 @@ export function BoardSvg({
                 style={teams[entity.team]}
                 scale={s}
                 selected={selected}
-                onPointerDown={grab}
+                onPointerDown={grabFor(entity.id)}
               />
             );
           case "ball":
             return (
-              <BallGlyph key={entity.id} pose={pose} scale={s} selected={selected} onPointerDown={grab} />
+              <BallGlyph
+                key={entity.id}
+                pose={pose}
+                scale={s}
+                selected={selected}
+                onPointerDown={grabFor(entity.id)}
+              />
             );
-          case "cone":
+          case "arrow":
+          case "zone":
+          case "label":
+            return null;
+          default:
             return (
-              <ConeGlyph
+              <EquipmentGlyph
                 key={entity.id}
                 equipment={entity}
                 pose={pose}
                 scale={s}
                 selected={selected}
-                onPointerDown={grab}
+                onPointerDown={grabFor(entity.id)}
               />
             );
-          default:
-            return null;
         }
       })}
+      {labels.map(
+        (a) =>
+          a.pose && (
+            <LabelGlyph
+              key={a.entity.id}
+              annotation={a.entity}
+              pose={a.pose}
+              scale={s}
+              opacity={a.opacity}
+              selected={selection?.has(a.entity.id)}
+              onPointerDown={grabFor(a.entity.id)}
+            />
+          )
+      )}
+      {children}
     </svg>
   );
 }

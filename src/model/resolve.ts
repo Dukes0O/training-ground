@@ -1,4 +1,4 @@
-import type { Drill, Entity, Pose, TeamId, TeamStyle } from "./types";
+import type { AnchorPoint, Annotation, Drill, Entity, Point, Pose, TeamId, TeamStyle } from "./types";
 import {
   DEFAULT_FIRST_HOLD_MS,
   DEFAULT_PAUSE_AFTER_MS,
@@ -14,12 +14,23 @@ export interface ResolvedItem {
   pose: Pose;
 }
 
+export interface ResolvedAnnotation {
+  entity: Annotation;
+  opacity: number;
+  /** Endpoints with anchors resolved (and pulled back to token edges). */
+  from?: Point;
+  to?: Point;
+  /** Label position (labels are posed like normal entities). */
+  pose?: Pose;
+}
+
 /** Everything the board renderer needs to draw one moment of a drill. */
 export interface BoardSnapshot {
   spec: PitchSpec;
   gridOn: boolean;
   teams: Record<TeamId, TeamStyle>;
   items: ResolvedItem[];
+  annotations: ResolvedAnnotation[];
   /** Step index this moment belongs to (for annotation visibility windows). */
   stepIndex: number;
 }
@@ -43,7 +54,6 @@ export function posesAtStep(drill: Drill, stepIndex: number): Map<string, Pose> 
 }
 
 const KIND_LAYER: Record<string, number> = {
-  zone: 0,
   cone: 1,
   flat: 1,
   minigoal: 1,
@@ -51,30 +61,116 @@ const KIND_LAYER: Record<string, number> = {
   mannequin: 1,
   pole: 1,
   hurdle: 1,
-  arrow: 2,
-  label: 3,
   player: 4,
   ball: 5,
 };
+
+const FADE_MS = 150;
+
+function isAnnotation(e: Entity): e is Annotation {
+  return e.kind === "arrow" || e.kind === "zone" || e.kind === "label";
+}
+
+/** How far an arrow endpoint pulls back from an anchored entity's center. */
+function anchorShrink(entity: Entity | undefined, tokenScale: number): number {
+  if (!entity) return 0;
+  if (entity.kind === "player") return 1.7 * tokenScale;
+  if (entity.kind === "ball") return 0.9 * tokenScale;
+  return 0.9 * tokenScale;
+}
+
+function resolveAnchor(
+  anchor: AnchorPoint | undefined,
+  poses: Map<string, Pose>
+): { point: Point | null; ref: string | null } {
+  if (!anchor) return { point: null, ref: null };
+  if ("ref" in anchor) {
+    const pose = poses.get(anchor.ref);
+    return pose && !pose.hidden ? { point: { x: pose.x, y: pose.y }, ref: anchor.ref } : { point: null, ref: anchor.ref };
+  }
+  return { point: { x: anchor.x, y: anchor.y }, ref: null };
+}
+
+function pullBack(p: Point, toward: Point, by: number): Point {
+  const d = Math.hypot(toward.x - p.x, toward.y - p.y);
+  if (d <= by || d === 0) return p;
+  const f = by / d;
+  return { x: p.x + (toward.x - p.x) * f, y: p.y + (toward.y - p.y) * f };
+}
+
+/**
+ * Annotation opacity for a moment. `fade` describes progress into a move
+ * segment so step-scoped notation fades in/out instead of popping.
+ */
+function annotationOpacity(
+  a: Annotation,
+  stepIndex: number,
+  fade: { elapsedMs: number } | null
+): number {
+  const from = a.fromStep ?? 0;
+  const to = a.toStep ?? Number.POSITIVE_INFINITY;
+  const visible = from <= stepIndex && stepIndex <= to;
+  if (!fade) return visible ? 1 : 0;
+  const ramp = Math.min(Math.max(fade.elapsedMs / FADE_MS, 0), 1);
+  if (visible) return from === stepIndex ? ramp : 1;
+  if (to === stepIndex - 1 && from <= stepIndex - 1) return 1 - ramp; // just expired
+  return 0;
+}
+
+function resolveAnnotations(
+  drill: Drill,
+  poses: Map<string, Pose>,
+  stepIndex: number,
+  fade: { elapsedMs: number } | null,
+  tokenScale: number
+): ResolvedAnnotation[] {
+  const byId = new Map(drill.entities.map((e) => [e.id, e]));
+  const out: ResolvedAnnotation[] = [];
+  for (const entity of drill.entities) {
+    if (!isAnnotation(entity)) continue;
+    const opacity = annotationOpacity(entity, stepIndex, fade);
+    if (opacity <= 0) continue;
+    const resolved: ResolvedAnnotation = { entity, opacity };
+    if (entity.kind === "arrow") {
+      const a = resolveAnchor(entity.from, poses);
+      const b = resolveAnchor(entity.to, poses);
+      if (!a.point || !b.point) continue; // an anchored endpoint isn't on the board
+      const towardA = entity.via?.[0] ?? b.point;
+      const towardB = entity.via?.[entity.via.length - 1] ?? a.point;
+      resolved.from = a.ref ? pullBack(a.point, towardA, anchorShrink(byId.get(a.ref), tokenScale)) : a.point;
+      resolved.to = b.ref ? pullBack(b.point, towardB, anchorShrink(byId.get(b.ref), tokenScale)) : b.point;
+    } else if (entity.kind === "label") {
+      const pose = poses.get(entity.id);
+      if (!pose || pose.hidden) continue;
+      resolved.pose = pose;
+    }
+    out.push(resolved);
+  }
+  return out;
+}
 
 function buildSnapshot(
   drill: Drill,
   poses: Map<string, Pose>,
   gridOn: boolean,
-  stepIndex: number
+  stepIndex: number,
+  fade: { elapsedMs: number } | null = null
 ): BoardSnapshot {
   const items: ResolvedItem[] = [];
   for (const entity of drill.entities) {
+    if (isAnnotation(entity)) continue;
     const pose = poses.get(entity.id);
     if (!pose || pose.hidden) continue;
     items.push({ entity, pose });
   }
   items.sort((a, b) => (KIND_LAYER[a.entity.kind] ?? 1) - (KIND_LAYER[b.entity.kind] ?? 1));
+  const spec = resolvePitch(drill.pitch);
   return {
-    spec: resolvePitch(drill.pitch),
+    spec,
     gridOn,
     teams: resolveTeamStyles(drill),
     items,
+    annotations: resolveAnnotations(drill, poses, stepIndex, fade, spec.tokenScale),
     stepIndex,
   };
 }
@@ -172,6 +268,7 @@ export function sceneAt(drill: Drill, timeMs: number, gridOn: boolean): BoardSna
   const before = posesAtStep(drill, seg.stepIndex - 1);
   const span = seg.endMs - seg.startMs;
   const progress = span === 0 ? 1 : (t - seg.startMs) / span;
+  const fade = { elapsedMs: t - seg.startMs };
 
   const poses = new Map<string, Pose>();
   for (const entity of drill.entities) {
@@ -196,5 +293,5 @@ export function sceneAt(drill: Drill, timeMs: number, gridOn: boolean): BoardSna
       poses.set(entity.id, target); // first appearance: pops in at arrival
     }
   }
-  return buildSnapshot(drill, poses, gridOn, seg.stepIndex);
+  return buildSnapshot(drill, poses, gridOn, seg.stepIndex, fade);
 }

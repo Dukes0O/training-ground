@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
-import type { Equipment, Player, TeamId } from "../model/types";
+import type { Annotation, ArrowStyle, Equipment, Player, TeamId } from "../model/types";
 import { pitchFormatId, resolvePitch } from "../pitch/formats";
-import { CONE_DEFAULT_COLOR } from "../board/entities/ConeGlyph";
+import { EQUIPMENT_DEFAULT_COLORS, EQUIPMENT_LABELS } from "../board/entities/EquipmentGlyph";
+import { posesAtStep } from "../model/resolve";
 import { useEditor } from "../state/store";
 
 const POSITIONS = [
@@ -10,7 +11,8 @@ const POSITIONS = [
   "CDM", "RCM", "CM", "LCM", "CAM", "RM", "LM", "RW", "LW", "CF", "SS", "ST",
 ];
 
-const CONE_COLORS = ["#f97316", "#facc15", "#dc2626", "#2563eb", "#ffffff", "#16a34a"];
+const SWATCHES = ["#ffffff", "#facc15", "#f97316", "#dc2626", "#2563eb", "#16a34a", "#18181b"];
+const EQUIPMENT_SWATCHES = ["#f97316", "#facc15", "#dc2626", "#2563eb", "#ffffff", "#16a34a", "#e4e4e7"];
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -26,6 +28,32 @@ const inputCls =
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return <h2 className="text-sm font-semibold text-zinc-800">{children}</h2>;
+}
+
+function Swatches({
+  colors,
+  value,
+  onPick,
+}: {
+  colors: string[];
+  value: string;
+  onPick: (c: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {colors.map((c) => (
+        <button
+          key={c}
+          title={c}
+          onClick={() => onPick(c)}
+          className={`h-7 w-7 rounded-full border ${
+            value.toLowerCase() === c.toLowerCase() ? "ring-2 ring-blue-700 ring-offset-1" : "border-zinc-300"
+          }`}
+          style={{ backgroundColor: c }}
+        />
+      ))}
+    </div>
+  );
 }
 
 function DeleteButton() {
@@ -166,28 +194,212 @@ function PlayerForm({ player }: { player: Player }) {
   );
 }
 
-function ConeForm({ equipment }: { equipment: Equipment }) {
+function RotationField({ id }: { id: string }) {
+  const currentStep = useEditor((s) => s.currentStep);
+  const rotation = useEditor(
+    (s) => posesAtStep(s.drill, currentStep).get(id)?.rotation ?? 0
+  );
+  const setEntityRotation = useEditor((s) => s.setEntityRotation);
+  return (
+    <Field label="Rotation (°)">
+      <input
+        type="number"
+        step={15}
+        value={Math.round(rotation)}
+        onChange={(e) => setEntityRotation(id, Number(e.target.value) || 0)}
+        className={inputCls}
+      />
+    </Field>
+  );
+}
+
+function EquipmentForm({ equipment }: { equipment: Equipment }) {
   const setEquipmentColor = useEditor((s) => s.setEquipmentColor);
-  const current = equipment.color ?? CONE_DEFAULT_COLOR;
+  const current = equipment.color ?? EQUIPMENT_DEFAULT_COLORS[equipment.kind] ?? "#e4e4e7";
   return (
     <div className="space-y-3">
-      <SectionTitle>Cone</SectionTitle>
+      <SectionTitle>{EQUIPMENT_LABELS[equipment.kind] ?? "Equipment"}</SectionTitle>
       <Field label="Color">
-        <div className="flex gap-1.5">
-          {CONE_COLORS.map((c) => (
-            <button
-              key={c}
-              title={c}
-              onClick={() => setEquipmentColor(equipment.id, c)}
-              className={`h-7 w-7 rounded-full border ${
-                current === c ? "ring-2 ring-blue-700 ring-offset-1" : "border-zinc-300"
-              }`}
-              style={{ backgroundColor: c }}
-            />
-          ))}
-        </div>
+        <Swatches colors={EQUIPMENT_SWATCHES} value={current} onPick={(c) => setEquipmentColor(equipment.id, c)} />
       </Field>
+      {(equipment.kind === "minigoal" || equipment.kind === "ladder" || equipment.kind === "hurdle") && (
+        <RotationField id={equipment.id} />
+      )}
       <EntityStepActions id={equipment.id} />
+      <DeleteButton />
+    </div>
+  );
+}
+
+type VisMode = "all" | "single" | "range";
+
+function visModeOf(a: Annotation): VisMode {
+  if (a.fromStep == null && a.toStep == null) return "all";
+  if (a.fromStep != null && a.fromStep === a.toStep) return "single";
+  return "range";
+}
+
+function VisibilityField({ annotation }: { annotation: Annotation }) {
+  const updateAnnotation = useEditor((s) => s.updateAnnotation);
+  const currentStep = useEditor((s) => s.currentStep);
+  const stepCount = useEditor((s) => s.drill.steps.length);
+  const mode = visModeOf(annotation);
+  const numCls = `${inputCls} text-center`;
+  return (
+    <Field label="Visible">
+      <div className="space-y-2">
+        <select
+          value={mode}
+          onChange={(e) => {
+            const m = e.target.value as VisMode;
+            if (m === "all") updateAnnotation(annotation.id, { fromStep: undefined, toStep: undefined });
+            else if (m === "single")
+              updateAnnotation(annotation.id, { fromStep: currentStep, toStep: currentStep });
+            else
+              updateAnnotation(annotation.id, {
+                fromStep: annotation.fromStep ?? currentStep,
+                toStep: stepCount - 1,
+              });
+          }}
+          className={inputCls}
+        >
+          <option value="all">Every step</option>
+          <option value="single">One step only</option>
+          <option value="range">Step range</option>
+        </select>
+        {mode === "single" && (
+          <input
+            type="number"
+            min={1}
+            max={stepCount}
+            value={(annotation.fromStep ?? 0) + 1}
+            onChange={(e) => {
+              const k = Math.min(Math.max(Number(e.target.value) - 1, 0), stepCount - 1);
+              updateAnnotation(annotation.id, { fromStep: k, toStep: k });
+            }}
+            className={numCls}
+          />
+        )}
+        {mode === "range" && (
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              max={stepCount}
+              value={(annotation.fromStep ?? 0) + 1}
+              onChange={(e) => {
+                const k = Math.min(Math.max(Number(e.target.value) - 1, 0), stepCount - 1);
+                updateAnnotation(annotation.id, { fromStep: k });
+              }}
+              className={numCls}
+            />
+            <span className="text-xs text-zinc-500">to</span>
+            <input
+              type="number"
+              min={1}
+              max={stepCount}
+              value={(annotation.toStep ?? stepCount - 1) + 1}
+              onChange={(e) => {
+                const k = Math.min(Math.max(Number(e.target.value) - 1, 0), stepCount - 1);
+                updateAnnotation(annotation.id, { toStep: k });
+              }}
+              className={numCls}
+            />
+          </div>
+        )}
+      </div>
+    </Field>
+  );
+}
+
+function ArrowForm({ annotation }: { annotation: Annotation }) {
+  const updateAnnotation = useEditor((s) => s.updateAnnotation);
+  return (
+    <div className="space-y-3">
+      <SectionTitle>Arrow</SectionTitle>
+      <Field label="Style">
+        <select
+          value={annotation.style ?? "plain"}
+          onChange={(e) => updateAnnotation(annotation.id, { style: e.target.value as ArrowStyle })}
+          className={inputCls}
+        >
+          <option value="pass">Pass (solid)</option>
+          <option value="run">Run (dashed)</option>
+          <option value="dribble">Dribble (wavy)</option>
+          <option value="shot">Shot (thick)</option>
+          <option value="plain">Plain</option>
+        </select>
+      </Field>
+      <Field label="Color">
+        <Swatches
+          colors={SWATCHES}
+          value={annotation.color ?? "#ffffff"}
+          onPick={(c) => updateAnnotation(annotation.id, { color: c })}
+        />
+      </Field>
+      <VisibilityField annotation={annotation} />
+      <p className="text-xs leading-relaxed text-zinc-500">
+        Drag the round handles to move the ends. Ends dropped on a player or ball anchor to them
+        and follow their runs.
+      </p>
+      <DeleteButton />
+    </div>
+  );
+}
+
+function ZoneForm({ annotation }: { annotation: Annotation }) {
+  const updateAnnotation = useEditor((s) => s.updateAnnotation);
+  return (
+    <div className="space-y-3">
+      <SectionTitle>Zone</SectionTitle>
+      <Field label="Caption">
+        <input
+          value={annotation.text ?? ""}
+          spellCheck={false}
+          placeholder="e.g. Build-up zone"
+          onChange={(e) => updateAnnotation(annotation.id, { text: e.target.value || undefined })}
+          className={inputCls}
+        />
+      </Field>
+      <Field label="Color">
+        <Swatches
+          colors={SWATCHES}
+          value={annotation.color ?? "#facc15"}
+          onPick={(c) => updateAnnotation(annotation.id, { color: c })}
+        />
+      </Field>
+      <VisibilityField annotation={annotation} />
+      <p className="text-xs leading-relaxed text-zinc-500">
+        Drag the zone to move it; drag the corner handle to resize.
+      </p>
+      <DeleteButton />
+    </div>
+  );
+}
+
+function LabelForm({ annotation }: { annotation: Annotation }) {
+  const updateAnnotation = useEditor((s) => s.updateAnnotation);
+  return (
+    <div className="space-y-3">
+      <SectionTitle>Text label</SectionTitle>
+      <Field label="Text">
+        <input
+          value={annotation.text ?? ""}
+          spellCheck={false}
+          autoFocus
+          onChange={(e) => updateAnnotation(annotation.id, { text: e.target.value })}
+          className={inputCls}
+        />
+      </Field>
+      <Field label="Color">
+        <Swatches
+          colors={SWATCHES}
+          value={annotation.color ?? "#ffffff"}
+          onPick={(c) => updateAnnotation(annotation.id, { color: c })}
+        />
+      </Field>
+      <VisibilityField annotation={annotation} />
+      <EntityStepActions id={annotation.id} />
       <DeleteButton />
     </div>
   );
@@ -340,8 +552,8 @@ function DrillMeta() {
         </div>
       </div>
       <p className="text-xs leading-relaxed text-zinc-500">
-        Click a tool on the left rail, then click the board to place pieces. Select a piece to edit
-        it here. Drag to move, arrow keys to nudge, Delete to remove.
+        Click a tool on the left rail, then click the board to place pieces — arrows and zones are
+        drawn by dragging. Select a piece to edit it here. Delete removes, arrow keys nudge.
       </p>
     </div>
   );
@@ -354,9 +566,12 @@ export function InspectorPanel() {
   let body: React.ReactNode;
   if (selection.length === 1) {
     const entity = entities.find((e) => e.id === selection[0]);
-    if (entity?.kind === "player") body = <PlayerForm player={entity} />;
-    else if (entity?.kind === "cone") body = <ConeForm equipment={entity} />;
-    else if (entity?.kind === "ball")
+    if (!entity) body = <DrillMeta />;
+    else if (entity.kind === "player") body = <PlayerForm player={entity} />;
+    else if (entity.kind === "arrow") body = <ArrowForm annotation={entity} />;
+    else if (entity.kind === "zone") body = <ZoneForm annotation={entity} />;
+    else if (entity.kind === "label") body = <LabelForm annotation={entity} />;
+    else if (entity.kind === "ball")
       body = (
         <div className="space-y-3">
           <SectionTitle>Ball</SectionTitle>
@@ -364,7 +579,8 @@ export function InspectorPanel() {
           <DeleteButton />
         </div>
       );
-    else body = <DrillMeta />;
+    // All annotation/player/ball kinds are handled above; what's left is equipment.
+    else body = <EquipmentForm equipment={entity as Equipment} />;
   } else if (selection.length > 1) {
     body = (
       <div className="space-y-3">

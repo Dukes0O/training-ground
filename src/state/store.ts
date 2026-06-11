@@ -2,12 +2,54 @@ import { create } from "zustand";
 import { useStore } from "zustand";
 import { temporal } from "zundo";
 import { immer } from "zustand/middleware/immer";
-import type { Drill, EaseName, PitchFormatId, Player, Point, Step, TeamId } from "../model/types";
+import type {
+  AnchorPoint,
+  Annotation,
+  ArrowStyle,
+  Drill,
+  EaseName,
+  EquipmentKind,
+  PitchFormatId,
+  Player,
+  Point,
+  Step,
+  TeamId,
+} from "../model/types";
 import type { DrillSummary, RostersFile } from "../api/client";
-import { getTimeline, stepAtTime } from "../model/resolve";
+import { getTimeline, posesAtStep, stepAtTime } from "../model/resolve";
 import { APRON, defaultGridOn, pitchFormatId, resolvePitch } from "../pitch/formats";
 
-export type Tool = "select" | "add-home" | "add-away" | "add-neutral" | "add-ball" | "add-cone";
+export type Tool =
+  | "select"
+  | "add-home"
+  | "add-away"
+  | "add-neutral"
+  | "add-ball"
+  | "add-cone"
+  | "add-flat"
+  | "add-minigoal"
+  | "add-ladder"
+  | "add-mannequin"
+  | "add-pole"
+  | "add-hurdle"
+  | "draw-pass"
+  | "draw-run"
+  | "draw-dribble"
+  | "draw-shot"
+  | "draw-zone"
+  | "add-label";
+
+export const EQUIPMENT_TOOLS = [
+  "add-cone",
+  "add-flat",
+  "add-minigoal",
+  "add-ladder",
+  "add-mannequin",
+  "add-pole",
+  "add-hurdle",
+] as const;
+
+export const ARROW_TOOLS = ["draw-pass", "draw-run", "draw-dribble", "draw-shot"] as const;
 
 export interface Toast {
   id: number;
@@ -96,10 +138,15 @@ interface EditorState {
   setGridOn: (on: boolean) => void;
   addPlayer: (team: TeamId, pt: Point) => void;
   addBall: (pt: Point) => void;
-  addCone: (pt: Point) => void;
+  addEquipment: (kind: EquipmentKind, pt: Point) => void;
+  addLabel: (pt: Point) => void;
+  addArrow: (style: ArrowStyle, from: AnchorPoint, to: AnchorPoint, via?: Point[]) => void;
+  addZone: (rect: { x: number; y: number; w: number; h: number }) => void;
+  updateAnnotation: (id: string, patch: Partial<Omit<Annotation, "kind" | "id">>) => void;
   moveEntity: (id: string, pt: Point) => void;
   updatePlayer: (id: string, patch: Partial<Omit<Player, "kind" | "id">>) => void;
   setEquipmentColor: (id: string, color: string) => void;
+  setEntityRotation: (id: string, rotation: number) => void;
   removeSelected: () => void;
   nudgeSelection: (dx: number, dy: number) => void;
   beginGesture: () => void;
@@ -220,12 +267,51 @@ export const useEditor = create<EditorState>()(
             s.drill.steps[s.currentStep].positions[id] = clamp(s.drill, pt);
             s.selection = [id];
           }),
-        addCone: (pt) =>
+        addEquipment: (kind, pt) =>
           set((s) => {
-            const id = uniqueId(s.drill, "cone");
-            s.drill.entities.push({ kind: "cone", id });
+            const id = uniqueId(s.drill, kind);
+            s.drill.entities.push({ kind, id });
             s.drill.steps[s.currentStep].positions[id] = clamp(s.drill, pt);
             s.selection = [id];
+          }),
+        addLabel: (pt) =>
+          set((s) => {
+            const id = uniqueId(s.drill, "label");
+            s.drill.entities.push({ kind: "label", id, text: "Text" });
+            s.drill.steps[s.currentStep].positions[id] = clamp(s.drill, pt);
+            s.selection = [id];
+            s.tool = "select";
+          }),
+        addArrow: (style, from, to, via) =>
+          set((s) => {
+            const id = uniqueId(s.drill, style === "plain" ? "arrow" : style);
+            s.drill.entities.push({
+              kind: "arrow",
+              id,
+              style,
+              from,
+              to,
+              ...(via && via.length > 0 ? { via } : {}),
+              fromStep: s.currentStep,
+              toStep: s.currentStep,
+            });
+            s.selection = [id];
+          }),
+        addZone: (rect) =>
+          set((s) => {
+            const id = uniqueId(s.drill, "zone");
+            s.drill.entities.push({ kind: "zone", id, rect });
+            s.selection = [id];
+            s.tool = "select";
+          }),
+        updateAnnotation: (id, patch) =>
+          set((s) => {
+            const e = s.drill.entities.find((e) => e.id === id);
+            if (!e || (e.kind !== "arrow" && e.kind !== "zone" && e.kind !== "label")) return;
+            for (const [key, value] of Object.entries(patch)) {
+              if (value === undefined) delete (e as unknown as Record<string, unknown>)[key];
+              else (e as unknown as Record<string, unknown>)[key] = value;
+            }
           }),
         moveEntity: (id, pt) =>
           set((s) => {
@@ -243,6 +329,18 @@ export const useEditor = create<EditorState>()(
           set((s) => {
             const e = s.drill.entities.find((e) => e.id === id);
             if (e && e.kind !== "player" && e.kind !== "ball" && "color" in e) e.color = color;
+          }),
+        setEntityRotation: (id, rotation) =>
+          set((s) => {
+            const step = s.drill.steps[s.currentStep];
+            const existing = step.positions[id];
+            const normalized = ((rotation % 360) + 360) % 360;
+            if (existing) {
+              existing.rotation = normalized === 0 ? undefined : normalized;
+            } else {
+              const resolved = posesAtStep(s.drill, s.currentStep).get(id);
+              if (resolved) step.positions[id] = { x: resolved.x, y: resolved.y, rotation: normalized || undefined };
+            }
           }),
         removeSelected: () =>
           set((s) => {

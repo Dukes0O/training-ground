@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { initPersistence } from "./api/persistence";
 import { BoardSvg } from "./board/BoardSvg";
+import { EditorOverlay } from "./board/EditorOverlay";
 import { useBoardInteraction } from "./board/useBoardInteraction";
 import { sceneAt, snapshotAtStep } from "./model/resolve";
 import { InspectorPanel } from "./inspector/InspectorPanel";
@@ -30,8 +31,6 @@ export default function App() {
   const selection = useEditor((s) => s.selection);
   const mode = useEditor((s) => s.mode);
   const timeMs = useEditor((s) => s.timeMs);
-  const interaction = useBoardInteraction();
-
   const snapshot = useMemo(
     () =>
       mode === "playback"
@@ -39,6 +38,7 @@ export default function App() {
         : snapshotAtStep(drill, currentStep, gridOn),
     [drill, currentStep, gridOn, mode, timeMs]
   );
+  const interaction = useBoardInteraction(snapshot);
   const selectionSet = useMemo(() => new Set(selection), [selection]);
   const editing = mode === "edit";
 
@@ -56,7 +56,16 @@ export default function App() {
               onBoardPointerDown={editing ? interaction.onBoardPointerDown : undefined}
               onBoardPointerMove={editing ? interaction.onBoardPointerMove : undefined}
               onBoardPointerUp={editing ? interaction.onBoardPointerUp : undefined}
-            />
+            >
+              {editing && (
+                <EditorOverlay
+                  snapshot={snapshot}
+                  selection={selectionSet}
+                  preview={interaction.preview}
+                  onHandlePointerDown={interaction.onHandlePointerDown}
+                />
+              )}
+            </BoardSvg>
             {editing && <ToolRail />}
           </div>
         </main>
