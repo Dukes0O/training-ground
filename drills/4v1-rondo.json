@@ -4,48 +4,197 @@
   "id": "4v1-rondo",
   "title": "4v1 Rondo",
   "description": "Keep-away square: four attackers move the ball around one defender.",
-  "tags": ["rondo", "passing", "warmup"],
+  "tags": [
+    "rondo",
+    "passing",
+    "warmup"
+  ],
   "notes": "Coaching points: receive across your body, open hips before the ball arrives, split the defender only when the lane is truly open. Defender works 60-90 seconds then swaps with the attacker who lost the ball.",
   "themeColor": "#059669",
-  "pitch": { "format": "grid", "overrides": { "length": 15, "width": 15 } },
+  "pitch": {
+    "format": "grid",
+    "overrides": {
+      "length": 15,
+      "width": 15
+    }
+  },
   "entities": [
-    { "kind": "zone", "id": "rondo-square", "rect": { "x": 2, "y": 2, "w": 11, "h": 11 }, "color": "#facc15", "text": "8×8 yd" },
-    { "kind": "player", "id": "att-n", "team": "home", "number": 1 },
-    { "kind": "player", "id": "att-e", "team": "home", "number": 2 },
-    { "kind": "player", "id": "att-s", "team": "home", "number": 3 },
-    { "kind": "player", "id": "att-w", "team": "home", "number": 4 },
-    { "kind": "player", "id": "def-1", "team": "away", "number": 5 },
-    { "kind": "ball", "id": "ball" },
-    { "kind": "arrow", "id": "pass-1", "style": "pass", "from": { "ref": "att-n" }, "to": { "ref": "att-e" }, "fromStep": 1, "toStep": 1 },
-    { "kind": "arrow", "id": "pass-2", "style": "pass", "from": { "ref": "att-e" }, "to": { "ref": "att-s" }, "fromStep": 2, "toStep": 2 },
-    { "kind": "arrow", "id": "pass-3", "style": "pass", "from": { "ref": "att-s" }, "to": { "ref": "att-w" }, "fromStep": 3, "toStep": 3 }
+    {
+      "kind": "zone",
+      "id": "rondo-square",
+      "rect": {
+        "x": 2,
+        "y": 2,
+        "w": 11,
+        "h": 11
+      },
+      "text": "8×8 yd",
+      "color": "#facc15"
+    },
+    {
+      "kind": "player",
+      "id": "att-n",
+      "team": "home",
+      "number": 1
+    },
+    {
+      "kind": "player",
+      "id": "att-e",
+      "team": "home",
+      "number": 2
+    },
+    {
+      "kind": "player",
+      "id": "att-s",
+      "team": "home",
+      "number": 3
+    },
+    {
+      "kind": "player",
+      "id": "att-w",
+      "team": "home",
+      "number": 4
+    },
+    {
+      "kind": "player",
+      "id": "def-1",
+      "team": "away",
+      "number": 5
+    },
+    {
+      "kind": "ball",
+      "id": "ball"
+    },
+    {
+      "kind": "arrow",
+      "id": "pass-1",
+      "style": "pass",
+      "from": {
+        "ref": "att-n"
+      },
+      "to": {
+        "ref": "att-e"
+      },
+      "fromStep": 1,
+      "toStep": 1
+    },
+    {
+      "kind": "arrow",
+      "id": "pass-2",
+      "style": "pass",
+      "from": {
+        "ref": "att-e"
+      },
+      "to": {
+        "ref": "att-s"
+      },
+      "fromStep": 2,
+      "toStep": 2
+    },
+    {
+      "kind": "arrow",
+      "id": "pass-3",
+      "style": "pass",
+      "from": {
+        "ref": "att-s"
+      },
+      "to": {
+        "ref": "att-w"
+      },
+      "fromStep": 3,
+      "toStep": 3
+    }
   ],
   "steps": [
     {
       "name": "Setup",
       "positions": {
-        "att-n": { "x": 7.5, "y": 2 },
-        "att-e": { "x": 13, "y": 7.5 },
-        "att-s": { "x": 7.5, "y": 13 },
-        "att-w": { "x": 2, "y": 7.5 },
-        "def-1": { "x": 7.5, "y": 7.5 },
-        "ball": { "x": 7.5, "y": 3.2 }
+        "att-n": {
+          "x": 7.5,
+          "y": 2
+        },
+        "att-e": {
+          "x": 13,
+          "y": 7.5
+        },
+        "att-s": {
+          "x": 7.5,
+          "y": 13
+        },
+        "att-w": {
+          "x": 2,
+          "y": 7.5
+        },
+        "def-1": {
+          "x": 7.5,
+          "y": 7.5
+        },
+        "ball": {
+          "x": 7.5,
+          "y": 3.2
+        }
       }
     },
     {
       "name": "Pass to the east",
       "durationMs": 1200,
       "positions": {
-        "ball": { "x": 11.8, "y": 7.5, "ease": "linear" },
-        "def-1": { "x": 8.8, "y": 7.8 }
+        "att-n": {
+          "x": 7.5,
+          "y": 2
+        },
+        "att-e": {
+          "x": 13,
+          "y": 7.5
+        },
+        "att-s": {
+          "x": 7.5,
+          "y": 13
+        },
+        "att-w": {
+          "x": 2,
+          "y": 7.5
+        },
+        "def-1": {
+          "x": 8.8,
+          "y": 7.8
+        },
+        "ball": {
+          "x": 11.8,
+          "y": 7.5,
+          "ease": "linear"
+        }
       }
     },
     {
       "name": "Down the side",
       "durationMs": 1200,
       "positions": {
-        "ball": { "x": 7.5, "y": 11.8, "ease": "linear" },
-        "def-1": { "x": 8.2, "y": 9.4 }
+        "att-n": {
+          "x": 7.5,
+          "y": 2
+        },
+        "att-e": {
+          "x": 13,
+          "y": 7.5
+        },
+        "att-s": {
+          "x": 7.5,
+          "y": 13
+        },
+        "att-w": {
+          "x": 2,
+          "y": 7.5
+        },
+        "def-1": {
+          "x": 8.2,
+          "y": 9.4
+        },
+        "ball": {
+          "x": 7.5,
+          "y": 11.8,
+          "ease": "linear"
+        }
       }
     },
     {
@@ -53,9 +202,41 @@
       "durationMs": 1500,
       "pauseAfterMs": 600,
       "positions": {
-        "ball": { "x": 3.2, "y": 7.5, "ease": "linear", "via": [{ "x": 6.2, "y": 10.8 }] },
-        "def-1": { "x": 6.5, "y": 8.6 }
+        "att-n": {
+          "x": 7.5,
+          "y": 2
+        },
+        "att-e": {
+          "x": 13,
+          "y": 7.5
+        },
+        "att-s": {
+          "x": 7.5,
+          "y": 13
+        },
+        "att-w": {
+          "x": 2,
+          "y": 7.5
+        },
+        "def-1": {
+          "x": 6.5,
+          "y": 8.6
+        },
+        "ball": {
+          "x": 3.2,
+          "y": 7.5,
+          "via": [
+            {
+              "x": 6.2,
+              "y": 10.8
+            }
+          ],
+          "ease": "linear"
+        }
       }
     }
-  ]
+  ],
+  "rev": 2,
+  "createdAt": "2026-06-11T03:46:47.218Z",
+  "updatedAt": "2026-06-11T03:46:49.224Z"
 }

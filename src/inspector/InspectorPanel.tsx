@@ -41,6 +41,22 @@ function DeleteButton() {
   );
 }
 
+/** Shown when the entity has its own keyframe on the current (non-setup) step. */
+function EntityStepActions({ id }: { id: string }) {
+  const currentStep = useEditor((s) => s.currentStep);
+  const hasExplicit = useEditor((s) => s.drill.steps[s.currentStep]?.positions[id] != null);
+  const resetPose = useEditor((s) => s.resetPoseAtCurrentStep);
+  if (currentStep === 0 || !hasExplicit) return null;
+  return (
+    <button
+      onClick={() => resetPose(id)}
+      className="w-full rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+    >
+      Clear this step's move (stay at previous spot)
+    </button>
+  );
+}
+
 function RosterFill({ player }: { player: Player }) {
   const rosters = useEditor((s) => s.rosters);
   const updatePlayer = useEditor((s) => s.updatePlayer);
@@ -144,6 +160,7 @@ function PlayerForm({ player }: { player: Player }) {
           ))}
         </datalist>
       </Field>
+      <EntityStepActions id={player.id} />
       <DeleteButton />
     </div>
   );
@@ -170,6 +187,7 @@ function ConeForm({ equipment }: { equipment: Equipment }) {
           ))}
         </div>
       </Field>
+      <EntityStepActions id={equipment.id} />
       <DeleteButton />
     </div>
   );
@@ -205,6 +223,80 @@ function TagsField() {
         className={inputCls}
       />
     </Field>
+  );
+}
+
+function StepForm() {
+  const currentStep = useEditor((s) => s.currentStep);
+  const step = useEditor((s) => s.drill.steps[s.currentStep]);
+  const updateStepMeta = useEditor((s) => s.updateStepMeta);
+  if (!step) return null;
+  const isSetup = currentStep === 0;
+  return (
+    <div className="space-y-3 border-t border-zinc-100 pt-3">
+      <SectionTitle>{isSetup ? "Setup step" : `Step ${currentStep + 1}`}</SectionTitle>
+      <Field label="Step name">
+        <input
+          value={step.name ?? ""}
+          spellCheck={false}
+          placeholder={isSetup ? "Setup" : "e.g. Switch play"}
+          onChange={(e) => updateStepMeta(currentStep, { name: e.target.value || null })}
+          className={inputCls}
+        />
+      </Field>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label={isSetup ? "Hold (s)" : "Move time (s)"}>
+          <input
+            type="number"
+            min={0.1}
+            step={0.1}
+            value={(step.durationMs ?? (isSetup ? 800 : 2000)) / 1000}
+            onChange={(e) => {
+              const n = Number(e.target.value);
+              if (Number.isFinite(n) && n > 0) updateStepMeta(currentStep, { durationMs: Math.round(n * 1000) });
+            }}
+            className={inputCls}
+          />
+        </Field>
+        {!isSetup && (
+          <Field label="Pause after (s)">
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={(step.pauseAfterMs ?? 300) / 1000}
+              onChange={(e) => {
+                const n = Number(e.target.value);
+                if (Number.isFinite(n) && n >= 0) updateStepMeta(currentStep, { pauseAfterMs: Math.round(n * 1000) });
+              }}
+              className={inputCls}
+            />
+          </Field>
+        )}
+      </div>
+      {!isSetup && (
+        <Field label="Movement ease">
+          <select
+            value={step.ease ?? ""}
+            onChange={(e) =>
+              updateStepMeta(currentStep, { ease: (e.target.value || null) as never })
+            }
+            className={inputCls}
+          >
+            <option value="">Default (ease in-out)</option>
+            <option value="linear">Linear</option>
+            <option value="easeIn">Ease in</option>
+            <option value="easeOut">Ease out</option>
+            <option value="easeInOut">Ease in-out</option>
+          </select>
+        </Field>
+      )}
+      <p className="text-xs leading-relaxed text-zinc-500">
+        {isSetup
+          ? "The setup step is the starting picture; its time is how long the first frame holds."
+          : "Move time animates pieces into this step's spots. Drag pieces on the board to set where they arrive."}
+      </p>
+    </div>
   );
 }
 
@@ -268,6 +360,7 @@ export function InspectorPanel() {
       body = (
         <div className="space-y-3">
           <SectionTitle>Ball</SectionTitle>
+          <EntityStepActions id={entity.id} />
           <DeleteButton />
         </div>
       );
@@ -281,7 +374,12 @@ export function InspectorPanel() {
       </div>
     );
   } else {
-    body = <DrillMeta />;
+    body = (
+      <div className="space-y-4">
+        <DrillMeta />
+        <StepForm />
+      </div>
+    );
   }
 
   return <div className="p-4">{body}</div>;

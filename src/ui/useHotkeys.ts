@@ -29,9 +29,12 @@ export function useHotkeys() {
       } else if ((e.ctrlKey || e.metaKey) && key === "y") {
         e.preventDefault();
         redo();
+      } else if (e.key === " ") {
+        e.preventDefault();
+        state.togglePlay();
       } else if (e.key === "Delete" || e.key === "Backspace") {
         e.preventDefault();
-        state.removeSelected();
+        if (state.mode === "edit") state.removeSelected();
       } else if (e.key === "Escape") {
         state.setTool("select");
         state.clearSelection();
