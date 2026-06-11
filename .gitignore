@@ -1,0 +1,7 @@
+node_modules/
+dist/
+exports/
+data/trash/
+*.local
+.DS_Store
+npm-debug.log*
