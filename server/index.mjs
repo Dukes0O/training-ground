@@ -1,19 +1,22 @@
 import express from "express";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { exec } from "node:child_process";
 import { createRequire } from "node:module";
+import { ensureDirs, repoRoot } from "./paths.mjs";
+import { drillsRouter } from "./drills.mjs";
+import { exportsRouter } from "./exportsApi.mjs";
+import { watchRouter } from "./watch.mjs";
 
 const require = createRequire(import.meta.url);
 const pkg = require("../package.json");
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const repoRoot = path.resolve(__dirname, "..");
 const distDir = path.join(repoRoot, "dist");
 
 const HOST = "127.0.0.1";
 const DEFAULT_PORT = 8123;
 const MAX_PORT_PROBES = 8;
+
+ensureDirs();
 
 const app = express();
 app.disable("x-powered-by");
@@ -21,6 +24,10 @@ app.disable("x-powered-by");
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, version: pkg.version, dataDir: repoRoot });
 });
+
+app.use("/api", watchRouter());
+app.use("/api", exportsRouter());
+app.use("/api", drillsRouter());
 
 app.use(express.static(distDir));
 // SPA fallback: anything that isn't a file or /api route gets the app shell.

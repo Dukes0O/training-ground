@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import type { Equipment, Player, TeamId } from "../model/types";
 import { pitchFormatId, resolvePitch } from "../pitch/formats";
@@ -40,11 +41,60 @@ function DeleteButton() {
   );
 }
 
+function RosterFill({ player }: { player: Player }) {
+  const rosters = useEditor((s) => s.rosters);
+  const updatePlayer = useEditor((s) => s.updatePlayer);
+  const options = rosters.teams.flatMap((team) =>
+    team.players
+      .filter((p) => p.name)
+      .map((p) => ({
+        key: `${team.id}/${p.id}`,
+        label: `${p.name}${p.number != null ? ` · #${p.number}` : ""}${p.position ? ` · ${p.position}` : ""}`,
+        team,
+        p,
+      }))
+  );
+  if (options.length === 0) return null;
+  return (
+    <Field label="Fill from roster">
+      <select
+        value=""
+        onChange={(e) => {
+          const opt = options.find((o) => o.key === e.target.value);
+          if (opt) {
+            updatePlayer(player.id, {
+              name: opt.p.name,
+              number: opt.p.number,
+              position: opt.p.position,
+              rosterRef: opt.key,
+            });
+          }
+        }}
+        className={inputCls}
+      >
+        <option value="">Pick a player…</option>
+        {rosters.teams.map((team) => (
+          <optgroup key={team.id} label={team.name}>
+            {options
+              .filter((o) => o.team.id === team.id)
+              .map((o) => (
+                <option key={o.key} value={o.key}>
+                  {o.label}
+                </option>
+              ))}
+          </optgroup>
+        ))}
+      </select>
+    </Field>
+  );
+}
+
 function PlayerForm({ player }: { player: Player }) {
   const updatePlayer = useEditor((s) => s.updatePlayer);
   return (
     <div className="space-y-3">
       <SectionTitle>Player</SectionTitle>
+      <RosterFill player={player} />
       <Field label="Team">
         <select
           value={player.team}
@@ -125,6 +175,39 @@ function ConeForm({ equipment }: { equipment: Equipment }) {
   );
 }
 
+function TagsField() {
+  const drillId = useEditor((s) => s.drillId);
+  const tags = useEditor((s) => s.drill.tags);
+  const setTags = useEditor((s) => s.setTags);
+  const [text, setText] = useState((tags ?? []).join(", "));
+  useEffect(() => {
+    setText((tags ?? []).join(", "));
+    // Re-sync the input when another drill is opened or tags change elsewhere.
+  }, [drillId, tags]);
+  const commit = () =>
+    setTags(
+      text
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
+    );
+  return (
+    <Field label="Tags (comma-separated)">
+      <input
+        value={text}
+        spellCheck={false}
+        placeholder="passing, warmup, U11"
+        onChange={(e) => setText(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        }}
+        className={inputCls}
+      />
+    </Field>
+  );
+}
+
 function DrillMeta() {
   const drill = useEditor((s) => s.drill);
   const setDescription = useEditor((s) => s.setDescription);
@@ -143,6 +226,7 @@ function DrillMeta() {
           className={`${inputCls} resize-none`}
         />
       </Field>
+      <TagsField />
       <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-600">
         <div className="flex justify-between py-0.5">
           <span>Pitch</span>

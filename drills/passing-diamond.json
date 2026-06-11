@@ -1,0 +1,67 @@
+{
+  "$schema": "../schema/drill.schema.json",
+  "schemaVersion": 1,
+  "id": "passing-diamond",
+  "title": "Passing Diamond — Pass & Follow",
+  "description": "Four-cone diamond: pass clockwise and follow your pass to the next cone.",
+  "tags": ["passing", "technique", "warmup"],
+  "notes": "Firm passes to the back foot. After passing, accelerate to the cone you passed to — no jogging. Add a second ball once the rhythm settles.",
+  "themeColor": "#1e40af",
+  "pitch": { "format": "grid", "overrides": { "length": 20, "width": 20 } },
+  "entities": [
+    { "kind": "cone", "id": "cone-n", "color": "#f97316" },
+    { "kind": "cone", "id": "cone-e", "color": "#f97316" },
+    { "kind": "cone", "id": "cone-s", "color": "#f97316" },
+    { "kind": "cone", "id": "cone-w", "color": "#f97316" },
+    { "kind": "player", "id": "p1", "team": "home", "number": 1 },
+    { "kind": "player", "id": "p2", "team": "home", "number": 2 },
+    { "kind": "player", "id": "p3", "team": "home", "number": 3 },
+    { "kind": "player", "id": "p4", "team": "home", "number": 4 },
+    { "kind": "ball", "id": "ball" },
+    { "kind": "arrow", "id": "pass-a", "style": "pass", "from": { "ref": "p1" }, "to": { "ref": "p2" }, "fromStep": 1, "toStep": 1 },
+    { "kind": "arrow", "id": "run-a", "style": "run", "from": { "ref": "p1" }, "to": { "x": 16, "y": 10 }, "fromStep": 1, "toStep": 1 },
+    { "kind": "arrow", "id": "pass-b", "style": "pass", "from": { "ref": "p2" }, "to": { "ref": "p3" }, "fromStep": 2, "toStep": 2 },
+    { "kind": "arrow", "id": "pass-c", "style": "pass", "from": { "ref": "p3" }, "to": { "ref": "p4" }, "fromStep": 3, "toStep": 3 }
+  ],
+  "steps": [
+    {
+      "name": "Setup",
+      "positions": {
+        "cone-n": { "x": 10, "y": 3 },
+        "cone-e": { "x": 17, "y": 10 },
+        "cone-s": { "x": 10, "y": 17 },
+        "cone-w": { "x": 3, "y": 10 },
+        "p1": { "x": 10, "y": 4.2 },
+        "p2": { "x": 15.8, "y": 10 },
+        "p3": { "x": 10, "y": 15.8 },
+        "p4": { "x": 4.2, "y": 10 },
+        "ball": { "x": 10, "y": 5.4 }
+      }
+    },
+    {
+      "name": "Pass and follow",
+      "durationMs": 1500,
+      "positions": {
+        "ball": { "x": 14.8, "y": 9.6, "ease": "linear" },
+        "p1": { "x": 15, "y": 8.6, "via": [{ "x": 13, "y": 5.6 }] }
+      }
+    },
+    {
+      "name": "Around the diamond",
+      "durationMs": 1500,
+      "positions": {
+        "ball": { "x": 10.4, "y": 14.9, "ease": "linear" },
+        "p2": { "x": 11, "y": 15, "via": [{ "x": 14.6, "y": 14.2 }] }
+      }
+    },
+    {
+      "name": "Keep it moving",
+      "durationMs": 1500,
+      "pauseAfterMs": 500,
+      "positions": {
+        "ball": { "x": 5.2, "y": 10.4, "ease": "linear" },
+        "p3": { "x": 5.4, "y": 11.4, "via": [{ "x": 8.2, "y": 14.6 }] }
+      }
+    }
+  ]
+}

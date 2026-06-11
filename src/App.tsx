@@ -1,8 +1,13 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { initPersistence } from "./api/persistence";
 import { BoardSvg } from "./board/BoardSvg";
 import { useBoardInteraction } from "./board/useBoardInteraction";
 import { snapshotAtStep } from "./model/resolve";
 import { InspectorPanel } from "./inspector/InspectorPanel";
+import { LibraryPanel } from "./library/LibraryPanel";
+import { RosterDialog } from "./roster/RosterDialog";
+import { ConflictModal } from "./ui/ConflictModal";
+import { ToastHost } from "./ui/ToastHost";
 import { ToolRail } from "./ui/ToolRail";
 import { TopBar } from "./ui/TopBar";
 import { useHotkeys } from "./ui/useHotkeys";
@@ -10,6 +15,10 @@ import { useEditor } from "./state/store";
 
 export default function App() {
   useHotkeys();
+  useEffect(() => {
+    void initPersistence();
+  }, []);
+
   const drill = useEditor((s) => s.drill);
   const currentStep = useEditor((s) => s.currentStep);
   const gridOn = useEditor((s) => s.gridOn);
@@ -26,6 +35,7 @@ export default function App() {
     <div className="flex h-full flex-col bg-zinc-100 text-zinc-900">
       <TopBar />
       <div className="flex min-h-0 flex-1">
+        <LibraryPanel />
         <main className="relative min-w-0 flex-1 p-4">
           <div className="relative h-full w-full select-none overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 shadow-sm">
             <BoardSvg
@@ -43,6 +53,9 @@ export default function App() {
           <InspectorPanel />
         </aside>
       </div>
+      <RosterDialog />
+      <ConflictModal />
+      <ToastHost />
     </div>
   );
 }

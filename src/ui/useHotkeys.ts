@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { saveNow } from "../api/persistence";
 import { redo, undo, useEditor } from "../state/store";
 
 const NUDGE = 0.5;
@@ -18,7 +19,10 @@ export function useHotkeys() {
       }
       const state = useEditor.getState();
       const key = e.key.toLowerCase();
-      if ((e.ctrlKey || e.metaKey) && key === "z") {
+      if ((e.ctrlKey || e.metaKey) && key === "s") {
+        e.preventDefault();
+        void saveNow(true);
+      } else if ((e.ctrlKey || e.metaKey) && key === "z") {
         e.preventDefault();
         if (e.shiftKey) redo();
         else undo();
