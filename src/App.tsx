@@ -11,7 +11,10 @@ import { Timeline } from "./timeline/Timeline";
 import { usePlaybackClock } from "./timeline/usePlaybackClock";
 import { ConflictModal } from "./ui/ConflictModal";
 import { ExportProgressModal } from "./ui/ExportProgressModal";
+import { RecordDialog } from "./ui/RecordDialog";
+import { SettingsDialog } from "./ui/SettingsDialog";
 import { ToastHost } from "./ui/ToastHost";
+import { TrashDialog } from "./ui/TrashDialog";
 import { ToolRail } from "./ui/ToolRail";
 import { TopBar } from "./ui/TopBar";
 import { useHotkeys } from "./ui/useHotkeys";
@@ -32,6 +35,7 @@ export default function App() {
   const selection = useEditor((s) => s.selection);
   const mode = useEditor((s) => s.mode);
   const timeMs = useEditor((s) => s.timeMs);
+  const recordingActive = useEditor((s) => s.recordingActive);
   const snapshot = useMemo(
     () =>
       mode === "playback"
@@ -49,7 +53,12 @@ export default function App() {
       <div className="flex min-h-0 flex-1">
         <LibraryPanel />
         <main className="relative min-w-0 flex-1 p-4">
-          <div className="relative h-full w-full select-none overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 shadow-sm">
+          <div
+            data-board-root
+            className={`relative h-full w-full select-none overflow-hidden rounded-xl border bg-zinc-50 shadow-sm ${
+              recordingActive ? "border-red-400 ring-4 ring-red-500/60" : "border-zinc-200"
+            }`}
+          >
             <BoardSvg
               snapshot={snapshot}
               selection={editing ? selectionSet : EMPTY_SELECTION}
@@ -78,6 +87,9 @@ export default function App() {
       <RosterDialog />
       <ConflictModal />
       <ExportProgressModal />
+      <RecordDialog />
+      <TrashDialog />
+      <SettingsDialog />
       <ToastHost />
     </div>
   );

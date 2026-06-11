@@ -57,9 +57,14 @@ export async function runPngExport(): Promise<void> {
 }
 
 export async function runVideoExport(): Promise<void> {
-  const { drill, gridOn } = useEditor.getState();
+  const { drill, gridOn, appSettings } = useEditor.getState();
   await guarded("Video", async (signal) => {
-    const r = await exportVideo(drill, gridOn, { signal, onProgress: progressFor("Video") });
+    const r = await exportVideo(drill, gridOn, {
+      widthPx: appSettings.video?.width ?? 1280,
+      fps: appSettings.video?.fps ?? 30,
+      signal,
+      onProgress: progressFor("Video"),
+    });
     revealToast(`Video saved (${r.container.toUpperCase()}): ${r.path}`, r.path);
     return r;
   });
@@ -72,8 +77,14 @@ export async function runGifExport(): Promise<void> {
       .getState()
       .addToast("info", "Heads up: this drill runs past 20s — the GIF will be large. MP4 is usually the better post.");
   }
+  const { appSettings } = useEditor.getState();
   await guarded("GIF", async (signal) => {
-    const r = await exportGif(drill, gridOn, { signal, onProgress: progressFor("GIF") });
+    const r = await exportGif(drill, gridOn, {
+      widthPx: appSettings.gif?.width ?? 720,
+      fps: appSettings.gif?.fps ?? 12,
+      signal,
+      onProgress: progressFor("GIF"),
+    });
     revealToast(`GIF saved: ${r.path}`, r.path);
     return r;
   });

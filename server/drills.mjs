@@ -105,6 +105,46 @@ export function drillsRouter() {
     }
   });
 
+  router.get("/trash", async (_req, res) => {
+    let entries = [];
+    try {
+      entries = await fsp.readdir(trashDir, { withFileTypes: true });
+    } catch {
+      return res.json([]);
+    }
+    const out = [];
+    for (const e of entries) {
+      if (!e.isFile() || !e.name.endsWith(".json")) continue;
+      const stat = await fsp.stat(path.join(trashDir, e.name));
+      out.push({ file: e.name, id: e.name.split(".")[0], deletedAt: stat.mtime.toISOString() });
+    }
+    out.sort((a, b) => b.deletedAt.localeCompare(a.deletedAt));
+    res.json(out);
+  });
+
+  router.post("/trash/restore", async (req, res) => {
+    const file = String(req.body?.file ?? "");
+    if (!/^[a-z0-9][a-z0-9.-]*\.json$/i.test(file) || file.includes("..")) {
+      return res.status(400).json({ error: "invalid trash file name" });
+    }
+    const id = file.split(".")[0];
+    if (!isValidSlug(id)) return res.status(400).json({ error: "invalid drill id" });
+    const target = path.join(drillsDir, `${id}.json`);
+    try {
+      await fsp.access(target);
+      return res.status(409).json({ error: `a drill named "${id}" already exists` });
+    } catch {
+      // target free — proceed
+    }
+    try {
+      await fsp.rename(path.join(trashDir, file), target);
+      res.json({ ok: true, id });
+    } catch (err) {
+      if (err.code === "ENOENT") return res.status(404).json({ error: "not found in trash" });
+      res.status(500).json({ error: String(err.message ?? err) });
+    }
+  });
+
   router.get("/rosters", async (_req, res) => {
     try {
       res.json(await readJson(rostersFile));

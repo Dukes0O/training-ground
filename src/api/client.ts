@@ -87,6 +87,14 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ path }),
     }),
+
+  getTrash: () => j<TrashItem[]>("/api/trash"),
+  restoreTrash: (file: string) =>
+    j<{ ok: true; id: string }>("/api/trash/restore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file }),
+    }),
 };
 
 export interface RosterPlayer {
@@ -108,6 +116,15 @@ export interface RostersFile {
 
 export interface AppSettings {
   lastOpenId?: string | null;
+  defaultPitch?: import("../model/types").PitchFormatId;
+  video?: { width?: number; fps?: number };
+  gif?: { width?: number; fps?: number };
+}
+
+export interface TrashItem {
+  file: string;
+  id: string;
+  deletedAt: string;
 }
 
 export interface DrillChangeEvent {

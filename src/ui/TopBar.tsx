@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, Download, Redo2, Undo2 } from "lucide-react";
+import { ChevronDown, Circle, Download, Redo2, Settings, Undo2 } from "lucide-react";
 import { PITCH_FORMATS, pitchFormatId, resolvePitch } from "../pitch/formats";
 import type { PitchFormatId } from "../model/types";
 import { runBundleExport, runGifExport, runPngExport, runVideoExport } from "../export/runExport";
@@ -155,8 +155,32 @@ export function TopBar() {
           <Redo2 size={17} />
         </button>
         <div className="h-5 w-px bg-zinc-200" />
+        <RecordButton />
         <ExportMenu />
+        <button
+          onClick={() => useEditor.getState().setSettingsOpen(true)}
+          title="Settings"
+          className="rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
+        >
+          <Settings size={17} />
+        </button>
       </div>
     </header>
+  );
+}
+
+function RecordButton() {
+  const setRecordOpen = useEditor((s) => s.setRecordOpen);
+  const busy = useEditor((s) => s.exportJob != null || s.recordingActive);
+  return (
+    <button
+      onClick={() => setRecordOpen(true)}
+      disabled={busy}
+      title="Record a narrated take (board + your voice)"
+      className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+    >
+      <Circle size={11} className="fill-red-600 text-red-600" />
+      Record
+    </button>
   );
 }

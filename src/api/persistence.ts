@@ -42,6 +42,7 @@ export async function initPersistence(): Promise<void> {
     ]);
     settings = loadedSettings ?? {};
     const state = useEditor.getState();
+    state.setAppSettings(settings);
     state.setLibrary(library);
     state.setRosters(rosters ?? { teams: [] });
     const usable = library.filter((d) => !d.invalid);
@@ -164,7 +165,7 @@ export async function newDrill(): Promise<void> {
   let id = "untitled";
   let i = 2;
   while (taken.has(id)) id = `untitled-${i++}`;
-  const drill = makeDefaultDrill(id);
+  const drill = makeDefaultDrill(id, undefined, useEditor.getState().appSettings.defaultPitch ?? "9v9");
   try {
     const r = await api.putDrill(id, serializeDense(drill), null);
     loadIntoEditor(drill, r.rev);
@@ -208,6 +209,17 @@ export async function resolveConflict(decision: "reload" | "keepMine"): Promise<
     useEditor.getState().setConflict(null);
     await saveNow(true);
     toast("info", "Kept your version — disk file overwritten.");
+  }
+}
+
+export async function saveAppSettings(patch: AppSettings): Promise<void> {
+  settings = { ...settings, ...patch };
+  useEditor.getState().setAppSettings(settings);
+  try {
+    await api.putSettings(settings);
+    toast("success", "Settings saved.");
+  } catch (err) {
+    toast("error", `Settings save failed: ${(err as Error).message}`);
   }
 }
 

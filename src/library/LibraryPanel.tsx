@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Plus, Search, Trash2, Users } from "lucide-react";
+import { AlertTriangle, ArchiveRestore, Plus, Search, Trash2, Users } from "lucide-react";
 import { api } from "../api/client";
 import type { DrillSummary } from "../api/client";
 import { deleteDrillById, newDrill, openDrill } from "../api/persistence";
@@ -154,6 +154,13 @@ export function LibraryPanel() {
       <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-3 py-2.5">
         <span className="text-sm font-semibold text-zinc-800">Library</span>
         <div className="flex items-center gap-1">
+          <button
+            title="Trash (restore deleted drills)"
+            onClick={() => useEditor.getState().setTrashOpen(true)}
+            className="rounded-md p-1.5 text-zinc-600 hover:bg-zinc-100"
+          >
+            <ArchiveRestore size={16} />
+          </button>
           <button
             title="Team roster"
             onClick={() => setRosterOpen(true)}

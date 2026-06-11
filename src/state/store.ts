@@ -15,7 +15,7 @@ import type {
   Step,
   TeamId,
 } from "../model/types";
-import type { DrillSummary, RostersFile } from "../api/client";
+import type { AppSettings, DrillSummary, RostersFile } from "../api/client";
 import { getTimeline, posesAtStep, stepAtTime } from "../model/resolve";
 import { APRON, defaultGridOn, pitchFormatId, resolvePitch } from "../pitch/formats";
 
@@ -65,13 +65,17 @@ export interface ExportJob {
   total: number;
 }
 
-export function makeDefaultDrill(id: string, title = "Untitled drill"): Drill {
-  const spec = resolvePitch("9v9");
+export function makeDefaultDrill(
+  id: string,
+  title = "Untitled drill",
+  pitch: PitchFormatId = "9v9"
+): Drill {
+  const spec = resolvePitch(pitch);
   return {
     schemaVersion: 1,
     id,
     title,
-    pitch: "9v9",
+    pitch,
     entities: [{ kind: "ball", id: "ball" }],
     steps: [{ name: "Setup", positions: { ball: { x: spec.length / 2, y: spec.width / 2 } } }],
   };
@@ -136,6 +140,11 @@ interface EditorState {
   speed: number;
   loop: boolean;
   exportJob: ExportJob | null;
+  recordOpen: boolean;
+  recordingActive: boolean;
+  trashOpen: boolean;
+  settingsOpen: boolean;
+  appSettings: AppSettings;
 
   setTool: (tool: Tool) => void;
   select: (ids: string[], additive?: boolean) => void;
@@ -185,6 +194,11 @@ interface EditorState {
   setLibrary: (library: DrillSummary[]) => void;
   setRosters: (rosters: RostersFile) => void;
   setRosterOpen: (open: boolean) => void;
+  setRecordOpen: (open: boolean) => void;
+  setRecordingActive: (active: boolean) => void;
+  setTrashOpen: (open: boolean) => void;
+  setSettingsOpen: (open: boolean) => void;
+  setAppSettings: (settings: AppSettings) => void;
   addToast: (kind: Toast["kind"], text: string, action?: Toast["action"]) => void;
   removeToast: (id: number) => void;
 }
@@ -222,6 +236,11 @@ export const useEditor = create<EditorState>()(
         speed: 1,
         loop: false,
         exportJob: null,
+        recordOpen: false,
+        recordingActive: false,
+        trashOpen: false,
+        settingsOpen: false,
+        appSettings: {},
 
         setTool: (tool) =>
           set((s) => {
@@ -564,6 +583,26 @@ export const useEditor = create<EditorState>()(
         setRosterOpen: (open) =>
           set((s) => {
             s.rosterOpen = open;
+          }),
+        setRecordOpen: (open) =>
+          set((s) => {
+            s.recordOpen = open;
+          }),
+        setRecordingActive: (active) =>
+          set((s) => {
+            s.recordingActive = active;
+          }),
+        setTrashOpen: (open) =>
+          set((s) => {
+            s.trashOpen = open;
+          }),
+        setSettingsOpen: (open) =>
+          set((s) => {
+            s.settingsOpen = open;
+          }),
+        setAppSettings: (settings) =>
+          set((s) => {
+            s.appSettings = settings;
           }),
         addToast: (kind, text, action) => {
           const id = toastSeq++;
