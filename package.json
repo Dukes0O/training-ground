@@ -16,8 +16,10 @@
   "dependencies": {
     "chokidar": "^5.0.0",
     "express": "^5.2.1",
+    "gifenc": "^1.0.3",
     "immer": "^11.1.8",
     "lucide-react": "^1.17.0",
+    "mediabunny": "^1.46.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "zod": "^4.4.3",

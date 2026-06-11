@@ -70,6 +70,23 @@ export const api = {
       `/api/exports/${encodeURIComponent(id)}/asset?name=${encodeURIComponent(name)}`,
       { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: blob }
     ),
+
+  postBundle: (
+    id: string,
+    body: { title: string; description: string; themeColor: string; assets: string[] }
+  ) =>
+    j<{ ok: true; path: string }>(`/api/exports/${encodeURIComponent(id)}/bundle`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+
+  reveal: (path: string) =>
+    j<{ ok: true }>("/api/reveal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path }),
+    }),
 };
 
 export interface RosterPlayer {

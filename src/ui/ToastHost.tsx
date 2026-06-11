@@ -19,6 +19,17 @@ export function ToastHost() {
           className={`flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm shadow-lg ${KIND_CLS[t.kind]}`}
         >
           <span className="min-w-0 flex-1 break-words leading-snug">{t.text}</span>
+          {t.action && (
+            <button
+              onClick={() => {
+                t.action?.run();
+                removeToast(t.id);
+              }}
+              className="shrink-0 rounded-md border border-current/30 px-2 py-0.5 text-xs font-semibold opacity-80 hover:opacity-100"
+            >
+              {t.action.label}
+            </button>
+          )}
           <button
             onClick={() => removeToast(t.id)}
             className="shrink-0 rounded p-0.5 opacity-60 hover:opacity-100"

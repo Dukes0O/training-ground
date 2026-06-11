@@ -10,6 +10,7 @@ import { RosterDialog } from "./roster/RosterDialog";
 import { Timeline } from "./timeline/Timeline";
 import { usePlaybackClock } from "./timeline/usePlaybackClock";
 import { ConflictModal } from "./ui/ConflictModal";
+import { ExportProgressModal } from "./ui/ExportProgressModal";
 import { ToastHost } from "./ui/ToastHost";
 import { ToolRail } from "./ui/ToolRail";
 import { TopBar } from "./ui/TopBar";
@@ -76,6 +77,7 @@ export default function App() {
       <Timeline />
       <RosterDialog />
       <ConflictModal />
+      <ExportProgressModal />
       <ToastHost />
     </div>
   );

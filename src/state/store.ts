@@ -55,6 +55,14 @@ export interface Toast {
   id: number;
   kind: "info" | "success" | "error";
   text: string;
+  action?: { label: string; run: () => void };
+}
+
+export interface ExportJob {
+  kind: string;
+  phase: string;
+  done: number;
+  total: number;
 }
 
 export function makeDefaultDrill(id: string, title = "Untitled drill"): Drill {
@@ -127,6 +135,7 @@ interface EditorState {
   timeMs: number;
   speed: number;
   loop: boolean;
+  exportJob: ExportJob | null;
 
   setTool: (tool: Tool) => void;
   select: (ids: string[], additive?: boolean) => void;
@@ -176,7 +185,7 @@ interface EditorState {
   setLibrary: (library: DrillSummary[]) => void;
   setRosters: (rosters: RostersFile) => void;
   setRosterOpen: (open: boolean) => void;
-  addToast: (kind: Toast["kind"], text: string) => void;
+  addToast: (kind: Toast["kind"], text: string, action?: Toast["action"]) => void;
   removeToast: (id: number) => void;
 }
 
@@ -212,6 +221,7 @@ export const useEditor = create<EditorState>()(
         timeMs: 0,
         speed: 1,
         loop: false,
+        exportJob: null,
 
         setTool: (tool) =>
           set((s) => {
@@ -555,12 +565,12 @@ export const useEditor = create<EditorState>()(
           set((s) => {
             s.rosterOpen = open;
           }),
-        addToast: (kind, text) => {
+        addToast: (kind, text, action) => {
           const id = toastSeq++;
           set((s) => {
-            s.toasts.push({ id, kind, text });
+            s.toasts.push({ id, kind, text, action });
           });
-          setTimeout(() => get().removeToast(id), kind === "error" ? 8000 : 4500);
+          setTimeout(() => get().removeToast(id), kind === "error" ? 8000 : action ? 7000 : 4500);
         },
         removeToast: (id) =>
           set((s) => {

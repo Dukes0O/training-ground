@@ -1,0 +1,86 @@
+import {
+  BufferTarget,
+  CanvasSource,
+  Mp4OutputFormat,
+  Output,
+  QUALITY_HIGH,
+  WebMOutputFormat,
+  getFirstEncodableVideoCodec,
+} from "mediabunny";
+import { api } from "../api/client";
+import type { Drill } from "../model/types";
+import { exportDimensions, renderFrames } from "./renderFrames";
+
+export interface VideoExportResult {
+  path: string;
+  container: "mp4" | "webm";
+  bytes: number;
+}
+
+export interface VideoExportOptions {
+  widthPx?: number;
+  fps?: number;
+  signal?: AbortSignal;
+  onProgress?: (done: number, total: number, phase: string) => void;
+}
+
+/**
+ * Offline render → WebCodecs encode → MP4 (H.264) when the OS provides an
+ * encoder, else WebM (VP9/AV1). Deterministic timing: every frame is exact.
+ */
+export async function exportVideo(
+  drill: Drill,
+  gridOn: boolean,
+  { widthPx = 1280, fps = 30, signal, onProgress }: VideoExportOptions = {}
+): Promise<VideoExportResult> {
+  const { width, height } = exportDimensions(drill, widthPx);
+
+  const mp4 = new Mp4OutputFormat();
+  const webm = new WebMOutputFormat();
+  const mp4Codec = await getFirstEncodableVideoCodec(mp4.getSupportedVideoCodecs(), { width, height });
+  const webmCodec = mp4Codec
+    ? null
+    : await getFirstEncodableVideoCodec(webm.getSupportedVideoCodecs(), { width, height });
+
+  if (!mp4Codec && !webmCodec) {
+    throw new Error(
+      "No video encoder available in this browser. Use Chrome or Edge (WebCodecs required)."
+    );
+  }
+  const container: "mp4" | "webm" = mp4Codec ? "mp4" : "webm";
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const output = new Output({
+    format: mp4Codec ? mp4 : webm,
+    target: new BufferTarget(),
+  });
+  const source = new CanvasSource(canvas, {
+    codec: (mp4Codec ?? webmCodec)!,
+    bitrate: QUALITY_HIGH,
+  });
+  output.addVideoTrack(source, { frameRate: fps });
+  await output.start();
+
+  try {
+    for await (const frame of renderFrames(drill, gridOn, { widthPx, fps, signal, canvas })) {
+      await source.add(frame.timeMs / 1000, 1 / fps);
+      onProgress?.(frame.index + 1, frame.total, "Rendering frames");
+    }
+    onProgress?.(1, 1, "Finalizing video");
+    source.close();
+    await output.finalize();
+  } catch (err) {
+    await output.cancel().catch(() => undefined);
+    throw err;
+  }
+
+  const buffer = (output.target as BufferTarget).buffer;
+  if (!buffer) throw new Error("Encoder produced no output");
+  onProgress?.(1, 1, "Saving");
+  const name = `${drill.id}.${container}`;
+  const saved = await api.postAsset(drill.id, name, new Blob([buffer]));
+  return { path: saved.path, container, bytes: saved.bytes };
+}

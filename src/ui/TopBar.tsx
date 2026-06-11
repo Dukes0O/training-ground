@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChevronDown, Download, Redo2, Undo2 } from "lucide-react";
 import { PITCH_FORMATS, pitchFormatId, resolvePitch } from "../pitch/formats";
 import type { PitchFormatId } from "../model/types";
-import { exportPng } from "../export/exportPng";
+import { runBundleExport, runGifExport, runPngExport, runVideoExport } from "../export/runExport";
 import { redo, undo, useCanRedo, useCanUndo, useEditor } from "../state/store";
 
 const ACCENT = "#1e40af";
@@ -31,22 +31,15 @@ function SaveStatus() {
 
 function ExportMenu() {
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const addToast = useEditor((s) => s.addToast);
+  const busy = useEditor((s) => s.exportJob != null);
 
-  const exportSnapshot = async () => {
+  const run = (fn: () => Promise<void>) => {
     setOpen(false);
-    setBusy(true);
-    const { drill, currentStep, gridOn } = useEditor.getState();
-    try {
-      const r = await exportPng(drill, currentStep, gridOn);
-      addToast("success", `Snapshot saved: ${r.path}`);
-    } catch (err) {
-      addToast("error", `PNG export failed: ${(err as Error).message}`);
-    } finally {
-      setBusy(false);
-    }
+    void fn();
   };
+
+  const item =
+    "w-full rounded-md px-2.5 py-1.5 text-left text-sm text-zinc-800 hover:bg-zinc-100 disabled:opacity-50";
 
   return (
     <div className="relative">
@@ -62,18 +55,26 @@ function ExportMenu() {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-20 mt-1 w-60 rounded-lg border border-zinc-200 bg-white p-1 shadow-lg">
-            <button
-              onClick={() => void exportSnapshot()}
-              className="w-full rounded-md px-2.5 py-1.5 text-left text-sm text-zinc-800 hover:bg-zinc-100"
-            >
+          <div className="absolute right-0 top-full z-20 mt-1 w-64 rounded-lg border border-zinc-200 bg-white p-1 shadow-lg">
+            <button onClick={() => run(runPngExport)} className={item}>
               Snapshot PNG
-              <span className="block text-xs text-zinc-500">Current step at 1920 px → exports\</span>
+              <span className="block text-xs text-zinc-500">Current step at 1920 px</span>
             </button>
-            <div className="px-2.5 py-1.5 text-left text-sm text-zinc-400">
-              Video / GIF / site bundle
-              <span className="block text-xs">Coming with the animation milestones</span>
-            </div>
+            <button onClick={() => run(runVideoExport)} className={item}>
+              Video (MP4)
+              <span className="block text-xs text-zinc-500">Full animation, 1280 px / 30 fps</span>
+            </button>
+            <button onClick={() => run(runGifExport)} className={item}>
+              GIF
+              <span className="block text-xs text-zinc-500">Loopable, 720 px / 12 fps</span>
+            </button>
+            <div className="my-1 h-px bg-zinc-100" />
+            <button onClick={() => run(runBundleExport)} className={item}>
+              Site bundle
+              <span className="block text-xs text-zinc-500">
+                PNG + GIF + MP4 + manifest snippet for the team site
+              </span>
+            </button>
           </div>
         </>
       )}
