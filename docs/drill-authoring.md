@@ -51,8 +51,14 @@ Declared once in `entities`, positioned per step in `steps[k].positions` keyed b
 | `label` | `id`, `text` | `color`, `fromStep`, `toStep` | free text; position it via `positions` |
 
 **Arrows** use coaching notation via `style`: `pass` (solid), `run` (dashed), `dribble` (wavy),
-`shot` (thick). Endpoints `from`/`to` are either a point `{ "x": 10, "y": 5 }` or an anchor
-`{ "ref": "entity-id" }` that **tracks the entity while it moves**. `via` adds curve waypoints.
+`shot` (thick), or `plain` (thin solid, the default). Endpoints `from`/`to` are either a point
+`{ "x": 10, "y": 5 }` or an anchor `{ "ref": "entity-id" }` that **tracks the entity while it
+moves**. `via` adds curve waypoints.
+
+**Team styling**: an optional top-level `teams` block restyles the three teams for this drill,
+e.g. `"teams": { "home": { "label": "Dukes", "fill": "#16a34a" }, "away": { "label": "Visitors" } }`.
+Defaults: home blue `#1d4ed8`, away red `#dc2626`, neutral amber `#f59e0b`; `text` (the number
+color) is picked automatically for contrast unless you set it.
 
 **Visibility**: annotations show from `fromStep` through `toStep` (inclusive step indexes).
 Omit both to show on every step. A pass arrow for step 2 → `"fromStep": 2, "toStep": 2`.
@@ -62,6 +68,9 @@ Omit both to show on every step. A pass arrow for step 2 → `"fromStep": 2, "to
 `steps[0]` is the starting picture. Each later step is a keyframe; **`durationMs` is the time
 animating INTO that step from the previous one** (default 2000). `pauseAfterMs` freezes on the
 arrived pose — use it as a coaching beat (default 300).
+
+On `steps[0]` the semantics differ: `durationMs` is how long the opening picture HOLDS before
+the first move (default 800 ms), and `pauseAfterMs` is ignored there.
 
 Per-entity pose fields: `x`, `y` plus optional `rotation` (degrees), `via` (waypoints traversed
 on the way into this step, smoothed through a curve), `ease` (`linear` | `easeIn` | `easeOut` |

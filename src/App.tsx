@@ -12,6 +12,7 @@ import { Timeline } from "./timeline/Timeline";
 import { usePlaybackClock } from "./timeline/usePlaybackClock";
 import { ConflictModal } from "./ui/ConflictModal";
 import { ExportProgressModal } from "./ui/ExportProgressModal";
+import { HelpDialog } from "./ui/HelpDialog";
 import { PlaceTeamDialog } from "./ui/PlaceTeamDialog";
 import { RecordDialog } from "./ui/RecordDialog";
 import { SettingsDialog } from "./ui/SettingsDialog";
@@ -95,6 +96,7 @@ export default function App() {
       <RecordDialog />
       <TrashDialog />
       <SettingsDialog />
+      <HelpDialog />
       <ToastHost />
     </div>
   );

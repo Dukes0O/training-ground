@@ -118,6 +118,7 @@ function Transport() {
 
 function DurationInput({ k, step }: { k: number; step: Step }) {
   const updateStepMeta = useEditor((s) => s.updateStepMeta);
+  const addStepAfter = useEditor((s) => s.addStepAfter);
   const value = (step.durationMs ?? 2000) / 1000;
   const [text, setText] = useState(String(value));
   useEffect(() => setText(String(value)), [value, k]);
@@ -127,7 +128,7 @@ function DurationInput({ k, step }: { k: number; step: Step }) {
     else setText(String(value));
   };
   return (
-    <div className="flex w-12 shrink-0 flex-col items-center justify-center gap-0.5 self-center">
+    <div className="group/conn flex w-12 shrink-0 flex-col items-center justify-center gap-0.5 self-center">
       <ChevronRight size={12} className="text-zinc-300" />
       <div className="flex items-center gap-0.5">
         <input
@@ -139,6 +140,13 @@ function DurationInput({ k, step }: { k: number; step: Step }) {
         />
         <span className="text-[10px] text-zinc-400">s</span>
       </div>
+      <button
+        title="Insert a step here"
+        onClick={() => addStepAfter(k - 1)}
+        className="rounded px-1 text-[10px] font-semibold text-zinc-300 opacity-0 transition-opacity hover:bg-blue-50 hover:text-blue-700 group-hover/conn:opacity-100"
+      >
+        +
+      </button>
     </div>
   );
 }

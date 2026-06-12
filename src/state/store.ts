@@ -172,6 +172,8 @@ interface EditorState {
   addZone: (rect: { x: number; y: number; w: number; h: number }) => void;
   updateAnnotation: (id: string, patch: Partial<Omit<Annotation, "kind" | "id">>) => void;
   moveEntity: (id: string, pt: Point) => void;
+  moveEntities: (moves: { id: string; pt: Point }[]) => void;
+  setTeamStyle: (team: TeamId, patch: { fill?: string; label?: string }) => void;
   updatePlayer: (id: string, patch: Partial<Omit<Player, "kind" | "id">>) => void;
   setEquipmentColor: (id: string, color: string) => void;
   setEntityRotation: (id: string, rotation: number) => void;
@@ -206,6 +208,8 @@ interface EditorState {
   setRosterOpen: (open: boolean) => void;
   placeTeamOpen: boolean;
   setPlaceTeamOpen: (open: boolean) => void;
+  helpOpen: boolean;
+  setHelpOpen: (open: boolean) => void;
   setRecordOpen: (open: boolean) => void;
   setRecordingActive: (active: boolean) => void;
   setTrashOpen: (open: boolean) => void;
@@ -457,6 +461,32 @@ export const useEditor = create<EditorState>()(
             const prev = step.positions[id];
             const c = clamp(s.drill, pt);
             step.positions[id] = prev ? { ...prev, x: c.x, y: c.y } : c;
+          }),
+        moveEntities: (moves) =>
+          set((s) => {
+            const step = s.drill.steps[s.currentStep];
+            for (const { id, pt } of moves) {
+              const prev = step.positions[id];
+              const c = clamp(s.drill, pt);
+              step.positions[id] = prev ? { ...prev, x: c.x, y: c.y } : c;
+            }
+          }),
+        setTeamStyle: (team, patch) =>
+          set((s) => {
+            const teams = s.drill.teams ?? {};
+            const current = { ...teams[team] };
+            if (patch.label !== undefined) current.label = patch.label || undefined;
+            if (patch.fill !== undefined) {
+              current.fill = patch.fill;
+              // Keep the jersey number readable on light fills.
+              const hex = patch.fill.replace("#", "");
+              const r = parseInt(hex.slice(0, 2), 16);
+              const g = parseInt(hex.slice(2, 4), 16);
+              const b = parseInt(hex.slice(4, 6), 16);
+              const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+              current.text = luminance > 0.6 ? "#1c1917" : "#ffffff";
+            }
+            s.drill.teams = { ...teams, [team]: current };
           }),
         updatePlayer: (id, patch) =>
           set((s) => {
@@ -738,6 +768,11 @@ export const useEditor = create<EditorState>()(
         setPlaceTeamOpen: (open) =>
           set((s) => {
             s.placeTeamOpen = open;
+          }),
+        helpOpen: false,
+        setHelpOpen: (open) =>
+          set((s) => {
+            s.helpOpen = open;
           }),
         setRecordOpen: (open) =>
           set((s) => {

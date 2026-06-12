@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, Circle, Download, Redo2, Settings, Undo2 } from "lucide-react";
+import { ChevronDown, Circle, Download, HelpCircle, Redo2, Settings, Undo2 } from "lucide-react";
 import { PITCH_FORMATS, pitchFormatId, resolvePitch } from "../pitch/formats";
 import type { PitchFormatId } from "../model/types";
 import { runBundleExport, runGifExport, runPngExport, runVideoExport } from "../export/runExport";
@@ -158,6 +158,13 @@ export function TopBar() {
         <div className="h-5 w-px bg-zinc-200" />
         <RecordButton />
         <ExportMenu />
+        <button
+          onClick={() => useEditor.getState().setHelpOpen(true)}
+          title="Shortcuts & gestures (?)"
+          className="rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100"
+        >
+          <HelpCircle size={17} />
+        </button>
         <button
           onClick={() => useEditor.getState().setSettingsOpen(true)}
           title="Settings"

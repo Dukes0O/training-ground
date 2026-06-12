@@ -153,12 +153,15 @@ export function LibraryPanel() {
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return (library ?? []).filter((d) => {
-      if (activeTag && !(d.tags ?? []).includes(activeTag)) return false;
-      if (!needle) return true;
-      const hay = `${d.title} ${d.description ?? ""} ${(d.tags ?? []).join(" ")}`.toLowerCase();
-      return hay.includes(needle);
-    });
+    return (library ?? [])
+      .filter((d) => {
+        if (activeTag && !(d.tags ?? []).includes(activeTag)) return false;
+        if (!needle) return true;
+        const hay = `${d.title} ${d.description ?? ""} ${(d.tags ?? []).join(" ")}`.toLowerCase();
+        return hay.includes(needle);
+      })
+      // Most recently touched first — filename order is meaningless to a coach.
+      .sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? "") || a.title.localeCompare(b.title));
   }, [library, q, activeTag]);
 
   return (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import type { Annotation, ArrowStyle, Equipment, Player, TeamId } from "../model/types";
+import { resolveTeamStyles } from "../model/types";
 import { pitchFormatId, resolvePitch } from "../pitch/formats";
 import { EQUIPMENT_DEFAULT_COLORS, EQUIPMENT_LABELS } from "../board/entities/EquipmentGlyph";
 import { posesAtStep } from "../model/resolve";
@@ -512,6 +513,46 @@ function StepForm() {
   );
 }
 
+const TEAM_FILL_SWATCHES = ["#1d4ed8", "#dc2626", "#f59e0b", "#16a34a", "#7c3aed", "#0e7490", "#ffffff", "#18181b"];
+
+function TeamStylesSection() {
+  const drill = useEditor((s) => s.drill);
+  const setTeamStyle = useEditor((s) => s.setTeamStyle);
+  const styles = resolveTeamStyles(drill);
+  return (
+    <div className="space-y-2 border-t border-zinc-100 pt-3">
+      <SectionTitle>Teams</SectionTitle>
+      {(["home", "away", "neutral"] as TeamId[]).map((team) => (
+        <div key={team} className="flex items-center gap-2">
+          <input
+            value={drill.teams?.[team]?.label ?? ""}
+            placeholder={styles[team].label}
+            spellCheck={false}
+            onChange={(e) => setTeamStyle(team, { label: e.target.value })}
+            className="w-24 rounded-md border border-zinc-300 px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-blue-700/40"
+          />
+          <div className="flex gap-1">
+            {TEAM_FILL_SWATCHES.map((c) => (
+              <button
+                key={c}
+                title={c}
+                onClick={() => setTeamStyle(team, { fill: c })}
+                className={`h-5 w-5 rounded-full border ${
+                  styles[team].fill.toLowerCase() === c.toLowerCase()
+                    ? "ring-2 ring-blue-700 ring-offset-1"
+                    : "border-zinc-300"
+                }`}
+                style={{ backgroundColor: c }}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+      <p className="text-xs text-zinc-500">Colors apply to this drill's tokens (and its exports).</p>
+    </div>
+  );
+}
+
 function DrillMeta() {
   const drill = useEditor((s) => s.drill);
   const setDescription = useEditor((s) => s.setDescription);
@@ -593,6 +634,7 @@ export function InspectorPanel() {
     body = (
       <div className="space-y-4">
         <DrillMeta />
+        <TeamStylesSection />
         <StepForm />
       </div>
     );

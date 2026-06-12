@@ -36,6 +36,8 @@ export function useHotkeys() {
         state.jumpToStep(state.currentStep - 1);
       } else if (e.key === ".") {
         state.jumpToStep(state.currentStep + 1);
+      } else if (e.key === "?") {
+        state.setHelpOpen(true);
       } else if (e.key === "Delete" || e.key === "Backspace") {
         e.preventDefault();
         if (state.mode === "edit") state.removeSelected();

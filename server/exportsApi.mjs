@@ -9,14 +9,18 @@ import { drillsDir, exportsDir, isValidSlug, readJson, repoRoot } from "./paths.
 const SAFE_NAME = /^[a-z0-9][a-z0-9._-]{0,99}$/i;
 
 function agentInstructions(id, assets) {
+  const png = assets.find((a) => a.endsWith(".png"));
+  const gif = assets.find((a) => a.endsWith(".gif"));
+  const mp4 = assets.find((a) => a.endsWith(".mp4") || a.endsWith(".webm"));
+  const animations = [gif, mp4].filter(Boolean).map((a) => `\`${a}\``).join(" and/or ");
   return `# Posting "${id}" to the soccer-quizzes site
 
 This bundle was exported from Training Ground for the GitHub Pages site
 (Dukes0O/soccer-quizzes). Suggested placement, following the site's existing
 conventions:
 
-1. Copy \`${id}.png\` to \`assets/graphics/${id}.png\` (poster/diagram image).
-2. Copy the animation (\`${id}.gif\`${assets.some((a) => a.endsWith(".mp4")) ? ` and/or \`${id}.mp4\`` : ""}) to \`assets/animations/\`.
+1. Copy ${png ? `\`${png}\`` : "the poster PNG"} to \`assets/graphics/\` (poster/diagram image).
+2. Copy the animation (${animations || "GIF/MP4"}) to \`assets/animations/\`.
 3. Append the entry in \`manifest-snippet.json\` to the appropriate manifest
    (e.g. \`resources/manifest.json\`, or the drills manifest if a Training
    Ground/drills section exists). Keep the existing field style.
@@ -90,12 +94,13 @@ export function exportsRouter() {
       // drill file unavailable; bundle remains media-only
     }
 
+    const pngName = copied.find((a) => a.endsWith(".png")) ?? `${id}.png`;
     const snippet = [
       {
         id,
         title: String(title ?? id),
         description: String(description ?? ""),
-        image: `assets/graphics/${id}.png`,
+        image: `assets/graphics/${pngName}`,
         themeColor: String(themeColor ?? "#1e40af"),
       },
     ];

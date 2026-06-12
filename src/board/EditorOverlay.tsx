@@ -1,7 +1,9 @@
 import type { BoardSnapshot } from "../model/resolve";
+import { posesAtStep } from "../model/resolve";
 import type { DrawPreview } from "./useBoardInteraction";
 import { ArrowGlyph } from "./annotations/ArrowGlyph";
 import { ZoneGlyph } from "./annotations/ZoneGlyph";
+import { useEditor } from "../state/store";
 
 interface Props {
   snapshot: BoardSnapshot;
@@ -11,6 +13,38 @@ interface Props {
     drag: { kind: "arrow-end"; id: string; which: "from" | "to" } | { kind: "zone-resize"; id: string },
     e: React.PointerEvent<SVGElement>
   ) => void;
+}
+
+/**
+ * Amber dot on the pieces that MOVE into the current step (pose differs from
+ * the previous step) — at a glance the coach sees who's active in this phase.
+ */
+function KeyframeBadges({ snapshot }: { snapshot: BoardSnapshot }) {
+  const currentStep = useEditor((st) => st.currentStep);
+  const drill = useEditor((st) => st.drill);
+  if (currentStep === 0) return null; // the setup picture has no "movers"
+  const before = posesAtStep(drill, currentStep - 1);
+  const s = snapshot.spec.tokenScale;
+  const moved = snapshot.items.filter(({ entity, pose }) => {
+    const prev = before.get(entity.id);
+    if (!prev) return true; // enters on this step
+    return Math.abs(prev.x - pose.x) > 0.01 || Math.abs(prev.y - pose.y) > 0.01;
+  });
+  return (
+    <g pointerEvents="none">
+      {moved.map(({ entity, pose }) => (
+        <circle
+          key={`kf-${entity.id}`}
+          cx={pose.x + 1.35 * s}
+          cy={pose.y - 1.35 * s}
+          r={0.32 * s}
+          fill="#f59e0b"
+          stroke="rgba(0,0,0,0.4)"
+          strokeWidth={0.06 * s}
+        />
+      ))}
+    </g>
+  );
 }
 
 /** Editor-only chrome drawn above the board: draw previews and drag handles. */
@@ -23,6 +57,19 @@ export function EditorOverlay({ snapshot, selection, preview, onHandlePointerDow
 
   return (
     <g>
+      <KeyframeBadges snapshot={snapshot} />
+      {preview?.kind === "marquee" && (
+        <rect
+          x={Math.min(preview.from.x, preview.to.x)}
+          y={Math.min(preview.from.y, preview.to.y)}
+          width={Math.abs(preview.to.x - preview.from.x)}
+          height={Math.abs(preview.to.y - preview.from.y)}
+          fill="rgba(59,130,246,0.12)"
+          stroke="#3b82f6"
+          strokeWidth={0.12 * s}
+          strokeDasharray={`${0.6 * s} ${0.4 * s}`}
+        />
+      )}
       {preview?.kind === "arrow" && preview.style && (
         <ArrowGlyph
           annotation={{ kind: "arrow", id: "__preview", style: preview.style }}

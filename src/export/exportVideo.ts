@@ -9,6 +9,7 @@ import {
 } from "mediabunny";
 import { api } from "../api/client";
 import type { Drill } from "../model/types";
+import { exportBaseName } from "./exportName";
 import { exportDimensions, renderFrames } from "./renderFrames";
 
 export interface VideoExportResult {
@@ -82,7 +83,7 @@ export async function exportVideo(
   if (!buffer) throw new Error("Encoder produced no output");
   signal?.throwIfAborted();
   onProgress?.(1, 1, "Saving");
-  const name = `${drill.id}.${container}`;
+  const name = `${exportBaseName(drill)}.${container}`;
   const saved = await api.postAsset(drill.id, name, new Blob([buffer]), signal);
   return { path: saved.path, container, bytes: saved.bytes };
 }

@@ -7,13 +7,14 @@ import { useEditor } from "../state/store";
 
 type DragState =
   | { kind: "entity"; id: string; offX: number; offY: number }
+  | { kind: "group"; offsets: { id: string; offX: number; offY: number }[] }
   | { kind: "zone-move"; id: string; grab: Point; rect0: { x: number; y: number; w: number; h: number } }
   | { kind: "zone-resize"; id: string; rect0: { x: number; y: number; w: number; h: number } }
   | { kind: "arrow-body"; id: string; grab: Point; from0: Point; to0: Point; via0?: Point[] }
   | { kind: "arrow-end"; id: string; which: "from" | "to" };
 
 export interface DrawPreview {
-  kind: "arrow" | "zone";
+  kind: "arrow" | "zone" | "marquee";
   style?: "pass" | "run" | "dribble" | "shot";
   from: Point;
   to: Point;
@@ -73,6 +74,29 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
     const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
     const pt = { x: p.x, y: p.y };
 
+    // Grabbing a piece that's already part of a multi-selection moves the
+    // whole group; anything else selects (shift adds) and drags singly.
+    const inSelection = state.selection.includes(id);
+    if (inSelection && state.selection.length > 1 && !e.shiftKey) {
+      const poses = posesAtStep(state.drill, state.currentStep);
+      const annotationKinds = new Set(["arrow", "zone", "label"]);
+      const offsets = state.selection
+        .filter((sid) => {
+          const en = state.drill.entities.find((x) => x.id === sid);
+          return en && (!annotationKinds.has(en.kind) || en.kind === "label");
+        })
+        .map((sid) => {
+          const pose = poses.get(sid);
+          return pose ? { id: sid, offX: pose.x - pt.x, offY: pose.y - pt.y } : null;
+        })
+        .filter((o): o is { id: string; offX: number; offY: number } => o !== null);
+      if (offsets.length > 0) {
+        dragRef.current = { kind: "group", offsets };
+        state.beginGesture();
+        svg.setPointerCapture(e.pointerId);
+        return;
+      }
+    }
     state.select([id], e.shiftKey);
     const entity = state.drill.entities.find((en) => en.id === id);
 
@@ -131,9 +155,14 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
     const state = useEditor.getState();
     const tool = state.tool;
     switch (tool) {
-      case "select":
-        state.clearSelection();
+      case "select": {
+        // Drag on empty pitch = marquee select; a plain click (no movement)
+        // clears the selection on pointer-up.
+        drawRef.current = { kind: "marquee", from: pt, to: pt };
+        setPreview(null); // becomes visible once it actually moves
+        e.currentTarget.setPointerCapture(e.pointerId);
         return;
+      }
       case "add-home":
         state.addPlayer("home", pt);
         return;
@@ -184,6 +213,11 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
         case "entity":
           state.moveEntity(drag.id, { x: pt.x + drag.offX, y: pt.y + drag.offY });
           break;
+        case "group":
+          state.moveEntities(
+            drag.offsets.map((o) => ({ id: o.id, pt: { x: pt.x + o.offX, y: pt.y + o.offY } }))
+          );
+          break;
         case "zone-move":
           state.updateAnnotation(drag.id, {
             rect: {
@@ -221,11 +255,16 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
     }
     if (drawRef.current) {
       drawRef.current = { ...drawRef.current, to: pt };
-      setPreview(drawRef.current);
+      if (drawRef.current.kind === "marquee") {
+        const len = Math.hypot(pt.x - drawRef.current.from.x, pt.y - drawRef.current.from.y);
+        setPreview(len > 0.6 ? drawRef.current : null);
+      } else {
+        setPreview(drawRef.current);
+      }
     }
   };
 
-  const onBoardPointerUp = (pt: Point) => {
+  const onBoardPointerUp = (pt: Point, e?: React.PointerEvent<SVGSVGElement>) => {
     const state = useEditor.getState();
     if (dragRef.current) {
       dragRef.current = null;
@@ -237,6 +276,26 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
       drawRef.current = null;
       setPreview(null);
       const len = Math.hypot(pt.x - draw.from.x, pt.y - draw.from.y);
+      if (draw.kind === "marquee") {
+        if (len <= 0.6) {
+          state.clearSelection();
+          return;
+        }
+        const x1 = Math.min(draw.from.x, pt.x);
+        const x2 = Math.max(draw.from.x, pt.x);
+        const y1 = Math.min(draw.from.y, pt.y);
+        const y2 = Math.max(draw.from.y, pt.y);
+        const poses = posesAtStep(state.drill, state.currentStep);
+        const hits = state.drill.entities
+          .filter((en) => en.kind !== "arrow" && en.kind !== "zone")
+          .filter((en) => {
+            const pose = poses.get(en.id);
+            return pose && !pose.hidden && pose.x >= x1 && pose.x <= x2 && pose.y >= y1 && pose.y <= y2;
+          })
+          .map((en) => en.id);
+        state.select(hits, e?.shiftKey);
+        return;
+      }
       if (draw.kind === "zone") {
         if (len > 1.5) {
           state.addZone({

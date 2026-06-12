@@ -4,6 +4,7 @@ import { BoardSvg } from "../board/BoardSvg";
 import { snapshotAtStep } from "../model/resolve";
 import type { Drill } from "../model/types";
 import { APRON } from "../pitch/formats";
+import { exportBaseName } from "./exportName";
 
 /**
  * Rasterize one moment of the drill to PNG via the same BoardSvg the editor
@@ -40,7 +41,7 @@ export async function exportPng(
       canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("PNG encoding failed"))), "image/png")
     );
     signal?.throwIfAborted();
-    return await api.postAsset(drill.id, `${drill.id}.png`, png, signal);
+    return await api.postAsset(drill.id, `${exportBaseName(drill)}.png`, png, signal);
   } finally {
     URL.revokeObjectURL(url);
   }

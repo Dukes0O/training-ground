@@ -1,6 +1,7 @@
 import { GIFEncoder, applyPalette, quantize } from "gifenc";
 import { api } from "../api/client";
 import type { Drill } from "../model/types";
+import { exportBaseName } from "./exportName";
 import { renderFrames } from "./renderFrames";
 
 export interface GifExportResult {
@@ -43,7 +44,7 @@ export async function exportGif(
   gif.finish();
   const bytes = new Uint8Array(gif.bytes()); // fresh ArrayBuffer-backed copy for Blob
   onProgress?.(1, 1, "Saving");
-  const saved = await api.postAsset(drill.id, `${drill.id}.gif`, new Blob([bytes], { type: "image/gif" }), signal);
+  const saved = await api.postAsset(drill.id, `${exportBaseName(drill)}.gif`, new Blob([bytes], { type: "image/gif" }), signal);
   return { path: saved.path, bytes: saved.bytes };
 }
 

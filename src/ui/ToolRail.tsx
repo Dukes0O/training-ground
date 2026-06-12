@@ -2,7 +2,7 @@ import { useState } from "react";
 import { MousePointer2, Type, Users } from "lucide-react";
 import type { Tool } from "../state/store";
 import { useEditor } from "../state/store";
-import { DEFAULT_TEAM_STYLES } from "../model/types";
+import { resolveTeamStyles } from "../model/types";
 import { EQUIPMENT_LABELS } from "../board/entities/EquipmentGlyph";
 
 function railBtnCls(active: boolean) {
@@ -195,20 +195,24 @@ function Flyout({
 }
 
 export function ToolRail() {
+  // Select the stable drill reference; derive styles outside the selector
+  // (an object-returning selector would loop zustand's snapshot check).
+  const drill = useEditor((s) => s.drill);
+  const teams = resolveTeamStyles(drill);
   return (
     <div className="absolute left-3 top-1/2 z-10 flex -translate-y-1/2 flex-col items-center gap-1 rounded-xl border border-zinc-200 bg-white/95 p-1.5 shadow-sm backdrop-blur">
       <ToolButton tool="select" title="Select & move (Esc)">
         <MousePointer2 size={17} />
       </ToolButton>
       <div className="my-0.5 h-px w-6 bg-zinc-200" />
-      <ToolButton tool="add-home" title="Add home player">
-        <PlayerDot fill={DEFAULT_TEAM_STYLES.home.fill} />
+      <ToolButton tool="add-home" title={`Add ${teams.home.label.toLowerCase()} player`}>
+        <PlayerDot fill={teams.home.fill} />
       </ToolButton>
-      <ToolButton tool="add-away" title="Add away player">
-        <PlayerDot fill={DEFAULT_TEAM_STYLES.away.fill} />
+      <ToolButton tool="add-away" title={`Add ${teams.away.label.toLowerCase()} player`}>
+        <PlayerDot fill={teams.away.fill} />
       </ToolButton>
-      <ToolButton tool="add-neutral" title="Add neutral player">
-        <PlayerDot fill={DEFAULT_TEAM_STYLES.neutral.fill} />
+      <ToolButton tool="add-neutral" title={`Add ${teams.neutral.label.toLowerCase()} player`}>
+        <PlayerDot fill={teams.neutral.fill} />
       </ToolButton>
       <div className="my-0.5 h-px w-6 bg-zinc-200" />
       <ToolButton tool="add-ball" title="Add ball">
