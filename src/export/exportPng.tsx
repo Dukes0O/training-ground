@@ -13,7 +13,8 @@ export async function exportPng(
   drill: Drill,
   stepIndex: number,
   gridOn: boolean,
-  widthPx = 1920
+  widthPx = 1920,
+  signal?: AbortSignal
 ): Promise<{ path: string }> {
   const snapshot = snapshotAtStep(drill, stepIndex, gridOn);
   const vbW = snapshot.spec.length + 2 * APRON;
@@ -38,7 +39,8 @@ export async function exportPng(
     const png = await new Promise<Blob>((resolve, reject) =>
       canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("PNG encoding failed"))), "image/png")
     );
-    return await api.postAsset(drill.id, `${drill.id}.png`, png);
+    signal?.throwIfAborted();
+    return await api.postAsset(drill.id, `${drill.id}.png`, png, signal);
   } finally {
     URL.revokeObjectURL(url);
   }

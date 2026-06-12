@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Circle, Mic, Square } from "lucide-react";
-import { startNarration } from "../export/narrate";
+import { prepareNarration } from "../export/narrate";
 import type { NarrationSession } from "../export/narrate";
 import { api } from "../api/client";
 import { Modal } from "./Modal";
@@ -30,7 +30,7 @@ export function RecordDialog() {
   };
 
   const reset = () => {
-    sessionRef.current?.stop();
+    sessionRef.current?.discard();
     sessionRef.current = null;
     cleanupMic();
     setRecordingActive(false);
@@ -59,12 +59,13 @@ export function RecordDialog() {
     };
   }, [phase]);
 
-  // Countdown then start the recorder.
+  // Countdown, THEN start the recorder — the countdown never appears in the take.
   useEffect(() => {
     if (phase !== "countdown") return;
     if (count <= 0) {
       setPhase("recording");
       setRecordingActive(true);
+      sessionRef.current?.begin();
       return;
     }
     const t = setTimeout(() => setCount((c) => c - 1), 800);
@@ -98,10 +99,14 @@ export function RecordDialog() {
     const boardEl = document.querySelector<HTMLElement>("[data-board-root]");
     if (!boardEl || !micRef.current) return;
     try {
-      sessionRef.current = await startNarration({
+      sessionRef.current = await prepareNarration({
         drillId: drillId ?? drill.id,
         boardEl,
         micStream: micRef.current,
+        onSaving: () => {
+          setRecordingActive(false);
+          setPhase("saving");
+        },
         onStopped: (saved, error) => {
           setRecordingActive(false);
           cleanupMic();

@@ -23,6 +23,10 @@ function progressFor(kind: string) {
 async function guarded<T>(kind: string, fn: (signal: AbortSignal) => Promise<T>): Promise<T | null> {
   const state = useEditor.getState();
   if (state.exportJob) return null; // one at a time
+  if (state.recordingActive) {
+    state.addToast("info", "Finish the narration take first — an export's progress dialog would end up in the video.");
+    return null;
+  }
   controller = new AbortController();
   setJob({ kind, phase: "Starting", done: 0, total: 1 });
   try {
@@ -49,8 +53,8 @@ function revealToast(text: string, path: string) {
 
 export async function runPngExport(): Promise<void> {
   const { drill, currentStep, gridOn } = useEditor.getState();
-  await guarded("Snapshot PNG", async () => {
-    const r = await exportPng(drill, currentStep, gridOn);
+  await guarded("Snapshot PNG", async (signal) => {
+    const r = await exportPng(drill, currentStep, gridOn, 1920, signal);
     revealToast(`Snapshot saved: ${r.path}`, r.path);
     return r;
   });

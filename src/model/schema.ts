@@ -1,5 +1,7 @@
 import { z } from "zod";
-import type { Drill } from "./types";
+import type { Drill, Point } from "./types";
+import { densifySteps } from "./serialize";
+import { APRON, resolvePitch } from "../pitch/formats";
 
 // zod mirror of the types in types.ts — the runtime/source-of-truth schema.
 // `npm run schema` generates schema/drill.schema.json from DrillSchema, and
@@ -167,14 +169,29 @@ export function semanticIssues(drill: Drill): DrillIssue[] {
           message: `annotation "${e.id}" has toStep ${e.toStep} but the drill only has ${stepCount} steps`,
         });
       }
+      if (e.fromStep != null && e.fromStep >= stepCount) {
+        issues.push({
+          level: "warning",
+          message: `annotation "${e.id}" has fromStep ${e.fromStep} beyond the last step — it will never be visible`,
+        });
+      }
       if (e.kind === "arrow" && (!e.from || !e.to)) {
         issues.push({ level: "error", message: `arrow "${e.id}" needs both "from" and "to"` });
       }
       if (e.kind === "zone" && !e.rect) {
         issues.push({ level: "error", message: `zone "${e.id}" needs a "rect"` });
       }
-      if (e.kind === "label" && !e.text) {
-        issues.push({ level: "warning", message: `label "${e.id}" has no text` });
+      if (e.kind === "label") {
+        if (!e.text) {
+          issues.push({ level: "warning", message: `label "${e.id}" has no text` });
+        }
+        const placed = drill.steps.some((s) => s.positions[e.id]);
+        if (!placed) {
+          issues.push({
+            level: "warning",
+            message: `label "${e.id}" never appears — give it a pose in some step's positions`,
+          });
+        }
       }
     } else {
       const placed = drill.steps.some((s) => s.positions[e.id]);
@@ -183,13 +200,58 @@ export function semanticIssues(drill: Drill): DrillIssue[] {
       }
     }
   }
+  issues.push(...coordinateIssues(drill));
+  return issues;
+}
+
+/**
+ * The #1 documented authoring mistake is pixel-scale or out-of-pitch
+ * coordinates — they pass the structural schema and render an empty-looking
+ * board. Warn for anything outside the pitch plus its apron.
+ */
+function coordinateIssues(drill: Drill): DrillIssue[] {
+  const issues: DrillIssue[] = [];
+  const spec = resolvePitch(drill.pitch);
+  const inBounds = (p: Point) =>
+    p.x >= -APRON && p.x <= spec.length + APRON && p.y >= -APRON && p.y <= spec.width + APRON;
+  const flagged = new Set<string>();
+  const flag = (id: string, where: string) => {
+    if (flagged.has(id)) return;
+    flagged.add(id);
+    issues.push({
+      level: "warning",
+      message: `"${id}" has coordinates outside the ${spec.length}×${spec.width}m pitch (+${APRON}m apron) ${where} — remember positions are meters, not pixels`,
+    });
+  };
+  drill.steps.forEach((step, k) => {
+    for (const [id, pose] of Object.entries(step.positions)) {
+      if (!inBounds(pose)) flag(id, `at steps[${k}]`);
+      for (const v of pose.via ?? []) if (!inBounds(v)) flag(id, `in a via waypoint at steps[${k}]`);
+    }
+  });
+  for (const e of drill.entities) {
+    if (e.kind !== "arrow" && e.kind !== "zone" && e.kind !== "label") continue;
+    for (const end of [e.from, e.to]) {
+      if (end && !("ref" in end) && !inBounds(end)) flag(e.id, "in an endpoint");
+    }
+    for (const v of e.via ?? []) if (!inBounds(v)) flag(e.id, "in a via waypoint");
+    if (e.rect) {
+      const corners = [
+        { x: e.rect.x, y: e.rect.y },
+        { x: e.rect.x + e.rect.w, y: e.rect.y + e.rect.h },
+      ];
+      if (corners.some((c) => !inBounds(c))) flag(e.id, "in its rect");
+    }
+  }
   return issues;
 }
 
 /**
  * Parse + sanitize a drill loaded from disk. Throws with a readable message on
- * structural failure; silently drops position keys that reference unknown
- * entities (the documented forgiving behavior for agent-written files).
+ * structural failure; otherwise forgiving (documented behavior for
+ * agent-written files): duplicate entity ids keep the first occurrence,
+ * position keys for unknown entities are dropped, and sparse steps are
+ * materialized dense so editing behaves identically however the file arrived.
  */
 export function parseDrill(raw: unknown): Drill {
   const result = DrillSchema.safeParse(raw);
@@ -197,11 +259,17 @@ export function parseDrill(raw: unknown): Drill {
     throw new Error(z.prettifyError(result.error));
   }
   const drill = result.data as Drill;
-  const ids = new Set(drill.entities.map((e) => e.id));
+  const ids = new Set<string>();
+  drill.entities = drill.entities.filter((e) => {
+    if (ids.has(e.id)) return false;
+    ids.add(e.id);
+    return true;
+  });
   for (const step of drill.steps) {
     for (const key of Object.keys(step.positions)) {
       if (!ids.has(key)) delete step.positions[key];
     }
   }
+  drill.steps = densifySteps(drill);
   return drill;
 }

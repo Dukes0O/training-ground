@@ -65,10 +65,10 @@ export const api = {
       body: JSON.stringify(settings),
     }),
 
-  postAsset: (id: string, name: string, blob: Blob) =>
+  postAsset: (id: string, name: string, blob: Blob, signal?: AbortSignal) =>
     j<{ ok: true; path: string; bytes: number }>(
       `/api/exports/${encodeURIComponent(id)}/asset?name=${encodeURIComponent(name)}`,
-      { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: blob }
+      { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: blob, signal }
     ),
 
   postBundle: (

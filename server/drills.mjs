@@ -15,17 +15,29 @@ async function listDrillFiles() {
 }
 
 function summarize(drill) {
-  return {
+  const summary = {
     id: drill.id,
-    title: drill.title ?? drill.id,
+    title: typeof drill.title === "string" && drill.title ? drill.title : String(drill.id ?? "?"),
     description: drill.description ?? "",
-    tags: drill.tags ?? [],
+    tags: Array.isArray(drill.tags) ? drill.tags : [],
     pitch: drill.pitch ?? "9v9",
     stepCount: Array.isArray(drill.steps) ? drill.steps.length : 0,
     entityCount: Array.isArray(drill.entities) ? drill.entities.length : 0,
     updatedAt: drill.updatedAt ?? null,
     rev: drill.rev ?? 0,
   };
+  // Cheap structural sanity so obviously-broken files are flagged in the
+  // library instead of stranding the editor when it tries to open them.
+  if (
+    typeof drill.title !== "string" ||
+    !Array.isArray(drill.entities) ||
+    !Array.isArray(drill.steps) ||
+    drill.steps.length === 0
+  ) {
+    summary.invalid = true;
+    summary.error = "missing or malformed title/entities/steps";
+  }
+  return summary;
 }
 
 export function drillsRouter() {
@@ -73,7 +85,12 @@ export function drillsRouter() {
     try {
       existing = await readJson(file);
     } catch (err) {
-      if (err.code !== "ENOENT") return res.status(500).json({ error: String(err.message ?? err) });
+      // ENOENT = creating fresh. A corrupt existing file must also be
+      // overwritable (fresh rev) — otherwise it can never be repaired via
+      // the API, only by hand-deleting it.
+      if (err.code && err.code !== "ENOENT") {
+        return res.status(500).json({ error: String(err.message ?? err) });
+      }
     }
     const ifMatch = req.get("If-Match");
     if (ifMatch != null && existing && String(existing.rev ?? 0) !== ifMatch) {

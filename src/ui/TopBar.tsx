@@ -31,7 +31,8 @@ function SaveStatus() {
 
 function ExportMenu() {
   const [open, setOpen] = useState(false);
-  const busy = useEditor((s) => s.exportJob != null);
+  // Exporting during a live narration take would film the progress modal.
+  const busy = useEditor((s) => s.exportJob != null || s.recordingActive);
 
   const run = (fn: () => Promise<void>) => {
     setOpen(false);

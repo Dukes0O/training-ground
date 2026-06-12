@@ -69,6 +69,7 @@ export async function exportVideo(
       await source.add(frame.timeMs / 1000, 1 / fps);
       onProgress?.(frame.index + 1, frame.total, "Rendering frames");
     }
+    signal?.throwIfAborted();
     onProgress?.(1, 1, "Finalizing video");
     source.close();
     await output.finalize();
@@ -79,8 +80,9 @@ export async function exportVideo(
 
   const buffer = (output.target as BufferTarget).buffer;
   if (!buffer) throw new Error("Encoder produced no output");
+  signal?.throwIfAborted();
   onProgress?.(1, 1, "Saving");
   const name = `${drill.id}.${container}`;
-  const saved = await api.postAsset(drill.id, name, new Blob([buffer]));
+  const saved = await api.postAsset(drill.id, name, new Blob([buffer]), signal);
   return { path: saved.path, container, bytes: saved.bytes };
 }

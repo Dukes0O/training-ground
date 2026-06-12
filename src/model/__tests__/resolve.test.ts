@@ -60,6 +60,13 @@ describe("stepAtTime", () => {
     expect(stepAtTime(tl, 2000)).toBe(2);
     expect(stepAtTime(tl, 99999)).toBe(2);
   });
+
+  it("gives a zero-pause move's end instant to the arriving step", () => {
+    // fixture step 1 has pauseAfterMs: 0 and its move ends at 1800.
+    const tl = compileTimeline(fixture());
+    expect(stepAtTime(tl, 1800)).toBe(1);
+    expect(stepAtTime(tl, 1801)).toBe(2);
+  });
 });
 
 describe("sceneAt", () => {

@@ -245,6 +245,10 @@ export function stepAtTime(tl: CompiledTimeline, timeMs: number): number {
   const t = Math.min(Math.max(timeMs, 0), tl.totalMs);
   for (const s of tl.segments) {
     if (t < s.endMs) return s.stepIndex;
+    // A move's exact end is the arrival at its step — without this, a step
+    // with pauseAfterMs 0 hands the boundary instant to the NEXT move and
+    // step jumps/highlights land one step ahead.
+    if (t === s.endMs && s.kind === "move") return s.stepIndex;
   }
   return tl.segments[tl.segments.length - 1].stepIndex;
 }

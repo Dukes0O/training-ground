@@ -39,10 +39,11 @@ export async function exportGif(
     onProgress?.(frame.index + 1, frame.total, "Encoding GIF");
   }
 
+  signal?.throwIfAborted();
   gif.finish();
   const bytes = new Uint8Array(gif.bytes()); // fresh ArrayBuffer-backed copy for Blob
   onProgress?.(1, 1, "Saving");
-  const saved = await api.postAsset(drill.id, `${drill.id}.gif`, new Blob([bytes], { type: "image/gif" }));
+  const saved = await api.postAsset(drill.id, `${drill.id}.gif`, new Blob([bytes], { type: "image/gif" }), signal);
   return { path: saved.path, bytes: saved.bytes };
 }
 

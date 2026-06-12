@@ -12,6 +12,7 @@ import type {
   PitchFormatId,
   Player,
   Point,
+  Pose,
   Step,
   TeamId,
 } from "../model/types";
@@ -197,7 +198,7 @@ interface EditorState {
     patch: { name?: string | null; durationMs?: number | null; pauseAfterMs?: number | null; ease?: EaseName | null }
   ) => void;
 
-  applyLoadedDrill: (drill: Drill, rev: number) => void;
+  applyLoadedDrill: (drill: Drill, rev: number, opts?: { preserveCursor?: boolean }) => void;
   setSaving: (saving: boolean) => void;
   setConflict: (conflict: { diskRev: number | null } | null) => void;
   setLibrary: (library: DrillSummary[]) => void;
@@ -277,11 +278,60 @@ export const useEditor = create<EditorState>()(
           set((s) => {
             s.drill.tags = tags;
           }),
-        setPitchFormat: (format) =>
+        setPitchFormat: (format) => {
+          let pulledIn = 0;
           set((s) => {
             s.drill.pitch = format;
             s.gridOn = defaultGridOn(format);
-          }),
+            // Pull anything stranded outside the new (possibly smaller) pitch
+            // back into bounds so pieces never become unreachable.
+            const spec = resolvePitch(format);
+            const clampPt = (p: { x: number; y: number }) => {
+              const x = Math.min(Math.max(p.x, -APRON), spec.length + APRON);
+              const y = Math.min(Math.max(p.y, -APRON), spec.width + APRON);
+              if (x !== p.x || y !== p.y) {
+                p.x = x;
+                p.y = y;
+                return true;
+              }
+              return false;
+            };
+            const moved = new Set<string>();
+            for (const step of s.drill.steps) {
+              for (const [id, pose] of Object.entries(step.positions)) {
+                if (clampPt(pose)) moved.add(id);
+                for (const v of pose.via ?? []) clampPt(v);
+              }
+            }
+            for (const e of s.drill.entities) {
+              if (e.kind !== "arrow" && e.kind !== "zone" && e.kind !== "label") continue;
+              for (const key of ["from", "to"] as const) {
+                const end = e[key];
+                if (end && !("ref" in end) && clampPt(end)) moved.add(e.id);
+              }
+              for (const v of e.via ?? []) clampPt(v);
+              if (e.rect) {
+                const r = e.rect;
+                r.w = Math.min(r.w, spec.length + 2 * APRON);
+                r.h = Math.min(r.h, spec.width + 2 * APRON);
+                const nx = Math.min(Math.max(r.x, -APRON), spec.length + APRON - r.w);
+                const ny = Math.min(Math.max(r.y, -APRON), spec.width + APRON - r.h);
+                if (nx !== r.x || ny !== r.y) {
+                  r.x = nx;
+                  r.y = ny;
+                  moved.add(e.id);
+                }
+              }
+            }
+            pulledIn = moved.size;
+          });
+          if (pulledIn > 0) {
+            get().addToast(
+              "info",
+              `${pulledIn} piece${pulledIn === 1 ? " was" : "s were"} outside the new pitch and got pulled back in.`
+            );
+          }
+        },
         setGridOn: (on) =>
           set((s) => {
             s.gridOn = on;
@@ -434,22 +484,50 @@ export const useEditor = create<EditorState>()(
           set((s) => {
             const ids = new Set(s.selection);
             if (ids.size === 0) return;
+            // Resolve poses BEFORE deleting so arrows anchored to a removed
+            // entity can keep their last position as a fixed point instead of
+            // becoming invisible ghosts with dangling {ref} anchors.
+            const lastPoses = posesAtStep(s.drill, s.drill.steps.length - 1);
             s.drill.entities = s.drill.entities.filter((e) => !ids.has(e.id));
+            const dropAlso = new Set<string>();
+            for (const e of s.drill.entities) {
+              if (e.kind !== "arrow" && e.kind !== "zone" && e.kind !== "label") continue;
+              for (const key of ["from", "to"] as const) {
+                const end = e[key];
+                if (end && "ref" in end && ids.has(end.ref)) {
+                  const pose = lastPoses.get(end.ref);
+                  if (pose) e[key] = { x: pose.x, y: pose.y };
+                  else dropAlso.add(e.id);
+                }
+              }
+            }
+            if (dropAlso.size > 0) {
+              s.drill.entities = s.drill.entities.filter((e) => !dropAlso.has(e.id));
+            }
             for (const step of s.drill.steps) {
               for (const id of ids) delete step.positions[id];
+              for (const id of dropAlso) delete step.positions[id];
             }
             s.selection = [];
           }),
         nudgeSelection: (dx, dy) =>
           set((s) => {
             const step = s.drill.steps[s.currentStep];
+            let resolved: Map<string, Pose> | null = null;
             for (const id of s.selection) {
-              const pose = step.positions[id];
-              if (pose) {
-                const c = clamp(s.drill, { x: pose.x + dx, y: pose.y + dy });
-                pose.x = c.x;
-                pose.y = c.y;
+              let pose = step.positions[id];
+              if (!pose) {
+                // Forward-filled (no explicit keyframe this step): nudging
+                // creates one, same as dragging does.
+                resolved ??= posesAtStep(s.drill, s.currentStep);
+                const base = resolved.get(id);
+                if (!base) continue;
+                pose = { x: base.x, y: base.y };
+                step.positions[id] = pose;
               }
+              const c = clamp(s.drill, { x: pose.x + dx, y: pose.y + dy });
+              pose.x = c.x;
+              pose.y = c.y;
             }
           }),
         beginGesture: () => {
@@ -559,6 +637,12 @@ export const useEditor = create<EditorState>()(
             if (!src) return;
             const copy: Step = JSON.parse(JSON.stringify(src)) as Step;
             if (copy.name) copy.name = `${copy.name} (copy)`;
+            // via/ease describe the move INTO the source step; replaying them
+            // in the duplicate would swing entities out and back for no reason.
+            for (const pose of Object.values(copy.positions)) {
+              delete pose.via;
+              delete pose.ease;
+            }
             s.drill.steps.splice(k + 1, 0, copy);
             remapAnnotationSteps(s.drill, (i) => (i <= k ? i : i + 1));
             s.currentStep = k + 1;
@@ -577,8 +661,8 @@ export const useEditor = create<EditorState>()(
             }
             s.drill.steps.splice(k, 1);
             remapAnnotationSteps(s.drill, (i) => (i < k ? i : i === k ? Math.max(0, k - 1) : i - 1));
+            if (s.currentStep > k) s.currentStep -= 1;
             s.currentStep = Math.min(s.currentStep, s.drill.steps.length - 1);
-            if (s.currentStep >= k && s.currentStep > 0) s.currentStep = Math.max(0, s.currentStep - 1);
           }),
         moveStep: (from, to) =>
           set((s) => {
@@ -605,7 +689,7 @@ export const useEditor = create<EditorState>()(
             }
           }),
 
-        applyLoadedDrill: (drill, rev) =>
+        applyLoadedDrill: (drill, rev, opts) =>
           set((s) => {
             s.drill = drill;
             s.drillId = drill.id;
@@ -614,14 +698,21 @@ export const useEditor = create<EditorState>()(
             s.dirty = false;
             s.saving = false;
             s.conflict = null;
-            s.selection = [];
-            s.currentStep = 0;
-            s.tool = "select";
             s.gridOn = defaultGridOn(drill.pitch);
             s.gestureBase = null;
-            s.mode = "edit";
-            s.playing = false;
-            s.timeMs = 0;
+            if (opts?.preserveCursor) {
+              // SSE refresh of the same drill: keep the coach where they were.
+              const ids = new Set(drill.entities.map((e) => e.id));
+              s.selection = s.selection.filter((id) => ids.has(id));
+              s.currentStep = Math.min(s.currentStep, drill.steps.length - 1);
+            } else {
+              s.selection = [];
+              s.currentStep = 0;
+              s.tool = "select";
+              s.mode = "edit";
+              s.playing = false;
+              s.timeMs = 0;
+            }
           }),
         setSaving: (saving) =>
           set((s) => {
@@ -689,12 +780,25 @@ export const useEditor = create<EditorState>()(
   )
 );
 
+/** History only tracks `drill` — re-fit the untracked cursor state to it. */
+function reconcileAfterHistory() {
+  const s = useEditor.getState();
+  const maxStep = s.drill.steps.length - 1;
+  const ids = new Set(s.drill.entities.map((e) => e.id));
+  const selection = s.selection.filter((id) => ids.has(id));
+  if (s.currentStep > maxStep || selection.length !== s.selection.length) {
+    useEditor.setState({ currentStep: Math.min(s.currentStep, maxStep), selection });
+  }
+}
+
 export function undo() {
   useEditor.temporal.getState().undo();
+  reconcileAfterHistory();
 }
 
 export function redo() {
   useEditor.temporal.getState().redo();
+  reconcileAfterHistory();
 }
 
 export function useCanUndo(): boolean {

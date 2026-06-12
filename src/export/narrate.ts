@@ -1,7 +1,12 @@
 import { api } from "../api/client";
 
 export interface NarrationSession {
+  /** Start the recorder (call when the countdown finishes). */
+  begin: () => void;
+  /** Stop and save the take. */
   stop: () => void;
+  /** Tear everything down without saving (cancel before/instead of a take). */
+  discard: () => void;
 }
 
 const MIME_CANDIDATES = [
@@ -21,19 +26,29 @@ function pickMime(): { mime: string; ext: string } {
 function stamp(): string {
   const d = new Date();
   const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+/** Last-resort save path: never lose a coach's spoken take over a failed upload. */
+function downloadFallback(blob: Blob, name: string) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
 }
 
 /**
- * Capture the board region of this tab plus the coach's microphone into a
- * video file under exports/<drill-id>/. The user picks the tab in the share
- * dialog; Region Capture (when available) crops the stream to the board so
- * the recording is clean even though the whole app is shared.
+ * Acquire the tab capture (cropped to the board via Region Capture) and build
+ * the recorder, WITHOUT starting it — recording begins on session.begin() so
+ * the 3-2-1 countdown never appears in the take. The user picks the tab in
+ * the share dialog; the coach's mic is mixed in.
  */
-export async function startNarration(opts: {
+export async function prepareNarration(opts: {
   drillId: string;
   boardEl: HTMLElement;
   micStream: MediaStream;
+  onSaving: () => void;
   onStopped: (saved: { path: string } | null, error?: Error) => void;
 }): Promise<NarrationSession> {
   const display = await navigator.mediaDevices.getDisplayMedia({
@@ -57,6 +72,7 @@ export async function startNarration(opts: {
   const { mime, ext } = pickMime();
   const recorder = new MediaRecorder(mixed, { mimeType: mime, videoBitsPerSecond: 8_000_000 });
   const chunks: Blob[] = [];
+  let begun = false;
   let finished = false;
 
   recorder.ondataavailable = (e) => {
@@ -67,27 +83,50 @@ export async function startNarration(opts: {
     if (finished) return;
     finished = true;
     videoTrack.stop();
+    opts.onSaving();
+    const name = `narration-${stamp()}.${ext}`;
     try {
       const blob = new Blob(chunks, { type: mime.split(";")[0] });
       if (blob.size === 0) throw new Error("Recording was empty.");
-      const saved = await api.postAsset(opts.drillId, `narration-${stamp()}.${ext}`, blob);
-      opts.onStopped(saved);
+      try {
+        const saved = await api.postAsset(opts.drillId, name, blob);
+        opts.onStopped(saved);
+      } catch (uploadErr) {
+        // The take exists — don't lose it because the local server hiccuped.
+        downloadFallback(blob, name);
+        opts.onStopped(null, new Error(
+          `Saving to exports/ failed (${(uploadErr as Error).message}) — the take was downloaded by the browser instead.`
+        ));
+      }
     } catch (err) {
       opts.onStopped(null, err as Error);
     }
   };
 
   recorder.onstop = () => void finalize();
-  // The browser's own "Stop sharing" pill must end the take cleanly too.
+  // The browser's own "Stop sharing" pill must end (or abort) the take cleanly.
   videoTrack.addEventListener("ended", () => {
-    if (recorder.state !== "inactive") recorder.stop();
+    if (begun && recorder.state !== "inactive") {
+      recorder.stop();
+    } else if (!begun && !finished) {
+      finished = true;
+      opts.onStopped(null, new Error("Screen sharing ended before recording started."));
+    }
   });
 
-  recorder.start(1000); // 1s timeslices: a crash loses at most a second
-
   return {
+    begin: () => {
+      if (begun || finished) return;
+      begun = true;
+      recorder.start(1000); // 1s timeslices: a crash loses at most a second
+    },
     stop: () => {
       if (recorder.state !== "inactive") recorder.stop();
+    },
+    discard: () => {
+      finished = true;
+      if (recorder.state !== "inactive") recorder.stop();
+      videoTrack.stop();
     },
   };
 }

@@ -1,0 +1,103 @@
+{
+  "decisions": [
+    {
+      "id": "single_render_path",
+      "title": "One render path: every pixel comes from BoardSvg",
+      "status": "accepted",
+      "context": "The editor shows a drill on screen; PNG, MP4 and GIF exports must show the same drill. Two drawing implementations (screen + export) inevitably drift.",
+      "decision": "BoardSvg is a pure function of a BoardSnapshot. The editor mounts it live; exports call renderToStaticMarkup on the same component and rasterize the SVG string to a canvas. There is no second draw path anywhere.",
+      "consequences": "Exports are pixel-identical to the editor by construction. The cost is a constraint: BoardSvg must stay free of foreignObject, webfonts and external hrefs (they break SVG-to-canvas rasterization), and editor-only chrome (handles, previews) lives in an overlay passed as children.",
+      "touches": ["board.boardsvg", "export.renderframes", "export.png", "export.video", "export.gif"]
+    },
+    {
+      "id": "files_not_sqlite",
+      "title": "Drills are JSON files, not SQLite rows",
+      "status": "accepted",
+      "context": "Evaluated during the 2026-06-12 enhancement pass at Kyle's request: would a SQLite database add value? Candidates considered: drill storage, a library search index, practice-session logs, roster history.",
+      "decision": "No SQLite. drills/*.json stays the source of truth and no database is wired in. The file layout IS the product's agent route: Claude/Codex author drill files directly on a subscription (no API costs), chokidar pushes SSE so files appear in the library in about a second, git gives history/diff/backup, and a coach can eyeball or hand-edit any drill. A binary store would subtract every one of those properties and add a native dependency (better-sqlite3 compiles against the Node ABI) to gain indexes and transactions that a personal library measured in tens of files cannot feel. In-memory search over library summaries is already instant at this scale.",
+      "consequences": "Search, tags and previews compute from files on demand. Revisit only if a concrete feature needs what files can't give: full-text search across many hundreds of drills, concurrent multi-writer sessions, or per-rep analytics. If that day comes, SQLite should arrive as a rebuildable INDEX over the files (cache, not truth) so the agent route survives.",
+      "touches": ["files.drills", "server.express", "api.persistence", "docs.agent"]
+    },
+    {
+      "id": "svg_over_canvas",
+      "title": "SVG board instead of a canvas library",
+      "status": "accepted",
+      "context": "Tactics boards need crisp lines at any zoom, easy hit-testing for drag/select, and text labels. Konva/canvas engines offer scene graphs but rasterize, and would have forced the export pipeline to share their draw code.",
+      "decision": "Hand-rolled SVG components with raw pointer events and setPointerCapture. 1 SVG user unit = 1 meter, so geometry is the data model.",
+      "consequences": "Free DOM hit-testing, crisp markings, declarative React rendering, and renderToStaticMarkup gives exports for free. Scale ceiling (~hundreds of nodes) is far above a soccer drill's needs.",
+      "touches": ["board.boardsvg", "board.glyphs", "board.interaction"]
+    },
+    {
+      "id": "dense_save_sparse_load",
+      "title": "Save dense, load sparse",
+      "status": "accepted",
+      "context": "Sparse steps (only movers listed, forward-fill for the rest) are pleasant to hand-write and review; dense steps (every entity every step) are independently readable and make scrubbing trivially correct.",
+      "decision": "Both: files may be sparse (agents are encouraged to write them that way), the resolver forward-fills at load, and the app serializes dense on save with via/ease kept only on the step where they were explicit.",
+      "consequences": "Agent files stay reviewable; app-saved files are bigger but every step stands alone. The serializer must strip transition fields from forward-filled copies (covered by tests).",
+      "touches": ["model.serialize", "model.resolve", "docs.agent"]
+    },
+    {
+      "id": "gesture_coalescing",
+      "title": "One drag = one undo entry (zundo pause/rewind/replay)",
+      "status": "accepted",
+      "context": "A drag emits dozens of store updates; naive history makes undo useless. zundo records the pre-set state on every tracked change, so simply pausing during the drag and resuming at the end records the wrong base state.",
+      "decision": "beginGesture pauses history and stashes the pre-drag drill; endGesture rewinds to the stash while paused, resumes, then replays the final state as a single tracked change.",
+      "consequences": "Ctrl+Z after a drag returns exactly to the pre-drag pose. Anything that moves entities continuously (drags, arrow endpoints, zone resize) must run inside a gesture.",
+      "touches": ["state.store", "board.interaction"]
+    },
+    {
+      "id": "mediabunny_webcodecs",
+      "title": "MP4 via WebCodecs + mediabunny, rendered offline",
+      "status": "accepted",
+      "context": "mp4-muxer and webm-muxer are deprecated in favor of mediabunny (same author). Realtime captureStream recording drops frames and can't control quality; ffmpeg is not installed and shouldn't be required.",
+      "decision": "Exports render frames offline at a fixed timestep (deterministic), encode through WebCodecs hardware H.264 when the OS provides it, and fall back to VP9/WebM. mediabunny muxes both containers.",
+      "consequences": "Pixel-exact, faster-than-realtime exports with zero system dependencies; Chromium-only (acceptable: local app, Chrome/Edge documented). Windows N editions without codecs degrade to WebM automatically.",
+      "touches": ["export.video", "export.renderframes"]
+    },
+    {
+      "id": "region_capture_narration",
+      "title": "Narration records the live board via Region Capture",
+      "status": "accepted",
+      "context": "A narrated take needs the coach's voice synced to whatever they do live (play, scrub, point). That is inherently realtime, unlike the offline render exports.",
+      "decision": "getDisplayMedia tab capture cropped to the board element via CropTarget, mixed with the mic, recorded by MediaRecorder (MP4 when supported, else WebM) in 1s timeslices.",
+      "consequences": "The one capture path that is NOT BoardSvg-rasterized — it records the actual screen, cursor included (a feature for pointing). Chromium-only; browser Stop-sharing ends the take cleanly.",
+      "touches": ["export.narrate", "board.boardsvg"]
+    },
+    {
+      "id": "css_transform_zoom",
+      "title": "Zoom/pan is a CSS transform around the board, not SVG viewBox math",
+      "status": "accepted",
+      "context": "Wheel-zoom and panning must not disturb the pure renderer or the export pipeline, and pointer math has to stay correct while zoomed.",
+      "decision": "BoardViewport wraps the board in a CSS-transformed div. getScreenCTM() folds ancestor CSS transforms into the screen-to-board conversion, so every existing drag/draw interaction works unmodified, and exports (which mount their own BoardSvg) never see the transform.",
+      "consequences": "Zero changes to BoardSvg or interactions; view state is presentation-only (not in the store, not persisted, resets per drill).",
+      "touches": ["board.interaction", "board.boardsvg"]
+    },
+    {
+      "id": "rosters_gitignored",
+      "title": "Rosters and settings never enter the public repo",
+      "status": "accepted",
+      "context": "The repo is public and the roster holds children's names. data/settings.json churns with per-machine state.",
+      "decision": "data/rosters.json and data/settings.json are gitignored; the server serves defaults when they're missing. Drill files remain committed (they are the shareable content) with a README warning to prefer first names, initials or numbers when stamping roster identities into drills meant for pushing.",
+      "consequences": "Kids' names stay on the coach's machine by default. A fresh clone starts with an empty roster.",
+      "touches": ["files.data", "server.express"]
+    },
+    {
+      "id": "dumb_server",
+      "title": "The server stays a dumb file layer",
+      "status": "accepted",
+      "context": "Validation, resolution and rendering all live in the app/model layer; agents also bypass the server entirely by writing files.",
+      "decision": "Express does file CRUD with atomic tmp+rename writes, rev stamping for conflict detection, delete-to-trash, SSE change push, and export blob writes. No validation, no business logic, plain .mjs with no build step.",
+      "consequences": "Two clients (app via HTTP, agents via the filesystem) stay equal citizens; the server never disagrees with the app about what a valid drill is because it has no opinion.",
+      "touches": ["server.express", "server.watch", "files.drills"]
+    },
+    {
+      "id": "watchdog_clock",
+      "title": "Playback clock survives hidden tabs",
+      "status": "accepted",
+      "context": "Browsers freeze requestAnimationFrame in hidden tabs; a coach who tabs away mid-playback would return to a frozen animation, and headless verification environments see the same freeze.",
+      "decision": "The playback clock advances via rAF for smooth visible frames plus a 100ms watchdog interval computing real elapsed time, so time keeps flowing (coarsely) when the tab is hidden.",
+      "consequences": "Animations finish wherever the tab is; scrub state is always time-true rather than frame-count-true.",
+      "touches": ["ui.timeline", "state.store"]
+    }
+  ]
+}

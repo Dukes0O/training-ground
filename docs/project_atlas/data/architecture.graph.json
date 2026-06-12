@@ -1,0 +1,240 @@
+{
+  "lanes": [
+    { "id": "disk", "label": "Disk (the database)" },
+    { "id": "server", "label": "Local server" },
+    { "id": "api", "label": "API & persistence" },
+    { "id": "model", "label": "Model & state" },
+    { "id": "board", "label": "Board & UI" },
+    { "id": "export", "label": "Exports" }
+  ],
+  "nodes": [
+    {
+      "id": "files.drills",
+      "label": "drills/*.json",
+      "lane": "disk",
+      "x": 40, "y": 150,
+      "summary": "The drill library — one human-readable JSON file per drill. This folder IS the database and the agent interface.",
+      "files": ["drills/", "schema/drill.schema.json"],
+      "details": "Filename = drill id. Agents (Claude Code / Codex) write here directly; the app reads and writes through the server. Sparse steps are legal on disk; the app saves dense. Git history doubles as backup."
+    },
+    {
+      "id": "files.data",
+      "label": "data/ (rosters, settings, trash)",
+      "lane": "disk",
+      "x": 40, "y": 330,
+      "summary": "Per-machine personal data: the team roster (kids' names — gitignored), app settings, and the soft-delete trash.",
+      "files": ["data/rosters.json", "data/settings.json", "data/trash/"],
+      "details": "Deletes never destroy: drills move to data/trash/ with a timestamp and can be restored from the library's trash dialog. Rosters and settings are gitignored so children's names never reach the public repo."
+    },
+    {
+      "id": "files.exports",
+      "label": "exports/<drill>/",
+      "lane": "disk",
+      "x": 40, "y": 510,
+      "summary": "Generated media: PNG, MP4/WebM, GIF, narrated takes, and the site-bundle/ folder handed to the team-site agent.",
+      "files": ["exports/"],
+      "details": "Gitignored output. site-bundle/ contains poster PNG + GIF + MP4 + drill JSON + manifest-snippet.json (matching the soccer-quizzes site's manifest shape) + AGENT-INSTRUCTIONS.md telling the site agent where each file goes."
+    },
+    {
+      "id": "docs.agent",
+      "label": "Agent docs & schema",
+      "lane": "disk",
+      "x": 40, "y": 690,
+      "summary": "drill-authoring.md (canonical format guide), CLAUDE.md, AGENTS.md, and the generated JSON Schema — how AIs learn to write drills.",
+      "files": ["docs/drill-authoring.md", "CLAUDE.md", "AGENTS.md", "scripts/validate.ts"],
+      "details": "npm run validate checks structure (zod) + semantics (anchor refs, step windows, id/filename match). npm run schema regenerates schema/drill.schema.json from the zod source so editors and agents validate while typing."
+    },
+    {
+      "id": "server.express",
+      "label": "Express file API",
+      "lane": "server",
+      "x": 330, "y": 290,
+      "summary": "Dumb CRUD on 127.0.0.1:8123: drills, rosters, settings, trash, export blobs, site bundles. No business logic.",
+      "files": ["server/index.mjs", "server/drills.mjs", "server/exportsApi.mjs", "server/paths.mjs"],
+      "details": "Atomic writes (tmp + rename), rev stamping with If-Match conflict checks (409), delete-to-trash, slug validation guarding Windows reserved filenames, port probing 8123-8130. Serves dist/ as the SPA and this atlas at /atlas."
+    },
+    {
+      "id": "server.watch",
+      "label": "chokidar → SSE",
+      "lane": "server",
+      "x": 330, "y": 90,
+      "summary": "Watches drills/ and pushes drills-changed events so agent-written files appear in the library within ~1s.",
+      "files": ["server/watch.mjs"],
+      "details": "awaitWriteFinish debounces partial writes; /api/events is a plain EventSource stream with heartbeats. This is what makes the agent route feel live."
+    },
+    {
+      "id": "api.client",
+      "label": "API client",
+      "lane": "api",
+      "x": 620, "y": 130,
+      "summary": "Typed fetch wrappers for every server route plus the SSE subscription.",
+      "files": ["src/api/client.ts"],
+      "details": "Thin and dependency-free; ApiError carries status + body so persistence can branch on 409 conflicts."
+    },
+    {
+      "id": "api.persistence",
+      "label": "Persistence orchestrator",
+      "lane": "api",
+      "x": 620, "y": 330,
+      "summary": "Autosave (debounced, drag-aware), SSE-driven reloads, own-write echo suppression, and the conflict ladder.",
+      "files": ["src/api/persistence.ts"],
+      "details": "Tracks the drill object reference that matches disk (savedRef) to tell edits from loads. On SSE for the open drill: same rev = own write (ignore); not dirty = silent reload; dirty = conflict modal (keep mine = force PUT, use disk = reload). Also boot, open/new/duplicate/delete flows."
+    },
+    {
+      "id": "model.types",
+      "label": "Data model (types + zod)",
+      "lane": "model",
+      "x": 910, "y": 620,
+      "summary": "The drill format: entities, sparse keyframe steps, annotations with anchors and visibility windows. Meters everywhere.",
+      "files": ["src/model/types.ts", "src/model/schema.ts"],
+      "details": "types.ts is the TS source of truth; schema.ts is its zod mirror (a compile-time check stops drift). parseDrill is forgiving: unknown position keys are dropped, sparse steps are legal."
+    },
+    {
+      "id": "model.resolve",
+      "label": "Timeline & resolver",
+      "lane": "model",
+      "x": 910, "y": 130,
+      "summary": "Compiles steps into hold/move/pause segments and produces the board for any instant: sceneAt(t) tweens poses and fades notation.",
+      "files": ["src/model/resolve.ts", "src/model/tween.ts"],
+      "details": "Sparse forward-fill (pose at step k = last explicit pose at or before k), Catmull-Rom via-waypoints, shortest-arc rotation, instant ease, anchored arrow endpoints re-resolved every frame so they track runners, 150ms fades for step-scoped annotations."
+    },
+    {
+      "id": "model.serialize",
+      "label": "Dense serializer",
+      "lane": "model",
+      "x": 910, "y": 470,
+      "summary": "Wire/file form: forward-fill materialized, coords rounded to cm, via/ease only where explicit, undefined keys dropped.",
+      "files": ["src/model/serialize.ts"],
+      "details": "The app saves dense so every step reads independently; agents may write sparse and the next app save normalizes."
+    },
+    {
+      "id": "model.formations",
+      "label": "Formation presets",
+      "lane": "model",
+      "x": 910, "y": 770,
+      "summary": "One-click team placement: preset shapes per format, slot labels, roster matching (position-exact first, then in order).",
+      "files": ["src/model/formations.ts"],
+      "details": "Roster jersey numbers win; default numbers skip them so a team never shows duplicate shirts."
+    },
+    {
+      "id": "state.store",
+      "label": "zustand store + zundo",
+      "lane": "model",
+      "x": 910, "y": 300,
+      "summary": "All editor state and actions. Only `drill` is history-tracked; a whole drag coalesces into one undo entry.",
+      "files": ["src/state/store.ts"],
+      "details": "Playback (mode/time/speed/loop), selection, tools, step operations with annotation index remapping, dialogs, toasts. The gesture trick: pause history on drag start, rewind to the stashed base, replay the final state as one tracked change."
+    },
+    {
+      "id": "pitch.formats",
+      "label": "PitchSpec table",
+      "lane": "model",
+      "x": 1200, "y": 740,
+      "summary": "Data-driven pitch geometry: 11v11, 9v9, 8v8, half-pitch, training grid — one renderer reads the spec.",
+      "files": ["src/pitch/formats.ts"],
+      "details": "Lengths/widths in meters, end markings mirrored from one definition, per-format token scale so pieces stay legible, 3m apron of legal off-pitch space."
+    },
+    {
+      "id": "board.boardsvg",
+      "label": "BoardSvg — THE renderer",
+      "lane": "board",
+      "x": 1200, "y": 180,
+      "summary": "Pure snapshot → SVG. The live editor and every export draw through this one component.",
+      "files": ["src/board/BoardSvg.tsx", "src/board/PitchMarkings.tsx"],
+      "details": "Constraint that keeps exports working: no foreignObject, no webfonts, no external hrefs. Editor-only chrome (selection handles, draw previews) comes in as children so the renderer itself stays export-safe."
+    },
+    {
+      "id": "board.glyphs",
+      "label": "Tokens & notation glyphs",
+      "lane": "board",
+      "x": 1200, "y": 20,
+      "summary": "Players, ball, seven equipment kinds, and coaching arrows (pass/run/dribble/shot), zones, labels.",
+      "files": ["src/board/entities/", "src/board/annotations/"],
+      "details": "Arrows use explicit head polygons (not SVG markers) and dark underlays for contrast — both choices keep SVG-to-canvas rasterization faithful."
+    },
+    {
+      "id": "board.interaction",
+      "label": "Interaction & viewport",
+      "lane": "board",
+      "x": 1200, "y": 360,
+      "summary": "Pointer state machine (drag, draw arrows/zones, re-anchor endpoints, resize) plus CSS-transform zoom/pan.",
+      "files": ["src/board/useBoardInteraction.ts", "src/board/EditorOverlay.tsx", "src/board/BoardViewport.tsx"],
+      "details": "Arrow ends snap to players/ball and follow them. getScreenCTM() folds the zoom transform into pointer math, so zooming changed nothing in the interaction code."
+    },
+    {
+      "id": "ui.timeline",
+      "label": "Timeline & transport",
+      "lane": "board",
+      "x": 1200, "y": 540,
+      "summary": "Edit/Preview modes, play/scrub/loop/speed, the step strip (jump, reorder, duplicate, delete, inline durations).",
+      "files": ["src/timeline/Timeline.tsx", "src/timeline/usePlaybackClock.ts"],
+      "details": "The clock advances by real elapsed time via rAF plus a watchdog interval, so hidden tabs never freeze playback."
+    },
+    {
+      "id": "ui.panels",
+      "label": "Library, inspector, dialogs",
+      "lane": "board",
+      "x": 1490, "y": 540,
+      "summary": "Searchable library with live mini-board previews, context-sensitive inspector, roster/place-team/settings/trash/record dialogs.",
+      "files": ["src/library/LibraryPanel.tsx", "src/inspector/InspectorPanel.tsx", "src/ui/"],
+      "details": "Library previews render the actual drill JSON through a mini BoardSvg — nothing to go stale. The inspector edits whatever is selected: player identity, arrow style + visibility window, zone caption, step timing."
+    },
+    {
+      "id": "export.renderframes",
+      "label": "renderFrames generator",
+      "lane": "export",
+      "x": 1490, "y": 120,
+      "summary": "The offline frame loop: sceneAt(t) → BoardSvg markup → rasterize to one reused canvas at a fixed timestep.",
+      "files": ["src/export/renderFrames.tsx"],
+      "details": "Deterministic (no realtime capture, no dropped frames), abortable, even-numbered dimensions for H.264. Every visual export consumes this generator."
+    },
+    {
+      "id": "export.encoders",
+      "label": "MP4 / WebM / GIF / PNG",
+      "lane": "export",
+      "x": 1490, "y": 300,
+      "summary": "WebCodecs + mediabunny encode H.264 MP4 (VP9/WebM fallback); gifenc quantizes per-frame palettes; PNG snapshots any instant.",
+      "files": ["src/export/exportVideo.ts", "src/export/exportGif.ts", "src/export/exportPng.tsx", "src/export/runExport.ts"],
+      "details": "runExport guards one job at a time with progress modal + cancel (AbortSignal threads through the frame loop). The site bundle orchestrates PNG + GIF + MP4 then asks the server to assemble site-bundle/."
+    },
+    {
+      "id": "export.narrate",
+      "label": "Narrated takes",
+      "lane": "export",
+      "x": 1490, "y": 720,
+      "summary": "Region-Capture tab recording cropped to the board + mic, MediaRecorder MP4/WebM — the one live (non-rasterized) capture.",
+      "files": ["src/export/narrate.ts", "src/ui/RecordDialog.tsx"],
+      "details": "Mic check with level meter, 3-2-1 countdown, floating stop bar, red board ring; the browser's own Stop-sharing pill ends the take cleanly; 1s timeslices bound data loss."
+    }
+  ],
+  "edges": [
+    { "from": "docs.agent", "to": "files.drills", "label": "agents write drills following the guide" },
+    { "from": "files.drills", "to": "server.express", "label": "read / atomic write" },
+    { "from": "files.drills", "to": "server.watch", "label": "fs events" },
+    { "from": "files.data", "to": "server.express", "label": "rosters · settings · trash" },
+    { "from": "server.watch", "to": "api.persistence", "label": "SSE drills-changed" },
+    { "from": "server.express", "to": "api.client", "label": "JSON over localhost" },
+    { "from": "api.client", "to": "api.persistence", "label": "typed calls" },
+    { "from": "api.persistence", "to": "state.store", "label": "load · reload · conflicts" },
+    { "from": "state.store", "to": "api.persistence", "label": "autosave (debounced)" },
+    { "from": "model.types", "to": "api.persistence", "label": "parseDrill (forgiving)" },
+    { "from": "model.serialize", "to": "api.persistence", "label": "dense wire form" },
+    { "from": "model.types", "to": "model.resolve", "label": "" },
+    { "from": "model.tween", "to": "model.resolve", "label": "" },
+    { "from": "model.formations", "to": "state.store", "label": "placeTeam slots" },
+    { "from": "state.store", "to": "model.resolve", "label": "drill + time" },
+    { "from": "model.resolve", "to": "board.boardsvg", "label": "BoardSnapshot" },
+    { "from": "pitch.formats", "to": "model.resolve", "label": "pitch spec" },
+    { "from": "pitch.formats", "to": "board.boardsvg", "label": "markings geometry" },
+    { "from": "board.glyphs", "to": "board.boardsvg", "label": "tokens & notation" },
+    { "from": "board.boardsvg", "to": "board.interaction", "label": "pointer events" },
+    { "from": "board.interaction", "to": "state.store", "label": "edits (gestured)" },
+    { "from": "ui.timeline", "to": "state.store", "label": "playback & step ops" },
+    { "from": "ui.panels", "to": "state.store", "label": "selection · meta · dialogs" },
+    { "from": "board.boardsvg", "to": "export.renderframes", "label": "rasterized per frame" },
+    { "from": "export.renderframes", "to": "export.encoders", "label": "canvas frames" },
+    { "from": "export.encoders", "to": "server.express", "label": "POST blobs & bundle" },
+    { "from": "export.narrate", "to": "server.express", "label": "POST recording" },
+    { "from": "server.express", "to": "files.exports", "label": "writes media" }
+  ]
+}

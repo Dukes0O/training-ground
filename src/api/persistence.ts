@@ -15,6 +15,12 @@ let savingPromise: Promise<void> | null = null;
 let refreshTimer: number | null = null;
 let settings: AppSettings = {};
 let initialized = false;
+/**
+ * Rev our own last PUT will echo back through the file watcher. Consumed by
+ * exactly one SSE event so genuinely external writes — including agent edits
+ * that happen to keep the same rev field — are never mistaken for echoes.
+ */
+let expectedEchoRev: number | null = null;
 
 function toast(kind: "info" | "success" | "error", text: string) {
   useEditor.getState().addToast(kind, text);
@@ -46,18 +52,45 @@ export async function initPersistence(): Promise<void> {
     state.setLibrary(library);
     state.setRosters(rosters ?? { teams: [] });
     const usable = library.filter((d) => !d.invalid);
-    const target = usable.find((d) => d.id === settings.lastOpenId) ?? usable[0];
-    if (target) await openDrill(target.id);
-    else await newDrill();
+    const preferred = usable.find((d) => d.id === settings.lastOpenId);
+    const candidates = preferred ? [preferred, ...usable.filter((d) => d !== preferred)] : usable;
+    // A summary can look healthy while the full file fails the schema — keep
+    // trying candidates so boot never strands the editor unbound (a null
+    // drillId means autosave silently does nothing).
+    for (const candidate of candidates) {
+      await openDrill(candidate.id);
+      if (useEditor.getState().drillId === candidate.id) break;
+    }
+    if (!useEditor.getState().drillId) await newDrill();
   } catch (err) {
     toast("error", `Could not reach the local server: ${(err as Error).message}`);
   }
 }
 
-function loadIntoEditor(drill: Drill, rev: number) {
+function loadIntoEditor(drill: Drill, rev: number, opts?: { preserveCursor?: boolean }) {
   savedRef = drill;
-  useEditor.getState().applyLoadedDrill(drill, rev);
+  useEditor.getState().applyLoadedDrill(drill, rev, opts);
   useEditor.temporal.getState().clear();
+}
+
+/**
+ * True when it's safe to swap the open drill out. If the pre-switch save
+ * failed (offline server, conflict pending), switching would silently discard
+ * the coach's edits — refuse instead.
+ */
+function readyToSwitch(): boolean {
+  const s = useEditor.getState();
+  if (!s.drillId) return true;
+  if (s.dirty || s.conflict) {
+    toast(
+      "error",
+      s.conflict
+        ? "Resolve the conflict dialog before switching drills."
+        : "Your latest edits haven't saved yet — fix the save error before switching drills."
+    );
+    return false;
+  }
+  return true;
 }
 
 export function scheduleSave(delayMs = 800): void {
@@ -73,7 +106,10 @@ export async function saveNow(force = false): Promise<void> {
     clearTimeout(saveTimer);
     saveTimer = null;
   }
-  if (savingPromise) await savingPromise;
+  // Several callers can queue behind one in-flight save; loop (not a single
+  // await) so each runs against fresh state instead of issuing overlapping
+  // PUTs with the same If-Match rev.
+  while (savingPromise) await savingPromise;
   const state = useEditor.getState();
   const { drill, drillId } = state;
   if (!drillId) return;
@@ -85,6 +121,7 @@ export async function saveNow(force = false): Promise<void> {
     try {
       const r = await api.putDrill(drillId, serializeDense(drill), force ? null : state.lastSavedRev);
       savedRef = drill;
+      expectedEchoRev = r.rev;
       const stillDirty = useEditor.getState().drill !== drill;
       useEditor.setState({
         saving: false,
@@ -123,8 +160,7 @@ export function refreshLibrarySoon(delayMs = 300): void {
 
 async function onDrillChangedOnDisk(id: string, fsEvent: string): Promise<void> {
   refreshLibrarySoon();
-  const { drillId, dirty, lastSavedRev } = useEditor.getState();
-  if (id !== drillId) return;
+  if (id !== useEditor.getState().drillId) return;
   if (fsEvent === "unlink") {
     toast("info", `"${id}" was deleted on disk — your open copy is kept; saving will recreate it.`);
     return;
@@ -132,13 +168,20 @@ async function onDrillChangedOnDisk(id: string, fsEvent: string): Promise<void> 
   try {
     const raw = (await api.getDrill(id)) as { rev?: number };
     const rev = raw.rev ?? 0;
-    if (lastSavedRev != null && rev === lastSavedRev) return; // our own write echoing back
+    if (expectedEchoRev != null && rev === expectedEchoRev) {
+      expectedEchoRev = null; // our own write echoing back — exactly once
+      return;
+    }
+    // Re-read state after the await: the user may have typed or switched
+    // drills while the GET was in flight.
+    const state = useEditor.getState();
+    if (id !== state.drillId) return;
     const drill = parseDrill(raw);
-    if (!dirty) {
-      loadIntoEditor(drill, rev);
+    if (!state.dirty) {
+      loadIntoEditor(drill, rev, { preserveCursor: true });
       toast("info", `"${drill.title}" was updated on disk — reloaded.`);
     } else {
-      useEditor.getState().setConflict({ diskRev: rev });
+      state.setConflict({ diskRev: rev });
     }
   } catch (err) {
     toast("error", `"${id}" changed on disk but can't be loaded: ${(err as Error).message}`);
@@ -147,6 +190,7 @@ async function onDrillChangedOnDisk(id: string, fsEvent: string): Promise<void> 
 
 export async function openDrill(id: string): Promise<void> {
   await saveNow();
+  if (!readyToSwitch()) return;
   try {
     const raw = (await api.getDrill(id)) as { rev?: number };
     const drill = parseDrill(raw);
@@ -160,7 +204,11 @@ export async function openDrill(id: string): Promise<void> {
 
 export async function newDrill(): Promise<void> {
   await saveNow();
-  const library = useEditor.getState().library ?? (await api.listDrills().catch(() => []));
+  if (!readyToSwitch()) return;
+  // Server truth, not the possibly-stale library snapshot: an agent may have
+  // created a drill since the last refresh and PUT would overwrite it.
+  const library =
+    (await api.listDrills().catch(() => null)) ?? useEditor.getState().library ?? [];
   const taken = new Set(library.map((d) => d.id));
   let id = "untitled";
   let i = 2;
@@ -178,6 +226,8 @@ export async function newDrill(): Promise<void> {
 }
 
 export async function duplicateDrill(id: string): Promise<void> {
+  await saveNow();
+  if (!readyToSwitch()) return;
   try {
     const raw = await api.getDrill(id);
     const drill = parseDrill(raw);

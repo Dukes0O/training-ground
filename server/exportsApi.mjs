@@ -1,7 +1,9 @@
 import express from "express";
+import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import { pipeline } from "node:stream/promises";
 import { drillsDir, exportsDir, isValidSlug, readJson, repoRoot } from "./paths.mjs";
 
 const SAFE_NAME = /^[a-z0-9][a-z0-9._-]{0,99}$/i;
@@ -29,23 +31,32 @@ Image alt text suggestion: use the manifest entry's "description".
 export function exportsRouter() {
   const router = express.Router();
 
-  router.post(
-    "/exports/:id/asset",
-    express.raw({ type: () => true, limit: "900mb" }),
-    async (req, res) => {
-      const { id } = req.params;
-      const name = String(req.query.name ?? "");
-      if (!isValidSlug(id)) return res.status(400).json({ error: "invalid drill id" });
-      if (!SAFE_NAME.test(name) || name.includes("..")) {
-        return res.status(400).json({ error: "invalid asset name" });
-      }
-      const dir = path.join(exportsDir, id);
-      await fsp.mkdir(dir, { recursive: true });
-      const file = path.join(dir, name);
-      await fsp.writeFile(file, req.body);
-      res.json({ ok: true, path: file, bytes: req.body.length });
+  // Streamed to disk (no body buffering): a long narrated take should neither
+  // spike RAM nor hit a body-size ceiling, and tmp+rename keeps writes atomic.
+  router.post("/exports/:id/asset", async (req, res) => {
+    const { id } = req.params;
+    const name = String(req.query.name ?? "");
+    if (!isValidSlug(id)) return res.status(400).json({ error: "invalid drill id" });
+    if (!SAFE_NAME.test(name) || name.includes("..")) {
+      return res.status(400).json({ error: "invalid asset name" });
     }
-  );
+    const dir = path.join(exportsDir, id);
+    await fsp.mkdir(dir, { recursive: true });
+    const file = path.join(dir, name);
+    const tmp = `${file}.${process.pid}.${Date.now()}.tmp`;
+    let bytes = 0;
+    req.on("data", (chunk) => {
+      bytes += chunk.length;
+    });
+    try {
+      await pipeline(req, fs.createWriteStream(tmp));
+      await fsp.rename(tmp, file);
+      res.json({ ok: true, path: file, bytes });
+    } catch (err) {
+      await fsp.unlink(tmp).catch(() => undefined);
+      res.status(500).json({ error: String(err.message ?? err) });
+    }
+  });
 
   router.post("/exports/:id/bundle", express.json(), async (req, res) => {
     const { id } = req.params;
