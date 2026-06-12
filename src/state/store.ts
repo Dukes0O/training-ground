@@ -17,6 +17,8 @@ import type {
 } from "../model/types";
 import type { AppSettings, DrillSummary, RostersFile } from "../api/client";
 import { getTimeline, posesAtStep, stepAtTime } from "../model/resolve";
+import type { Formation } from "../model/formations";
+import { buildFormationSlots, matchRosterToSlots } from "../model/formations";
 import { APRON, defaultGridOn, pitchFormatId, resolvePitch } from "../pitch/formats";
 
 export type Tool =
@@ -155,6 +157,13 @@ interface EditorState {
   setPitchFormat: (format: PitchFormatId) => void;
   setGridOn: (on: boolean) => void;
   addPlayer: (team: TeamId, pt: Point) => void;
+  placeTeam: (opts: {
+    team: TeamId;
+    formation: Formation;
+    defending: "left" | "right";
+    rosterTeamId?: string;
+    replace?: boolean;
+  }) => void;
   addBall: (pt: Point) => void;
   addEquipment: (kind: EquipmentKind, pt: Point) => void;
   addLabel: (pt: Point) => void;
@@ -194,6 +203,8 @@ interface EditorState {
   setLibrary: (library: DrillSummary[]) => void;
   setRosters: (rosters: RostersFile) => void;
   setRosterOpen: (open: boolean) => void;
+  placeTeamOpen: boolean;
+  setPlaceTeamOpen: (open: boolean) => void;
   setRecordOpen: (open: boolean) => void;
   setRecordingActive: (active: boolean) => void;
   setTrashOpen: (open: boolean) => void;
@@ -288,6 +299,54 @@ export const useEditor = create<EditorState>()(
             s.drill.entities.push({ kind: "player", id, team, number });
             s.drill.steps[s.currentStep].positions[id] = clamp(s.drill, pt);
             s.selection = [id];
+          }),
+        placeTeam: ({ team, formation, defending, rosterTeamId, replace }) =>
+          set((s) => {
+            if (replace) {
+              const removing = new Set(
+                s.drill.entities.filter((e) => e.kind === "player" && e.team === team).map((e) => e.id)
+              );
+              s.drill.entities = s.drill.entities.filter((e) => !removing.has(e.id));
+              for (const step of s.drill.steps) {
+                for (const id of removing) delete step.positions[id];
+              }
+            }
+            const spec = resolvePitch(s.drill.pitch);
+            const slots = buildFormationSlots(spec, formation, defending);
+            const rosterTeam = s.rosters.teams.find((t) => t.id === rosterTeamId);
+            const matches = rosterTeam
+              ? matchRosterToSlots(slots, rosterTeam.players)
+              : slots.map(() => null);
+            // Roster jersey numbers win; default numbers fill the gaps without
+            // colliding with them (no two visible #7s on one team).
+            const usedNumbers = new Set<number>();
+            for (const rp of matches) if (rp?.number != null) usedNumbers.add(rp.number);
+            let seq = 1;
+            const nextFreeNumber = () => {
+              while (usedNumbers.has(seq)) seq++;
+              usedNumbers.add(seq);
+              return seq;
+            };
+            const ids: string[] = [];
+            slots.forEach((slot, i) => {
+              const rp = matches[i];
+              const number = rp?.number ?? nextFreeNumber();
+              const id = uniqueId(s.drill, `p-${team}-${number}`);
+              s.drill.entities.push({
+                kind: "player",
+                id,
+                team,
+                // The formation slot defines today's role; the roster supplies identity.
+                number,
+                name: rp?.name || undefined,
+                position: slot.position,
+                rosterRef: rp && rosterTeam ? `${rosterTeam.id}/${rp.id}` : undefined,
+              });
+              s.drill.steps[s.currentStep].positions[id] = { x: slot.x, y: slot.y };
+              ids.push(id);
+            });
+            s.selection = ids;
+            s.tool = "select";
           }),
         addBall: (pt) =>
           set((s) => {
@@ -583,6 +642,11 @@ export const useEditor = create<EditorState>()(
         setRosterOpen: (open) =>
           set((s) => {
             s.rosterOpen = open;
+          }),
+        placeTeamOpen: false,
+        setPlaceTeamOpen: (open) =>
+          set((s) => {
+            s.placeTeamOpen = open;
           }),
         setRecordOpen: (open) =>
           set((s) => {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MousePointer2, Type } from "lucide-react";
+import { MousePointer2, Type, Users } from "lucide-react";
 import type { Tool } from "../state/store";
 import { useEditor } from "../state/store";
 import { DEFAULT_TEAM_STYLES } from "../model/types";
@@ -237,6 +237,21 @@ export function ToolRail() {
       <ToolButton tool="add-label" title="Text label">
         <Type size={16} />
       </ToolButton>
+      <div className="my-0.5 h-px w-6 bg-zinc-200" />
+      <PlaceTeamButton />
     </div>
+  );
+}
+
+function PlaceTeamButton() {
+  const setPlaceTeamOpen = useEditor((s) => s.setPlaceTeamOpen);
+  return (
+    <button
+      title="Place a full team (formation preset)"
+      onClick={() => setPlaceTeamOpen(true)}
+      className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-600 transition-colors hover:bg-zinc-100"
+    >
+      <Users size={17} />
+    </button>
   );
 }

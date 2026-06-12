@@ -11,6 +11,7 @@ import { Timeline } from "./timeline/Timeline";
 import { usePlaybackClock } from "./timeline/usePlaybackClock";
 import { ConflictModal } from "./ui/ConflictModal";
 import { ExportProgressModal } from "./ui/ExportProgressModal";
+import { PlaceTeamDialog } from "./ui/PlaceTeamDialog";
 import { RecordDialog } from "./ui/RecordDialog";
 import { SettingsDialog } from "./ui/SettingsDialog";
 import { ToastHost } from "./ui/ToastHost";
@@ -85,6 +86,7 @@ export default function App() {
       </div>
       <Timeline />
       <RosterDialog />
+      <PlaceTeamDialog />
       <ConflictModal />
       <ExportProgressModal />
       <RecordDialog />

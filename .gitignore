@@ -2,6 +2,10 @@ node_modules/
 dist/
 exports/
 data/trash/
+# Local-only personal data: the roster holds kids' names and settings is
+# per-machine state — neither belongs in a public repo.
+data/rosters.json
+data/settings.json
 *.local
 .DS_Store
 npm-debug.log*

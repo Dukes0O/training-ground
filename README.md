@@ -41,6 +41,13 @@ Use **Chrome or Edge** — video export and narrated recording rely on Chromium 
 Space play/pause · `,` / `.` previous/next step · arrows nudge selection (Shift = bigger) ·
 Delete remove · Esc back to select tool · Ctrl+Z / Ctrl+Y undo/redo · Ctrl+S save now
 
+## Privacy note (public repo)
+
+`data/rosters.json` and `data/settings.json` are gitignored — the roster holds your players'
+names and stays on your machine. **Drill files in `drills/` are committed and public**: if you
+stamp roster names onto players in a drill you intend to push, prefer first names, initials, or
+numbers only.
+
 ## Agents (Claude Code / Codex)
 
 Drills are plain JSON; the app picks up file changes within a second. Open an agent in this
