@@ -29,10 +29,11 @@ app.use("/api", watchRouter());
 app.use("/api", exportsRouter());
 app.use("/api", drillsRouter());
 
+app.use("/atlas", express.static(path.join(repoRoot, "docs", "project_atlas")));
 app.use(express.static(distDir));
-// SPA fallback: anything that isn't a file or /api route gets the app shell.
+// SPA fallback: anything that isn't a file, /api or /atlas route gets the app shell.
 app.use((req, res, next) => {
-  if (req.path.startsWith("/api/")) return next();
+  if (req.path.startsWith("/api/") || req.path.startsWith("/atlas")) return next();
   res.sendFile(path.join(distDir, "index.html"));
 });
 

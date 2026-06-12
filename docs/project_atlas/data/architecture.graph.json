@@ -220,7 +220,6 @@
     { "from": "model.types", "to": "api.persistence", "label": "parseDrill (forgiving)" },
     { "from": "model.serialize", "to": "api.persistence", "label": "dense wire form" },
     { "from": "model.types", "to": "model.resolve", "label": "" },
-    { "from": "model.tween", "to": "model.resolve", "label": "" },
     { "from": "model.formations", "to": "state.store", "label": "placeTeam slots" },
     { "from": "state.store", "to": "model.resolve", "label": "drill + time" },
     { "from": "model.resolve", "to": "board.boardsvg", "label": "BoardSnapshot" },

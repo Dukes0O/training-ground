@@ -1,0 +1,52 @@
+{
+  "dives": [
+    {
+      "id": "single_render_path",
+      "title": "Why every pixel comes from BoardSvg",
+      "question": "How do the editor, PNG, MP4 and GIF stay pixel-identical forever?",
+      "narrative": "BoardSvg is a pure function: BoardSnapshot in, SVG out. The editor mounts it as live React; exporters call renderToStaticMarkup on the very same component, turn the string into an SVG blob, draw it onto a canvas, and feed encoders. There is no second drawing implementation to drift out of sync — a new glyph or color shows up in exports the moment it ships in the editor.\n\nThe price is a set of standing constraints on BoardSvg: no <foreignObject> (taints/blanks canvas rasterization), no webfonts or external hrefs (silently not loaded inside SVG-as-image; the system Segoe UI stack renders fine), explicit width/height on the export root (or rasterization collapses to 300×150). Editor-only chrome — selection rings around handles, marquee rectangles, drag previews, mover badges — enters through a children slot (EditorOverlay) so it never contaminates the export path.\n\nZoom/pan honors the same boundary from outside: BoardViewport wraps the board in a CSS transform, which getScreenCTM() folds into pointer math automatically, so neither BoardSvg nor any interaction code knows zoom exists.",
+      "highlights": ["board.boardsvg", "board.glyphs", "export.renderframes", "board.interaction"],
+      "decisions": ["single_render_path", "svg_over_canvas", "css_transform_zoom"]
+    },
+    {
+      "id": "agent_route",
+      "title": "How an AI writes a drill",
+      "question": "What makes 'ask Claude for a 9v9 pressing drill' actually work — and safe?",
+      "narrative": "Drills are single JSON files whose filename equals their id. An agent reads docs/drill-authoring.md (coordinates in meters, sparse steps legal, arrows anchor to entity ids), writes drills/<slug>.json, and runs npm run validate — which checks structure via the zod schema plus semantics the schema can't express: anchor refs that exist, step windows in range, and meter-scale coordinates (the #1 mistake is pixel-scale numbers, which would otherwise render an empty-looking board).\n\nchokidar watches the folder and pushes an SSE event; the library refreshes within about a second, and previews render the real file through a mini BoardSvg, so nothing goes stale.\n\nThe sharp edge is the OPEN drill. The app's own saves echo back through the watcher, so saveNow plants a consume-once expected-rev token; the first matching event is swallowed, and every other event is treated as genuinely external — including agent writes that keep the old rev field. External change + clean editor = silent reload that preserves the cursor. External change + unsaved edits = an explicit conflict dialog (use the disk version / keep mine and overwrite). The loader stays forgiving on top: duplicate ids keep-first, unknown position keys dropped, sparse steps densified at load so editing semantics don't depend on how the file arrived.",
+      "highlights": ["docs.agent", "files.drills", "server.watch", "api.persistence", "model.types"],
+      "decisions": ["files_not_sqlite", "dense_save_sparse_load", "dumb_server"]
+    },
+    {
+      "id": "animation_resolve",
+      "title": "From steps to motion",
+      "question": "How do sparse keyframes become smooth, scrub-correct playback?",
+      "narrative": "A drill's steps are keyframes: steps[0] is the starting picture; each later step's positions say where entities ARRIVE; durationMs is the time of the move INTO that step and pauseAfterMs freezes the arrival as a coaching beat. compileTimeline lays these out as segments — hold, move, pause — and sceneAt(t) finds the segment for any instant.\n\nSparse files forward-fill: an entity's pose at step k is its last explicit pose at or before k, and an entity with no pose yet simply isn't on the board (that's how a late runner enters). During a move, each entity tweens from its resolved previous pose to its explicit target — straight lerp by default, Catmull-Rom through via waypoints for curved runs, shortest-arc rotation, per-entity easing (passes read best linear; runs ease in-out). 'instant' holds until arrival then snaps.\n\nNotation participates: arrows whose endpoints anchor to entities re-resolve against the TWEENED poses every frame, so a pass arrow stays glued to a moving receiver; step-scoped annotations fade over 150ms instead of popping. One boundary subtlety is covered by tests: a move's exact end instant belongs to the arriving step, so zero-pause steps don't hand the boundary to the next move and jump the step indicator ahead.",
+      "highlights": ["model.resolve", "state.store", "ui.timeline"],
+      "decisions": ["gesture_coalescing", "watchdog_clock"]
+    },
+    {
+      "id": "export_pipeline",
+      "title": "One frame loop, four outputs",
+      "question": "Why don't exports need ffmpeg, screen capture, or luck?",
+      "narrative": "renderFrames is an async generator: for each fixed-timestep instant it calls sceneAt(t), renders BoardSvg to markup, rasterizes onto ONE reused canvas, and yields. Deterministic by construction — every frame exists, timed exactly, no realtime capture to drop frames — and abortable mid-loop via AbortSignal.\n\nMP4 comes from WebCodecs hardware H.264 muxed by mediabunny (the maintained successor to the deprecated mp4-muxer/webm-muxer); when the OS lacks H.264 (Windows N editions) it degrades to VP9/WebM automatically. GIF comes from gifenc with per-frame rgb444 palettes — the flat-color board quantizes cleanly — at deliberately modest defaults. PNG snapshots any scrubbed instant at 1920px. All three POST to the server, which streams to disk with tmp+rename.\n\nNarrated takes are the deliberate exception: they capture the LIVE tab (cropped to the board via Region Capture) mixed with the mic, because the product is the coach's voice over real playback, cursor included. The recorder arms while the share dialog is up but starts only after the 3-2-1 countdown, the browser's own Stop-sharing pill ends takes cleanly, exports are blocked during a take (a progress modal would be filmed), and a failed upload falls back to a browser download so a spoken take is never lost.",
+      "highlights": ["export.renderframes", "export.encoders", "export.narrate", "files.exports"],
+      "decisions": ["mediabunny_webcodecs", "region_capture_narration", "single_render_path"]
+    },
+    {
+      "id": "files_not_db",
+      "title": "Why JSON files, not SQLite",
+      "question": "Wouldn't a database be more 'proper'? (Evaluated 2026-06-12, verdict: no.)",
+      "narrative": "The data layer was deliberately re-examined: would SQLite earn its keep for drill storage, a search index, session logs, or roster history?\n\nVerdict: no — because the file layout IS the product's key feature. Every drill being a human-readable file means: (1) AI agents author drills directly on a subscription — the zero-API-cost route the whole tool is designed around; (2) git gives history, diffs, review and backup for free; (3) the coach can open any drill in a text editor; (4) a fresh clone needs nothing but npm ci. A binary store would subtract all four and add a native dependency (better-sqlite3 compiles per Node ABI) to provide indexes and transactions that a personal library measured in TENS of files cannot feel — in-memory search over library summaries is already instantaneous, and the heaviest read path (library previews) is bounded by SVG rendering, not file IO.\n\nWhat would change the verdict: full-text search across many hundreds of drills, concurrent multi-coach editing, or per-rep analytics. Even then, the right shape is SQLite as a REBUILDABLE INDEX over the files — a cache, never the truth — so the agent route survives intact. Until a concrete feature needs that, there is nothing for a database to do here but cost.",
+      "highlights": ["files.drills", "server.express", "api.persistence", "docs.agent"],
+      "decisions": ["files_not_sqlite", "dumb_server", "rosters_gitignored"]
+    },
+    {
+      "id": "pitch_geometry",
+      "title": "Meters, origin, apron",
+      "question": "Why can an agent place a striker at x:44 and have it just work?",
+      "narrative": "The board's coordinate system is physical: 1 SVG user unit = 1 meter, origin at the pitch's top-left corner, x along the length (0 = left goal line), y across the width, with a 3m apron of legal out-of-bounds staging space (so x:-2 is 'just off the end' — useful for subs and equipment).\n\nEvery pitch format is one PitchSpec entry: 11v11 (100×64, full IFAB-ish markings with penalty arcs and corner arcs), 9v9 (70×50), 8v8 (60×40), half-pitch (one end + open halfway), and a resizable training grid. One renderer (PitchMarkings) reads the spec and mirrors end features, so adding a format is adding a table row. Token glyphs are sized in meters too, with a per-format scale nudge so a 9v9 board doesn't show comically large players.\n\nThis is what keeps the agent docs honest: drill-authoring.md can say 'positions are meters; the 9v9 pitch is 70×50' and an agent's mental model matches the renderer exactly. The validator backs it up by flagging out-of-pitch or pixel-scale coordinates, and switching a drill to a smaller format pulls stranded pieces back inside the new bounds.",
+      "highlights": ["pitch.formats", "board.boardsvg", "model.types"],
+      "decisions": ["svg_over_canvas"]
+    }
+  ]
+}

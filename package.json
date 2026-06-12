@@ -11,6 +11,7 @@
     "start": "node server/index.mjs --open",
     "validate": "tsx scripts/validate.ts",
     "schema": "tsx scripts/gen-schema.ts",
+    "atlas": "node scripts/build-atlas.mjs",
     "test": "vitest run"
   },
   "dependencies": {

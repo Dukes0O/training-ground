@@ -1,0 +1,40 @@
+{
+  "flows": [
+    {
+      "id": "edit-loop",
+      "title": "The edit loop",
+      "summary": "A drag on the board becomes a saved file in about a second — and the file watcher's echo of that save is recognized and ignored.",
+      "steps": [
+        { "actor": "Coach", "action": "drags a player on the SVG board", "detail": "useBoardInteraction starts a gesture: history pauses so the whole drag is one undo entry." },
+        { "actor": "Store", "action": "drill state updates per pointer move", "detail": "moveEntity writes the pose into the current step; endGesture replays the drag as a single tracked change." },
+        { "actor": "Persistence", "action": "autosave fires after an 800ms quiet period", "detail": "serializeDense materializes forward-fill, rounds to cm, and PUTs with If-Match: rev." },
+        { "actor": "Server", "action": "atomic write, rev+1", "detail": "tmp file + rename so readers never see a half-written drill; rev/updatedAt stamped." },
+        { "actor": "Watcher", "action": "chokidar sees the change → SSE", "detail": "The app recognizes its own write via a consume-once expected-rev token and skips reloading itself." }
+      ]
+    },
+    {
+      "id": "agent-loop",
+      "title": "The agent route",
+      "summary": "An AI on a subscription writes a JSON file; the library updates live. Conflicts with in-app edits go through an explicit ladder instead of silent clobbering.",
+      "steps": [
+        { "actor": "Coach", "action": "asks Claude Code / Codex for a drill in plain coaching language", "detail": "\"9v9 build-out: keeper to the low fullback, up the line, switch through the pivot.\"" },
+        { "actor": "Agent", "action": "writes drills/<slug>.json following docs/drill-authoring.md", "detail": "Sparse steps are fine; npm run validate checks structure, semantics, anchors, and meter-scale coordinates." },
+        { "actor": "Watcher", "action": "SSE drills-changed within ~1s", "detail": "awaitWriteFinish debounces partial writes." },
+        { "actor": "App", "action": "library refreshes; open drill reloads or conflicts", "detail": "Not the open drill → card appears. Open and clean → silent reload preserving cursor. Open and dirty → conflict dialog: use disk vs keep mine." },
+        { "actor": "Loader", "action": "parseDrill forgives and normalizes", "detail": "Duplicate ids keep-first, unknown position keys dropped, sparse steps densified so editing behaves identically either way." }
+      ]
+    },
+    {
+      "id": "export-loop",
+      "title": "The export pipeline",
+      "summary": "One deterministic frame loop feeds every visual format; the server lays out a ready-to-post bundle for the team site's agent.",
+      "steps": [
+        { "actor": "renderFrames", "action": "sceneAt(t) → BoardSvg markup → canvas, at a fixed timestep", "detail": "The exact component the editor shows, rasterized frame by frame; abortable; even dimensions for H.264." },
+        { "actor": "Encoders", "action": "WebCodecs H.264 → mediabunny MP4 (VP9/WebM fallback); gifenc GIF; PNG snapshot", "detail": "Hardware encode runs faster than realtime; GIF defaults stay modest (720px/12fps) with a size warning past 20s." },
+        { "actor": "Server", "action": "streams blobs to exports/<drill>/", "detail": "Streaming + tmp/rename: no RAM spike on long narrations, no partial files." },
+        { "actor": "Site bundle", "action": "poster + GIF + MP4 + drill JSON + manifest-snippet.json + AGENT-INSTRUCTIONS.md", "detail": "The snippet matches the soccer-quizzes manifest shape; the instructions tell the site agent exactly where each file goes." },
+        { "actor": "Narration (the exception)", "action": "Region-Capture tab recording + mic via MediaRecorder", "detail": "Live capture, deliberately: the coach's voice and cursor over real playback. Countdown stays out of the take; failed uploads fall back to a browser download." }
+      ]
+    }
+  ]
+}

@@ -12,6 +12,7 @@ each under `drills/` — that folder is the database.
 - `npm start` — serve `dist/` + API on :8123 and open the browser
 - `npm run validate [-- drills/x.json]` — validate drill files (always run after editing drills)
 - `npm run schema` — regenerate `schema/drill.schema.json` from `src/model/schema.ts`
+- `npm run atlas` — regenerate the architecture atlas bundle from `docs/project_atlas/data/*.json`
 - `start-training-ground.bat` — one-click launcher for the coach (`update` arg = reinstall + rebuild)
 
 ## Creating or editing drills
@@ -35,3 +36,7 @@ The app picks up file changes live — no restart needed.
 - Drill `id` === filename slug; server writes are atomic (tmp + rename); deletes go to `data/trash/`.
 - The server stamps `rev`/`createdAt`/`updatedAt` — never hand-edit those.
 - `exports/` is generated output (gitignored). Site bundles for the soccer-quizzes site land there.
+- The architecture atlas (`docs/project_atlas`, served at `/atlas`) documents components, flows
+  and accepted decisions — when your change adds/renames components or overturns a decision,
+  update `docs/project_atlas/data/*.json` and run `npm run atlas`. Notably: drills stay JSON
+  files (no SQLite) — see the `files_not_sqlite` decision before adding storage.

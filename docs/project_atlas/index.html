@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Training Ground Atlas</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot">⚽</span>
+      <div>
+        <h1>Training Ground Atlas</h1>
+        <p id="subtitle">How the drill designer fits together — and why it's built this way</p>
+      </div>
+    </div>
+    <label class="search-wrap">
+      <input id="search" type="search" placeholder="Find a component…" spellcheck="false">
+    </label>
+  </header>
+
+  <nav class="tabs" aria-label="Atlas views">
+    <button class="tab is-active" data-view="overview">Overview</button>
+    <button class="tab" data-view="graph">Architecture</button>
+    <button class="tab" data-view="flows">Data Flows</button>
+    <button class="tab" data-view="dives">Deep Dives</button>
+    <button class="tab" data-view="decisions">Decisions</button>
+  </nav>
+
+  <main class="layout">
+    <section class="workspace">
+      <section id="view-overview" class="view is-active"></section>
+
+      <section id="view-graph" class="view">
+        <div class="view-head">
+          <p class="hint">Hover a component: <span class="sw sw-up"></span> feeds it, <span class="sw sw-down"></span> consumes it.
+            Click to pin it in the inspector. Drag to pan, scroll to zoom.</p>
+          <button id="clear-focus" class="ghost-btn" hidden>Clear focus</button>
+        </div>
+        <div id="graph-viewport" class="graph-viewport">
+          <div id="graph-stage" class="graph-stage">
+            <svg id="graph-edges"></svg>
+            <div id="graph-nodes"></div>
+          </div>
+          <div class="zoom-controls">
+            <button data-zoom="in" aria-label="Zoom in">+</button>
+            <button data-zoom="out" aria-label="Zoom out">−</button>
+            <button data-zoom="reset" aria-label="Reset view">⟲</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-flows" class="view"></section>
+
+      <section id="view-dives" class="view">
+        <div class="dive-shell">
+          <nav id="dive-list" class="dive-list"></nav>
+          <article id="dive-detail" class="dive-detail"></article>
+        </div>
+      </section>
+
+      <section id="view-decisions" class="view"></section>
+    </section>
+
+    <aside id="inspector" class="inspector">
+      <p class="eyebrow">Inspector</p>
+      <h2>Hover or click a component</h2>
+      <p class="muted">The architecture view dims everything unrelated and lists what feeds the selection and what consumes it.</p>
+    </aside>
+  </main>
+</div>
+<script src="atlas-data.js?v=2"></script>
+<script src="app.js?v=2"></script>
+</body>
+</html>

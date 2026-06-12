@@ -54,6 +54,13 @@ Drills are plain JSON; the app picks up file changes within a second. Open an ag
 repo and ask for a drill — see **`docs/drill-authoring.md`** (canonical format guide),
 `AGENTS.md`, and `CLAUDE.md`. Validate with `npm run validate` before finishing.
 
+## Architecture atlas
+
+An interactive map of how the app fits together — components, data flows, deep dives, and the
+design decisions agents should preserve — lives at **http://127.0.0.1:8123/atlas** while the app
+runs (or open [docs/project_atlas/index.html](docs/project_atlas/index.html) straight from disk).
+Maintained from `docs/project_atlas/data/*.json` via `npm run atlas`.
+
 ## Develop
 
 ```

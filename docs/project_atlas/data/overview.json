@@ -1,0 +1,34 @@
+{
+  "title": "Training Ground Atlas",
+  "subtitle": "How the drill designer fits together — and why it's built this way",
+  "what": "Training Ground is a local-first soccer drill designer and animator for one youth coach. A React SPA draws an SVG tactics board; drills live as single JSON files; a tiny Express server does file CRUD on 127.0.0.1:8123; exports turn the same board into PNG, MP4, GIF, narrated clips, and site bundles for the team's GitHub Pages site.",
+  "run": "Double-click start-training-ground.bat (first run installs+builds). The app serves at http://127.0.0.1:8123 and this atlas at http://127.0.0.1:8123/atlas (or open docs/project_atlas/index.html straight from disk).",
+  "principles": [
+    {
+      "name": "One render path",
+      "text": "BoardSvg is a pure snapshot→SVG function. The editor mounts it live; PNG, MP4 and GIF exports rasterize the same component. The screen and the exports cannot disagree."
+    },
+    {
+      "name": "Files are the database",
+      "text": "drills/*.json is the source of truth — human-readable, git-versioned, and writable by AI agents on a subscription instead of an API. The server is a deliberately dumb file layer; SQLite was evaluated and declined (see Decisions)."
+    },
+    {
+      "name": "The agent route is a first-class user",
+      "text": "Claude Code / Codex author drills by writing files. A watcher pushes SSE so they appear in the library within a second; rev stamps + a conflict ladder keep the app and agents from clobbering each other; the loader is forgiving (sparse steps, dropped unknowns)."
+    },
+    {
+      "name": "Meters everywhere",
+      "text": "1 SVG unit = 1 meter, origin at the pitch's top-left, a 3m apron of legal staging space. Geometry IS the data model, so agent-written coordinates read like a coach's whiteboard."
+    },
+    {
+      "name": "Deterministic exports",
+      "text": "Video/GIF render offline at a fixed timestep — no realtime capture, no dropped frames. The one exception is narrated takes, which intentionally record the live screen (voice + cursor are the point)."
+    }
+  ],
+  "stats": [
+    { "label": "Views", "value": "Architecture graph · Data flows · Deep dives · Decisions" },
+    { "label": "Deep-linkable", "value": "?view=, ?dive=, ?node= query params" },
+    { "label": "Zero dependencies", "value": "static HTML/CSS/JS, embedded data, file-open friendly" }
+  ],
+  "maintenance": "Agents: when work changes components, dependencies, flows, or accepted decisions, edit docs/project_atlas/data/*.json and run `npm run atlas` to regenerate atlas-data.js. Bump the ?v= query in index.html if app.js/styles.css change. Keep entries short — the atlas orients, the code and docs/drill-authoring.md carry the detail."
+}
