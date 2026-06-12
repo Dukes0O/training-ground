@@ -177,6 +177,30 @@ export async function newDrill(): Promise<void> {
   }
 }
 
+export async function duplicateDrill(id: string): Promise<void> {
+  try {
+    const raw = await api.getDrill(id);
+    const drill = parseDrill(raw);
+    const library = useEditor.getState().library ?? (await api.listDrills().catch(() => []));
+    const taken = new Set(library.map((d) => d.id));
+    const base = id.slice(0, 50); // leave room for the -copy-N suffix within the 60-char slug cap
+    let copyId = `${base}-copy`;
+    let i = 2;
+    while (taken.has(copyId)) copyId = `${base}-copy-${i++}`;
+    drill.id = copyId;
+    drill.title = `${drill.title} (copy)`;
+    delete drill.rev;
+    delete drill.createdAt;
+    delete drill.updatedAt;
+    await api.putDrill(copyId, serializeDense(drill), null);
+    refreshLibrarySoon(0);
+    await openDrill(copyId);
+    toast("success", `Duplicated as "${drill.title}".`);
+  } catch (err) {
+    toast("error", `Duplicate failed: ${(err as Error).message}`);
+  }
+}
+
 export async function deleteDrillById(id: string): Promise<void> {
   try {
     await api.deleteDrill(id);

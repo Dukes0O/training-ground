@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { initPersistence } from "./api/persistence";
 import { BoardSvg } from "./board/BoardSvg";
+import { BoardViewport } from "./board/BoardViewport";
 import { EditorOverlay } from "./board/EditorOverlay";
 import { useBoardInteraction } from "./board/useBoardInteraction";
 import { sceneAt, snapshotAtStep } from "./model/resolve";
@@ -60,23 +61,25 @@ export default function App() {
               recordingActive ? "border-red-400 ring-4 ring-red-500/60" : "border-zinc-200"
             }`}
           >
-            <BoardSvg
-              snapshot={snapshot}
-              selection={editing ? selectionSet : EMPTY_SELECTION}
-              onEntityPointerDown={editing ? interaction.onEntityPointerDown : undefined}
-              onBoardPointerDown={editing ? interaction.onBoardPointerDown : undefined}
-              onBoardPointerMove={editing ? interaction.onBoardPointerMove : undefined}
-              onBoardPointerUp={editing ? interaction.onBoardPointerUp : undefined}
-            >
-              {editing && (
-                <EditorOverlay
-                  snapshot={snapshot}
-                  selection={selectionSet}
-                  preview={interaction.preview}
-                  onHandlePointerDown={interaction.onHandlePointerDown}
-                />
-              )}
-            </BoardSvg>
+            <BoardViewport>
+              <BoardSvg
+                snapshot={snapshot}
+                selection={editing ? selectionSet : EMPTY_SELECTION}
+                onEntityPointerDown={editing ? interaction.onEntityPointerDown : undefined}
+                onBoardPointerDown={editing ? interaction.onBoardPointerDown : undefined}
+                onBoardPointerMove={editing ? interaction.onBoardPointerMove : undefined}
+                onBoardPointerUp={editing ? interaction.onBoardPointerUp : undefined}
+              >
+                {editing && (
+                  <EditorOverlay
+                    snapshot={snapshot}
+                    selection={selectionSet}
+                    preview={interaction.preview}
+                    onHandlePointerDown={interaction.onHandlePointerDown}
+                  />
+                )}
+              </BoardSvg>
+            </BoardViewport>
             {editing && <ToolRail />}
           </div>
         </main>

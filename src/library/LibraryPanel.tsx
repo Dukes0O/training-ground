@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ArchiveRestore, Plus, Search, Trash2, Users } from "lucide-react";
+import { AlertTriangle, ArchiveRestore, Copy, Plus, Search, Trash2, Users } from "lucide-react";
 import { api } from "../api/client";
 import type { DrillSummary } from "../api/client";
-import { deleteDrillById, newDrill, openDrill } from "../api/persistence";
+import { deleteDrillById, duplicateDrill, newDrill, openDrill } from "../api/persistence";
 import { BoardSvg } from "../board/BoardSvg";
 import { parseDrill } from "../model/schema";
 import { snapshotAtStep } from "../model/resolve";
@@ -99,18 +99,30 @@ function LibraryCard({ item }: { item: DrillSummary }) {
                   .join(" · ")}
           </div>
         </div>
-        <button
-          title="Move to trash"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (window.confirm(`Move "${item.title}" to data/trash?`)) {
-              void deleteDrillById(item.id);
-            }
-          }}
-          className="shrink-0 rounded-md p-1 text-zinc-400 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
-        >
-          <Trash2 size={14} />
-        </button>
+        <div className="flex shrink-0 gap-0.5">
+          <button
+            title="Duplicate drill"
+            onClick={(e) => {
+              e.stopPropagation();
+              void duplicateDrill(item.id);
+            }}
+            className="rounded-md p-1 text-zinc-400 opacity-0 transition-opacity hover:bg-blue-50 hover:text-blue-700 group-hover:opacity-100"
+          >
+            <Copy size={14} />
+          </button>
+          <button
+            title="Move to trash"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (window.confirm(`Move "${item.title}" to data/trash?`)) {
+                void deleteDrillById(item.id);
+              }
+            }}
+            className="rounded-md p-1 text-zinc-400 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
       {item.tags && item.tags.length > 0 && (
         <div className="mt-1 flex flex-wrap gap-1">
