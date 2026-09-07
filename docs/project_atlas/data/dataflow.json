@@ -27,15 +27,14 @@
     {
       "id": "agent-loop",
       "title": "The agent route",
-      "summary": "The coach gives an agent a drill request, directly or by copying a prepared brief. The agent writes and validates JSON; the running library refreshes from disk.",
+      "summary": "The coach dictates goals directly in Codex. Codex edits the same files used by the manual board, and the running app refreshes from disk.",
       "steps": [
-        { "actor": "Coach", "action": "fills out Describe a drill", "detail": "Type or use device dictation for the coaching objective, then add ages, players, space, time, and an optional progression. The draft stays in this browser when storage is available." },
-        { "actor": "Brief dialog", "action": "prepares a readable prompt for review and copying", "detail": "Clipboard success is shown; if clipboard access fails, the text is selected for manual copying. There is no model or speech backend." },
-        { "actor": "Coach", "action": "pastes the brief into a Codex task opened in this repository", "detail": "This is a manual handoff. The coach may also ask Claude Code or Codex directly without using the form." },
-        { "actor": "Agent", "action": "reads AGENTS.md and drill-authoring.md, then writes drills/<slug>.json", "detail": "The brief requests setup, named movement steps, coaching points, variations, and validation with npm run validate -- drills/<file>.json." },
+        { "actor": "Coach", "action": "dictates coaching goals in a Codex task opened in this repository", "detail": "State what players should achieve and any session constraints. Describe a drill offers an optional written-brief helper, but the form is not required." },
+        { "actor": "Agent", "action": "reads AGENTS.md and drill-authoring.md, then creates or edits drills/<slug>.json", "detail": "Build the requested setup and animation, then run npm run validate -- drills/<file>.json. No paid AI or speech API integration is added to Training Ground." },
         { "actor": "Watcher", "action": "SSE drills-changed within ~1s", "detail": "awaitWriteFinish debounces partial writes." },
         { "actor": "App", "action": "library refreshes; open drill reloads or conflicts", "detail": "Not the open drill → card appears. Open and clean → silent reload preserving cursor. Open and dirty → conflict dialog: use disk vs keep mine." },
-        { "actor": "Loader", "action": "parseDrill forgives and normalizes", "detail": "Duplicate ids keep-first, unknown position keys dropped, sparse steps densified so editing behaves identically either way." }
+        { "actor": "Loader", "action": "parseDrill forgives and normalizes", "detail": "Duplicate ids keep-first, unknown position keys dropped, sparse steps densified so editing behaves identically either way." },
+        { "actor": "Coach", "action": "reviews and adjusts the result on the board", "detail": "Manual changes save to the same drill file. The coach can return to Codex for further changes at any time." }
       ]
     },
     {

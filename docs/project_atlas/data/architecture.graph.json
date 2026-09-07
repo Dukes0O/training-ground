@@ -184,9 +184,9 @@
       "label": "Describe a drill",
       "lane": "board",
       "x": 1490, "y": 910,
-      "summary": "A coaching objective and session context become a readable brief for the user to copy into Codex.",
+      "summary": "Explains direct Codex requests and manual board editing, with an optional written-brief helper.",
       "files": ["src/ui/CoachBriefDialog.tsx", "src/ui/coach-brief.css"],
-      "details": "The coach types or uses device dictation, reviews the prompt, and copies it into a Codex task in this repository. The form saves a draft in optional browser storage and selects the prompt if clipboard access fails. It has no model or speech backend. The prompt directs the agent to AGENTS.md and drill-authoring.md, a new drill JSON file, and validation."
+      "details": "The coach can dictate goals directly in a Codex task for this repository or use onOpenBoard to build manually. Both paths use the same drill files. An optional expandable form prepares a written brief, retains a browser draft when available, and selects text if copying fails. The form is never a required step. No paid AI or speech API integration may be added unless the user explicitly asks later."
     },
     {
       "id": "export.renderframes",
@@ -240,7 +240,8 @@
     { "from": "ui.timeline", "to": "state.store", "label": "playback & step ops" },
     { "from": "ui.panels", "to": "state.store", "label": "selection · meta · dialogs" },
     { "from": "ui.panels", "to": "ui.brief", "label": "describe a coaching objective" },
-    { "from": "ui.brief", "to": "docs.agent", "label": "coach copies brief to repo agent" },
+    { "from": "ui.brief", "to": "docs.agent", "label": "guidance for direct Codex requests" },
+    { "from": "ui.brief", "to": "ui.panels", "label": "open board to build manually" },
     { "from": "board.boardsvg", "to": "export.renderframes", "label": "rasterized per frame" },
     { "from": "export.renderframes", "to": "export.encoders", "label": "canvas frames" },
     { "from": "export.encoders", "to": "server.express", "label": "POST blobs & bundle" },

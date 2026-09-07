@@ -44,19 +44,26 @@ Use **Chrome or Edge** — video export and narrated recording rely on Chromium 
 - **Narrated takes** (Record button) — record the board plus your voice while you play and
   scrub the drill. Saves `narration-<date>.mp4` (or `.webm`) next to the other exports.
 
-## Describe your next drill
+## Create drills your way
 
-Choose **Describe a drill** and explain what you want players to achieve. Type your idea or
-use your device’s dictation, then add the age group, players, space, practice time, and any
-progression. The form keeps a draft in this browser when storage is available.
+- **Talk to Codex** — dictate your coaching goals directly in a Codex task opened in this
+  repository. Explain what players should learn, plus any age, player, space, or time limits.
+  Codex can create or change the drill files. The running app reloads file changes so you can
+  review the result on the board.
+- **Build on the board** — choose **New drill**, or open an existing drill, and create or edit
+  it yourself. Place players and equipment, add movement steps, and adjust the coaching notes.
 
-Review the brief, choose **Copy brief for Codex**, and paste it into a Codex task opened in
-this repository. The brief asks Codex to read the authoring guide, create the animated drill
-file, and validate it. If clipboard access is blocked, select and copy the displayed text.
-When Codex writes the file, the running app refreshes the library.
+Both paths use the same JSON drill files. You can ask Codex for a first version, adjust it
+manually, and ask Codex for further changes. If a file changes while you have unsaved edits,
+the app asks which version to keep.
 
-The form prepares text for this handoff. It does not send a request to a model or record
-speech. Dictation, if used, comes from your device.
+**Describe a drill** explains these two paths. Its optional written-brief helper lets you
+organize an objective and session details, review the prompt, and copy it into Codex. You can
+skip the form and speak to Codex directly. The helper keeps a browser draft when storage is
+available and offers selectable text if copying is blocked.
+
+Training Ground has no paid AI or speech API integration. Dictate in Codex itself; the app
+remains the place to browse, edit, and play the drills.
 
 ## Keyboard
 

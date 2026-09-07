@@ -313,3 +313,110 @@
     transition: none;
   }
 }
+
+.coach-brief-dialog #coach-brief-title {
+  outline: none;
+}
+.coach-brief-routes {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 18px;
+  padding: 24px 32px 18px;
+}
+.coach-brief-route {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid #dce3d5;
+  border-radius: 12px;
+  background: #fffefa;
+}
+.coach-brief-route > svg {
+  color: #4a7256;
+}
+.coach-brief-dialog .coach-brief-route h3 {
+  font-size: 18px;
+  margin: 0;
+}
+.coach-brief-route p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #597064;
+  margin: 0;
+}
+.coach-brief-route button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 11px 14px;
+  border-radius: 6px;
+  color: #f5f9e8;
+  background: #23765a;
+  margin-top: auto;
+}
+.coach-brief-route button:hover {
+  background: #195e45;
+}
+.coach-brief-codex {
+  background: #edf1e5;
+}
+.coach-brief-codex blockquote {
+  margin: 0;
+  padding: 12px 14px;
+  border-left: 2px solid #84a65d;
+  background: #f9fbf4;
+  color: #46603e;
+  font-size: 12px;
+  line-height: 1.75;
+}
+.coach-brief-workflow-note {
+  padding: 0 32px 22px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.7;
+  color: #637869;
+}
+.coach-brief-optional {
+  border-top: 1px solid #dce3d5;
+}
+.coach-brief-optional > summary {
+  padding: 19px 32px;
+  color: #42614c;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.coach-brief-optional > summary:hover {
+  background: #edf1e5;
+}
+.coach-brief-optional-intro {
+  margin: 0;
+  padding: 0 32px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #65796a;
+}
+@media (max-width: 700px) {
+  .coach-brief-routes {
+    grid-template-columns: 1fr;
+    padding: 20px;
+    gap: 14px;
+  }
+  .coach-brief-route {
+    padding: 18px;
+  }
+  .coach-brief-workflow-note {
+    padding: 0 20px 18px;
+  }
+  .coach-brief-optional > summary {
+    padding: 18px 20px;
+  }
+  .coach-brief-optional-intro {
+    padding: 0 20px;
+  }
+}

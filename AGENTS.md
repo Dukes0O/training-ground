@@ -14,3 +14,12 @@ changes within a second — don't restart anything.
 For app code (React/TS SPA + Express file server), see CLAUDE.md for the module map and
 conventions. Build with `npm run build`; never hand-edit `rev`/`createdAt`/`updatedAt` in
 drill files (the server stamps them).
+
+## Coaching workflow
+
+Support both manual drill creation/editing in Training Ground and coaching goals dictated
+directly in a Codex task in this repository. Both paths use the same drill files. The app's
+written-brief helper is optional; do not require it before acting on a coaching request.
+
+Do not add paid AI or speech API integrations unless the user explicitly asks later.
+Dictation belongs in Codex itself, not in a new Training Ground speech service.

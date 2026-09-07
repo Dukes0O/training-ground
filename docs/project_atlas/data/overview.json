@@ -1,7 +1,7 @@
 {
   "title": "Training Ground Atlas",
   "subtitle": "How the drill designer fits together — and why it's built this way",
-  "what": "Training Ground is a local soccer drill designer and animator for a youth coach. The workspace opens to a visual library with 12 starter drills, search, topic filters, sorting, and browser-local bookmarks. A separate tactics board brings together coach notes, grouped tools, and a step sequence. Describe a drill prepares a brief to copy into Codex. Drills remain JSON files served by Express on 127.0.0.1:8123; the same SVG renderer produces the board and media exports.",
+  "what": "Training Ground is a local soccer drill designer and animator for a youth coach. The workspace opens to a visual library with 12 starter drills, search, topic filters, sorting, and browser-local bookmarks. A separate tactics board brings together coach notes, grouped tools, and a step sequence. The coach can edit manually or dictate goals directly in a Codex task for this repository. Both paths use the same JSON drill files, served by Express on 127.0.0.1:8123. The same SVG renderer produces the board and media exports.",
   "run": "Double-click start-training-ground.bat (first run installs+builds). The app serves at http://127.0.0.1:8123 and this atlas at http://127.0.0.1:8123/atlas (or open docs/project_atlas/index.html straight from disk).",
   "principles": [
     {
@@ -14,7 +14,7 @@
     },
     {
       "name": "The agent route is a first-class user",
-      "text": "The coach can prepare a brief in Describe a drill, then copy it into a Codex task in this repository. The app prepares text; the agent writes and validates JSON files. A watcher refreshes the library, and revision checks protect unsaved edits. Device dictation is optional; there is no integrated model or speech service."
+      "text": "The coach dictates goals directly in Codex, or creates and edits drills manually on the board. Both use the same files; the watcher refreshes the app when an agent writes them, and conflicts protect unsaved edits. Describe a drill offers an optional written-brief helper. Do not add paid AI or speech API integrations unless the user explicitly asks later."
     },
     {
       "name": "Browse first, focus on the board",

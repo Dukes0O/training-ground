@@ -285,12 +285,12 @@ window.ATLAS_DATA = {
         "lane": "board",
         "x": 1490,
         "y": 910,
-        "summary": "A coaching objective and session context become a readable brief for the user to copy into Codex.",
+        "summary": "Explains direct Codex requests and manual board editing, with an optional written-brief helper.",
         "files": [
           "src/ui/CoachBriefDialog.tsx",
           "src/ui/coach-brief.css"
         ],
-        "details": "The coach types or uses device dictation, reviews the prompt, and copies it into a Codex task in this repository. The form saves a draft in optional browser storage and selects the prompt if clipboard access fails. It has no model or speech backend. The prompt directs the agent to AGENTS.md and drill-authoring.md, a new drill JSON file, and validation."
+        "details": "The coach can dictate goals directly in a Codex task for this repository or use onOpenBoard to build manually. Both paths use the same drill files. An optional expandable form prepares a written brief, retains a browser draft when available, and selects text if copying fails. The form is never a required step. No paid AI or speech API integration may be added unless the user explicitly asks later."
       },
       {
         "id": "export.renderframes",
@@ -452,7 +452,12 @@ window.ATLAS_DATA = {
       {
         "from": "ui.brief",
         "to": "docs.agent",
-        "label": "coach copies brief to repo agent"
+        "label": "guidance for direct Codex requests"
+      },
+      {
+        "from": "ui.brief",
+        "to": "ui.panels",
+        "label": "open board to build manually"
       },
       {
         "from": "board.boardsvg",
@@ -550,27 +555,17 @@ window.ATLAS_DATA = {
       {
         "id": "agent-loop",
         "title": "The agent route",
-        "summary": "The coach gives an agent a drill request, directly or by copying a prepared brief. The agent writes and validates JSON; the running library refreshes from disk.",
+        "summary": "The coach dictates goals directly in Codex. Codex edits the same files used by the manual board, and the running app refreshes from disk.",
         "steps": [
           {
             "actor": "Coach",
-            "action": "fills out Describe a drill",
-            "detail": "Type or use device dictation for the coaching objective, then add ages, players, space, time, and an optional progression. The draft stays in this browser when storage is available."
-          },
-          {
-            "actor": "Brief dialog",
-            "action": "prepares a readable prompt for review and copying",
-            "detail": "Clipboard success is shown; if clipboard access fails, the text is selected for manual copying. There is no model or speech backend."
-          },
-          {
-            "actor": "Coach",
-            "action": "pastes the brief into a Codex task opened in this repository",
-            "detail": "This is a manual handoff. The coach may also ask Claude Code or Codex directly without using the form."
+            "action": "dictates coaching goals in a Codex task opened in this repository",
+            "detail": "State what players should achieve and any session constraints. Describe a drill offers an optional written-brief helper, but the form is not required."
           },
           {
             "actor": "Agent",
-            "action": "reads AGENTS.md and drill-authoring.md, then writes drills/<slug>.json",
-            "detail": "The brief requests setup, named movement steps, coaching points, variations, and validation with npm run validate -- drills/<file>.json."
+            "action": "reads AGENTS.md and drill-authoring.md, then creates or edits drills/<slug>.json",
+            "detail": "Build the requested setup and animation, then run npm run validate -- drills/<file>.json. No paid AI or speech API integration is added to Training Ground."
           },
           {
             "actor": "Watcher",
@@ -586,6 +581,11 @@ window.ATLAS_DATA = {
             "actor": "Loader",
             "action": "parseDrill forgives and normalizes",
             "detail": "Duplicate ids keep-first, unknown position keys dropped, sparse steps densified so editing behaves identically either way."
+          },
+          {
+            "actor": "Coach",
+            "action": "reviews and adjusts the result on the board",
+            "detail": "Manual changes save to the same drill file. The coach can return to Codex for further changes at any time."
           }
         ]
       },
@@ -627,11 +627,11 @@ window.ATLAS_DATA = {
     "decisions": [
       {
         "id": "manual_coaching_brief",
-        "title": "Coaching ideas become a brief the user hands to Codex",
+        "title": "Direct Codex requests and manual editing share drill files",
         "status": "accepted",
-        "context": "A coach needs an easy way to state the intended learning outcome while keeping the existing workflow where an agent authors JSON files in the repository.",
-        "decision": "Describe a drill gathers the objective and session context, shows the complete prompt, and copies it for the coach to paste into a Codex task in this repository. It supplies the authoring-guide and validation instructions. Device dictation can enter text; no model or speech backend is added.",
-        "consequences": "The handoff remains visible and under the coach's control. Copying does not create a drill; the agent must receive the request, write the file, and validate it. Clipboard failure leaves selectable text, and optional browser storage retains the draft.",
+        "context": "The user wants to dictate coaching goals directly in Codex and also create or edit drills manually in Training Ground. A form must not become a required middle step.",
+        "decision": "Support both paths over the same JSON drill files. Describe a drill explains direct Codex requests and offers a board action, followed by an optional expandable written-brief helper. Dictation happens in Codex itself. Do not add paid AI or speech API integrations unless the user explicitly asks later.",
+        "consequences": "The coach can move between agent-authored and manual changes. The watcher refreshes file changes; conflicts protect unsaved edits. The optional helper only prepares text and retains a browser draft when available. It neither sends a model request nor records speech.",
         "touches": [
           "ui.brief",
           "ui.panels",
@@ -818,7 +818,7 @@ window.ATLAS_DATA = {
         "id": "agent_route",
         "title": "How an AI writes a drill",
         "question": "How does a coaching objective become an animated drill?",
-        "narrative": "Describe a drill helps the coach state an objective and session context: ages, players, available space, time, and an optional progression. The coach can type or use device dictation. The form prepares a readable prompt and stores a local browser draft when storage is available. It copies text to the clipboard, or selects it for manual copying if permission fails. It does not call a model, record speech, or write a drill.\n\nThe coach pastes that brief into a Codex task opened in this repository. An agent reads AGENTS.md and docs/drill-authoring.md, creates drills/<slug>.json with a filename matching its id, and runs npm run validate. The brief requests realistic motion, named animation steps, setup instructions, coaching points, and simpler/harder variations. The coach can also ask an agent directly without the form.\n\nchokidar watches the folder and pushes an SSE event. The library refreshes, and cards draw the file's starting setup through BoardSvg. Opening a card reveals its coaching notes and animation on the tactics board.\n\nFor an open drill, persistence distinguishes the app's own save from an external edit using a consume-once expected-rev token. External changes reload a clean editor. If local edits are unsaved, the conflict dialog requires the coach to choose the disk version or keep and overwrite with their edits. Sparse steps remain legal; the loader normalizes them for editing.",
+        "narrative": "The coach can dictate a learning goal directly in a Codex task opened in this repository, or create and edit the drill manually on Training Ground's board. Both paths use the same JSON files. The coach can ask for a first version, adjust it on the board, then return to Codex for further changes.\n\nFor an agent request, read AGENTS.md and docs/drill-authoring.md, create or edit drills/<slug>.json with a filename matching its id, and run npm run validate. The request may cover setup, motion, coaching points, or variations. Dictation happens in Codex itself. Do not add paid AI or speech API integrations unless the user explicitly asks later.\n\nDescribe a drill explains both paths and offers an action to open the board. An optional expandable form can organize an objective and session details into a written brief to copy into Codex. It keeps a browser draft when storage is available and selects text if clipboard access fails. This helper is not required before an agent can build a drill.\n\nchokidar watches the folder and pushes an SSE event. The library refreshes, and cards draw the file's starting setup through BoardSvg. Opening a card reveals its coaching notes and animation on the tactics board.\n\nFor an open drill, persistence identifies its own save once by file ID, revision, and content. Real external changes reload a clean editor. If local edits are unsaved, the conflict dialog requires the coach to choose the disk version or keep and overwrite with their edits. Sparse steps remain legal; the loader normalizes them for editing.",
         "highlights": [
           "ui.brief",
           "ui.panels",
@@ -903,7 +903,7 @@ window.ATLAS_DATA = {
   "overview": {
     "title": "Training Ground Atlas",
     "subtitle": "How the drill designer fits together — and why it's built this way",
-    "what": "Training Ground is a local soccer drill designer and animator for a youth coach. The workspace opens to a visual library with 12 starter drills, search, topic filters, sorting, and browser-local bookmarks. A separate tactics board brings together coach notes, grouped tools, and a step sequence. Describe a drill prepares a brief to copy into Codex. Drills remain JSON files served by Express on 127.0.0.1:8123; the same SVG renderer produces the board and media exports.",
+    "what": "Training Ground is a local soccer drill designer and animator for a youth coach. The workspace opens to a visual library with 12 starter drills, search, topic filters, sorting, and browser-local bookmarks. A separate tactics board brings together coach notes, grouped tools, and a step sequence. The coach can edit manually or dictate goals directly in a Codex task for this repository. Both paths use the same JSON drill files, served by Express on 127.0.0.1:8123. The same SVG renderer produces the board and media exports.",
     "run": "Double-click start-training-ground.bat (first run installs+builds). The app serves at http://127.0.0.1:8123 and this atlas at http://127.0.0.1:8123/atlas (or open docs/project_atlas/index.html straight from disk).",
     "principles": [
       {
@@ -916,7 +916,7 @@ window.ATLAS_DATA = {
       },
       {
         "name": "The agent route is a first-class user",
-        "text": "The coach can prepare a brief in Describe a drill, then copy it into a Codex task in this repository. The app prepares text; the agent writes and validates JSON files. A watcher refreshes the library, and revision checks protect unsaved edits. Device dictation is optional; there is no integrated model or speech service."
+        "text": "The coach dictates goals directly in Codex, or creates and edits drills manually on the board. Both use the same files; the watcher refreshes the app when an agent writes them, and conflicts protect unsaved edits. Describe a drill offers an optional written-brief helper. Do not add paid AI or speech API integrations unless the user explicitly asks later."
       },
       {
         "name": "Browse first, focus on the board",

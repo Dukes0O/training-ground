@@ -21,16 +21,19 @@ Follow **`docs/drill-authoring.md`** (coordinate system, entity kinds, step sema
 `npm run validate` before finishing. The shipped drills in `drills/` are the style reference.
 The app picks up file changes live — no restart needed.
 
-The bundled library has 12 starter drills. The **Describe a drill** dialog prepares a coaching
-brief for the user to copy into a Codex task in this repository. It stores the draft in the
-browser and supplies authoring and validation instructions. There is no model API or speech
-recognition integration; the user may use device dictation in the form.
+The bundled library has 12 starter drills. Support both manual creation/editing on the board
+and coaching goals dictated directly in a Codex task in this repository. Both paths work on
+the same drill files, and the running app reloads file changes. **Describe a drill** explains
+these paths and offers an optional written-brief helper; using that form is not required.
+
+Project constraint: do not add paid AI or speech API integrations unless the user explicitly
+asks later. Dictation happens in Codex itself, not through a Training Ground speech service.
 
 ## Architecture map
 
 - `src/App.tsx` — workspace shell with library, saved-drill, and tactics-board views. View and coaching-panel state are local React state; leaving the board pauses playback. The coaching panel shows drill notes or the existing inspector.
-- `src/library/LibraryPanel.tsx` — visual cards with real BoardSvg previews, search, all-tag filtering, sorting, duplicate/trash actions, and browser-local saved-drill IDs. Preview requests are cached by file revision/update time; the open drill uses live editor state.
-- `src/ui/CoachBriefDialog.tsx` — coaching objective and session context → a readable prompt copied to Codex. Native dialog, local draft, clipboard success/fallback; no direct model calls.
+- `src/library/LibraryPanel.tsx` — visual cards with real BoardSvg previews, search, all-tag filtering, sorting, duplicate/trash actions, and browser-local saved-drill IDs. A WeakMap caches previews by refreshed summary object, so agent edits refresh previews even when revision fields stay the same. The open drill uses live editor state.
+- `src/ui/CoachBriefDialog.tsx` — explains direct Codex requests and manual board editing, with an onOpenBoard callback. An optional expandable form prepares a written brief. Native dialog, local draft, clipboard success/fallback; no direct model or speech calls.
 - `src/ui/ToolRail.tsx` and `src/timeline/Timeline.tsx` — grouped board tools and sequence/playback controls. Step cards support drag reorder and Alt+Left/Right keyboard reorder.
 - `src/ui/Modal.tsx` and `src/ui/useHotkeys.ts` — native modal focus handling and board-only shortcuts. A modal without onClose requires an explicit action; shortcuts respect focused controls and active dialogs/exports.
 - `src/index.css`, `src/ui/editor-workspace.css`, and `src/ui/coach-brief.css` — responsive workspace, editor, and scoped brief-dialog styles. BoardSvg remains separate from application chrome.

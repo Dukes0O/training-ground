@@ -451,7 +451,15 @@ export default function App() {
       <SettingsDialog />
       <HelpDialog />
       <ToastHost />
-      {briefOpen && <CoachBriefDialog onClose={() => setBriefOpen(false)} />}
+      {briefOpen && (
+        <CoachBriefDialog
+          onClose={() => setBriefOpen(false)}
+          onOpenBoard={() => {
+            setBriefOpen(false);
+            navigate("board");
+          }}
+        />
+      )}
     </div>
   );
 }
