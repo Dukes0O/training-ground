@@ -1,0 +1,437 @@
+{
+  "$schema": "../schema/drill.schema.json",
+  "schemaVersion": 1,
+  "id": "8v8-kickoff-right",
+  "title": "8v8 Kickoff — Release the Right Mid",
+  "description": "From a 2-1-2-1-1: the striker passes back as the CAM moves right. The right mid bursts from halfway; the CAM passes into the run and the team moves up and across.",
+  "tags": [
+    "8v8",
+    "kickoff",
+    "2-1-2-1-1",
+    "right side",
+    "passing",
+    "team movement"
+  ],
+  "notes": "FIRST VERSION: Our eight players only; the sequence stops at the expected challenge. Opposition positions and the result of that challenge are deliberately left for the next version.\n\nSETUP: Attack left to right on the 60 × 40 m 8v8 pitch. Left is the top touchline, matching your formation diagram. GK; LD and RD; CDM slightly ahead of them; LM and RM; CAM; ST. For this kickoff variation, BOTH wide mids begin just inside their own half at the halfway line, rather than in their normal deeper positions. The ball begins on the centre spot. Numbers identify roles, not a named roster.\n\nTRIGGER: As the striker takes the kickoff back, the CAM moves right to receive. The RM reads that movement and accelerates beyond halfway once the ball moves. These actions happen together. The CAM releases the next pass early into space ahead of the RM, without waiting for the RM to stop or check back.\n\nTEAM MOVEMENT: ST runs forward and toward the chosen side to support inside the ball. CAM follows the pass as an inside/backward option. The far LM moves forward and narrows while remaining on the far side. LD, RD and CDM all step up and shift right; CDM stays slightly ahead of the two defenders, available to drop into their line if needed. GK moves up modestly behind the defence.\n\nSTOP AND REVIEW: The shaded area is where an opponent is expected to challenge the RM. It does not show a guaranteed successful reception. Review the timing of the run, the weight of the early pass and the supporting distances before adding defenders.\n\nASSUMPTIONS: Distances and timing are a first coaching sketch, not measurements supplied by you. The animation uses continuous movement, with a hold at setup and at the challenge. Pair with the mirrored left-side kickoff.\n\nFORMATION REFERENCE: https://dukes0o.github.io/soccer-quizzes/resources/formation.html?id=formation-21211",
+  "themeColor": "#2563eb",
+  "pitch": "8v8",
+  "teams": {
+    "home": {
+      "label": "Our team",
+      "fill": "#2563eb",
+      "text": "#ffffff"
+    }
+  },
+  "entities": [
+    {
+      "kind": "player",
+      "id": "gk",
+      "team": "home",
+      "number": 1,
+      "position": "GK"
+    },
+    {
+      "kind": "player",
+      "id": "ld",
+      "team": "home",
+      "number": 4,
+      "position": "LD"
+    },
+    {
+      "kind": "player",
+      "id": "rd",
+      "team": "home",
+      "number": 2,
+      "position": "RD"
+    },
+    {
+      "kind": "player",
+      "id": "cdm",
+      "team": "home",
+      "number": 6,
+      "position": "CDM"
+    },
+    {
+      "kind": "player",
+      "id": "lm",
+      "team": "home",
+      "number": 11,
+      "position": "LM"
+    },
+    {
+      "kind": "player",
+      "id": "rm",
+      "team": "home",
+      "number": 7,
+      "position": "RM"
+    },
+    {
+      "kind": "player",
+      "id": "cam",
+      "team": "home",
+      "number": 10,
+      "position": "CAM"
+    },
+    {
+      "kind": "player",
+      "id": "st",
+      "team": "home",
+      "number": 9,
+      "position": "ST"
+    },
+    {
+      "kind": "ball",
+      "id": "ball"
+    },
+    {
+      "kind": "label",
+      "id": "attack-direction",
+      "text": "ATTACK →",
+      "color": "#fef3c7"
+    },
+    {
+      "kind": "arrow",
+      "id": "cam-cue",
+      "style": "run",
+      "from": {
+        "x": 25,
+        "y": 20
+      },
+      "to": {
+        "x": 25,
+        "y": 24
+      },
+      "color": "#fde68a",
+      "fromStep": 0,
+      "toStep": 1
+    },
+    {
+      "kind": "arrow",
+      "id": "kickoff-pass",
+      "style": "pass",
+      "from": {
+        "x": 30,
+        "y": 20
+      },
+      "to": {
+        "x": 25.8,
+        "y": 23
+      },
+      "color": "#ffffff",
+      "fromStep": 0,
+      "toStep": 1
+    },
+    {
+      "kind": "arrow",
+      "id": "wide-run",
+      "style": "run",
+      "from": {
+        "x": 29,
+        "y": 36
+      },
+      "to": {
+        "x": 40.7,
+        "y": 33.5
+      },
+      "color": "#fde68a",
+      "fromStep": 1,
+      "toStep": 3
+    },
+    {
+      "kind": "arrow",
+      "id": "early-pass",
+      "style": "pass",
+      "from": {
+        "x": 25.8,
+        "y": 23
+      },
+      "to": {
+        "x": 40.2,
+        "y": 34.2
+      },
+      "color": "#ffffff",
+      "fromStep": 2,
+      "toStep": 3
+    },
+    {
+      "kind": "zone",
+      "id": "challenge-area",
+      "rect": {
+        "x": 39,
+        "y": 30.5,
+        "w": 6,
+        "h": 7
+      },
+      "text": "Challenge",
+      "color": "#f59e0b",
+      "fromStep": 2,
+      "toStep": 4
+    }
+  ],
+  "steps": [
+    {
+      "name": "Kickoff setup — both wide mids at halfway",
+      "durationMs": 1700,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 3,
+          "y": 20,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 12,
+          "y": 29,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 12,
+          "y": 11,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 17,
+          "y": 20,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 29,
+          "y": 36,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 29,
+          "y": 4,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 25,
+          "y": 20,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 29,
+          "y": 20,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 30,
+          "y": 20,
+          "ease": "linear"
+        },
+        "attack-direction": {
+          "x": 49,
+          "y": 20
+        }
+      }
+    },
+    {
+      "name": "ST passes back; CAM goes right and RM sprints",
+      "durationMs": 1000,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 3.5,
+          "y": 20.2,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 13,
+          "y": 29.2,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 13,
+          "y": 11.7,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 18,
+          "y": 20.5,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 32.5,
+          "y": 35.8,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 30.5,
+          "y": 5.5,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 25,
+          "y": 24,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 30.7,
+          "y": 20.5,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 25.8,
+          "y": 23,
+          "ease": "linear"
+        }
+      }
+    },
+    {
+      "name": "CAM releases early into the RM’s running lane",
+      "durationMs": 1050,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 4.5,
+          "y": 21,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 15.5,
+          "y": 30,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 15.5,
+          "y": 13,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 20.5,
+          "y": 21.5,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 36.8,
+          "y": 35.5,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 32.5,
+          "y": 8.5,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 26.5,
+          "y": 25,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 34,
+          "y": 23,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 34,
+          "y": 29.25,
+          "ease": "linear"
+        }
+      }
+    },
+    {
+      "name": "Pass reaches the space; the whole team shifts right",
+      "durationMs": 1000,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 5.5,
+          "y": 22,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 19,
+          "y": 30.7,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 19,
+          "y": 14.7,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 23,
+          "y": 22.5,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 39.1,
+          "y": 34.8,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 34,
+          "y": 12,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 29,
+          "y": 26.5,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 37.5,
+          "y": 25.5,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 40.2,
+          "y": 34.2,
+          "ease": "linear"
+        }
+      }
+    },
+    {
+      "name": "Expected challenge — support inside and behind",
+      "durationMs": 700,
+      "pauseAfterMs": 2300,
+      "positions": {
+        "gk": {
+          "x": 6,
+          "y": 22.5,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 21,
+          "y": 31,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 21,
+          "y": 16,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 25,
+          "y": 24,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 40.7,
+          "y": 33.5,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 35,
+          "y": 14,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 31,
+          "y": 28,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 40,
+          "y": 27,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 41.3,
+          "y": 34.2,
+          "ease": "linear"
+        }
+      }
+    }
+  ]
+}
