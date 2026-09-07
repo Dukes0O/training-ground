@@ -1,8 +1,9 @@
 # Training Ground
 
-Local soccer drill designer & animator for youth coaching. Design drills on a tactics board,
-animate them step by step, and export images, GIFs, MP4 video, narrated coaching clips, and
-ready-to-post bundles for the team site — all on your own machine, no accounts, no cloud.
+Local soccer drill designer and animator for youth coaching. Browse a visual drill library,
+save ideas for your next practice, and open a tactics board to adapt and animate them. Export
+images, GIFs, MP4 video, narrated coaching clips, and bundles for the team site on your own
+machine. The app needs no account or cloud service.
 
 ## Run it
 
@@ -17,18 +18,25 @@ Use **Chrome or Edge** — video export and narrated recording rely on Chromium 
 
 ## What it does
 
+- **Drill library** — start with 12 animated drills covering ball mastery, passing, possession,
+  defending, transition, and finishing. Visual cards show the starting setup, players, steps,
+  and demo length. Search titles, descriptions, and tags; filter by any topic; sort by name
+  or recent updates. Demo length is animation time, not the length of your practice.
+- **Saved drills** — bookmark your favourites and open them from the sidebar. Bookmarks stay
+  in this browser; the drill files remain in `drills/`. Duplicate a drill to make a variation,
+  or move it to trash and restore it from **Recently deleted**.
 - **Tactics board** — 11v11, 9v9, 8v8, half-pitch and resizable training-grid formats. Place and
   drag players (number, name, position label), ball(s), cones, flat markers, mini goals,
-  ladders, mannequins, poles, hurdles.
+  ladders, mannequins, poles, and hurdles from the grouped tool palette. Read **Coach’s notes**
+  beside the board, or switch to **Edit details** to change the drill or a selected piece.
 - **Coaching notation** — pass (solid), run (dashed), dribble (wavy) and shot (thick) arrows;
   endpoints snap to players and follow their runs; shaded zones; text labels; everything can be
   scoped to specific steps and fades in/out during playback.
 - **Animation** — keyframe steps with per-step move time, coaching-beat pauses, easing and
-  curved run paths. Play, scrub, loop, half/1.5× speed.
-- **Library** — every drill is one JSON file under `drills/`; search and tag-filter with live
-  mini-board previews. Deleted drills go to `data/trash/` (restore from the library's trash
-  button). Team roster lives in the roster dialog; "fill from roster" stamps a kid's
-  name/number/position onto a token.
+  curved run paths. The sequence strip groups playback, speed, step order, and timing controls.
+  Select a step to explain it, drag to reorder, or use Alt+Left/Right on a focused step.
+- **Team roster** — manage players from the sidebar. Fill a token from the roster, or place
+  a team using a formation preset.
 - **Exports** (Export menu) — snapshot PNG (1920 px), MP4 video (H.264; WebM fallback), GIF,
   and **Site bundle**: PNG + GIF + MP4 + drill JSON + `manifest-snippet.json` +
   `AGENT-INSTRUCTIONS.md`, assembled under `exports\<drill>\site-bundle\` for handing to the
@@ -36,10 +44,28 @@ Use **Chrome or Edge** — video export and narrated recording rely on Chromium 
 - **Narrated takes** (Record button) — record the board plus your voice while you play and
   scrub the drill. Saves `narration-<date>.mp4` (or `.webm`) next to the other exports.
 
+## Describe your next drill
+
+Choose **Describe a drill** and explain what you want players to achieve. Type your idea or
+use your device’s dictation, then add the age group, players, space, practice time, and any
+progression. The form keeps a draft in this browser when storage is available.
+
+Review the brief, choose **Copy brief for Codex**, and paste it into a Codex task opened in
+this repository. The brief asks Codex to read the authoring guide, create the animated drill
+file, and validate it. If clipboard access is blocked, select and copy the displayed text.
+When Codex writes the file, the running app refreshes the library.
+
+The form prepares text for this handoff. It does not send a request to a model or record
+speech. Dictation, if used, comes from your device.
+
 ## Keyboard
 
 Space play/pause · `,` / `.` previous/next step · arrows nudge selection (Shift = bigger) ·
 Delete remove · Esc back to select tool · Ctrl+Z / Ctrl+Y undo/redo · Ctrl+S save now
+
+Board shortcuts run while the tactics board is open. They pause in forms, modal dialogs, and
+exports. Space still activates a focused button. Dialogs keep keyboard focus inside and
+return it when closed; Escape closes dismissible dialogs.
 
 ## Privacy note (public repo)
 

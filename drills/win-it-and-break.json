@@ -1,0 +1,52 @@
+{
+  "$schema": "../schema/drill.schema.json",
+  "schemaVersion": 1,
+  "id": "win-it-and-break",
+  "title": "Win It and Break",
+  "description": "A 3v3 game where winning the ball starts a new attack. Spread out to offer a pass, then use the space before the other team recovers.",
+  "tags": ["transition", "defending", "finishing", "3v3", "small-sided"],
+  "notes": "SETUP: Two teams of three and two mini goals in a 30 × 22 m area. Blue attacks right; red attacks left. RUN IT: 1. Red intercepts a pass. 2. The new ball carrier finds space while teammates offer support. 3. Pass to the wide runner. 4. Carry toward goal. 5. Finish while the other team recovers. This is one possible attack; let players choose whether to pass or carry in the live game. COACH IT: On a turnover, look for the ball, the goals and a useful supporting position. The team losing possession tries to recover between the ball and its goal. EASIER: Widen the area. PROGRESS: Award an extra point when all three teammates take part in the attack. Restart with a new ball when it leaves the area; rotate starting possession each round.",
+  "themeColor": "#a855f7",
+  "pitch": { "format": "grid", "overrides": { "length": 30, "width": 22 } },
+  "teams": { "home": { "label": "Blue · attacks right" }, "away": { "label": "Red · attacks left" } },
+  "entities": [
+    { "kind": "player", "id": "b1", "team": "home", "number": 6 },
+    { "kind": "player", "id": "b2", "team": "home", "number": 8 },
+    { "kind": "player", "id": "b3", "team": "home", "number": 9 },
+    { "kind": "player", "id": "r1", "team": "away", "number": 4 },
+    { "kind": "player", "id": "r2", "team": "away", "number": 7 },
+    { "kind": "player", "id": "r3", "team": "away", "number": 11 },
+    { "kind": "minigoal", "id": "goal-left" },
+    { "kind": "minigoal", "id": "goal-right" },
+    { "kind": "ball", "id": "ball" },
+    { "kind": "arrow", "id": "intercept", "style": "pass", "from": { "x": 12.8, "y": 7 }, "to": { "x": 22, "y": 8 }, "fromStep": 0, "toStep": 0 },
+    { "kind": "arrow", "id": "break-pass", "style": "pass", "from": { "x": 13.2, "y": 10 }, "to": { "x": 5.8, "y": 15 }, "color": "#f87171", "fromStep": 3, "toStep": 3 },
+    { "kind": "arrow", "id": "shot", "style": "shot", "from": { "x": 3.2, "y": 12 }, "to": { "x": 1, "y": 11 }, "color": "#f87171", "fromStep": 5, "toStep": 5 }
+  ],
+  "steps": [
+    { "name": "Blue looks for a forward pass", "durationMs": 1400, "positions": {
+      "b1": { "x": 12, "y": 7 }, "b2": { "x": 18, "y": 16 }, "b3": { "x": 23, "y": 8 },
+      "r1": { "x": 16, "y": 10 }, "r2": { "x": 16, "y": 15 }, "r3": { "x": 10, "y": 16 },
+      "goal-left": { "x": 1, "y": 11, "rotation": -90 }, "goal-right": { "x": 29, "y": 11, "rotation": 90 },
+      "ball": { "x": 12.8, "y": 7 }
+    } },
+    { "name": "Red steps into the pass", "durationMs": 1200, "pauseAfterMs": 700, "positions": {
+      "r1": { "x": 16, "y": 8 }, "ball": { "x": 16.8, "y": 8, "ease": "linear" }, "b3": { "x": 22, "y": 8 }
+    } },
+    { "name": "New attack: carry out and offer width", "durationMs": 1800, "positions": {
+      "r1": { "x": 14, "y": 10 }, "ball": { "x": 13.2, "y": 10 },
+      "r2": { "x": 12, "y": 15 }, "r3": { "x": 5, "y": 15 },
+      "b1": { "x": 14, "y": 8 }, "b2": { "x": 15, "y": 14 }, "b3": { "x": 19, "y": 10 }
+    } },
+    { "name": "Find the runner in space", "durationMs": 1400, "positions": {
+      "ball": { "x": 5.8, "y": 15, "ease": "linear" }, "r2": { "x": 9, "y": 11 }, "b2": { "x": 11, "y": 14 }
+    } },
+    { "name": "Carry toward goal as support arrives", "durationMs": 1500, "positions": {
+      "r3": { "x": 4, "y": 12 }, "ball": { "x": 3.2, "y": 12 },
+      "r2": { "x": 7, "y": 10 }, "b2": { "x": 8, "y": 13 }, "b1": { "x": 10, "y": 9 }, "b3": { "x": 14, "y": 13 }
+    } },
+    { "name": "Finish the new attack", "durationMs": 700, "pauseAfterMs": 900, "positions": {
+      "ball": { "x": 1, "y": 11, "ease": "linear" }
+    } }
+  ]
+}

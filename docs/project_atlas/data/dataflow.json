@@ -1,6 +1,18 @@
 {
   "flows": [
     {
+      "id": "browse-to-board",
+      "title": "Find a drill and coach it",
+      "summary": "The library helps a coach find and save an idea, then opens a focused board with the drill's coaching notes.",
+      "steps": [
+        { "actor": "Coach", "action": "searches or filters the visual library", "detail": "Search matches titles, descriptions, and tags. All-topic filtering and name/recent sorting work in the library and saved-drill views." },
+        { "actor": "Library", "action": "renders starting setups from drill JSON", "detail": "BoardSvg draws each preview. Cards show player count, step count, and animation length; demo seconds are not practice duration." },
+        { "actor": "Coach", "action": "bookmarks an idea or opens its board", "detail": "Bookmarks save drill IDs in this browser when storage is available. Opening another drill uses the existing persistence flow." },
+        { "actor": "Workspace", "action": "shows coach notes beside the tactics board", "detail": "Edit details opens the inspector; selecting a piece reveals its controls. The grouped tool palette and sequence strip edit the existing drill model." },
+        { "actor": "Coach", "action": "returns to the library", "detail": "Playback pauses. Board shortcuts stay inactive until the board is open again." }
+      ]
+    },
+    {
       "id": "edit-loop",
       "title": "The edit loop",
       "summary": "A drag on the board becomes a saved file in about a second — and the file watcher's echo of that save is recognized and ignored.",
@@ -15,10 +27,12 @@
     {
       "id": "agent-loop",
       "title": "The agent route",
-      "summary": "An AI on a subscription writes a JSON file; the library updates live. Conflicts with in-app edits go through an explicit ladder instead of silent clobbering.",
+      "summary": "The coach gives an agent a drill request, directly or by copying a prepared brief. The agent writes and validates JSON; the running library refreshes from disk.",
       "steps": [
-        { "actor": "Coach", "action": "asks Claude Code / Codex for a drill in plain coaching language", "detail": "\"9v9 build-out: keeper to the low fullback, up the line, switch through the pivot.\"" },
-        { "actor": "Agent", "action": "writes drills/<slug>.json following docs/drill-authoring.md", "detail": "Sparse steps are fine; npm run validate checks structure, semantics, anchors, and meter-scale coordinates." },
+        { "actor": "Coach", "action": "fills out Describe a drill", "detail": "Type or use device dictation for the coaching objective, then add ages, players, space, time, and an optional progression. The draft stays in this browser when storage is available." },
+        { "actor": "Brief dialog", "action": "prepares a readable prompt for review and copying", "detail": "Clipboard success is shown; if clipboard access fails, the text is selected for manual copying. There is no model or speech backend." },
+        { "actor": "Coach", "action": "pastes the brief into a Codex task opened in this repository", "detail": "This is a manual handoff. The coach may also ask Claude Code or Codex directly without using the form." },
+        { "actor": "Agent", "action": "reads AGENTS.md and drill-authoring.md, then writes drills/<slug>.json", "detail": "The brief requests setup, named movement steps, coaching points, variations, and validation with npm run validate -- drills/<file>.json." },
         { "actor": "Watcher", "action": "SSE drills-changed within ~1s", "detail": "awaitWriteFinish debounces partial writes." },
         { "actor": "App", "action": "library refreshes; open drill reloads or conflicts", "detail": "Not the open drill → card appears. Open and clean → silent reload preserving cursor. Open and dirty → conflict dialog: use disk vs keep mine." },
         { "actor": "Loader", "action": "parseDrill forgives and normalizes", "detail": "Duplicate ids keep-first, unknown position keys dropped, sparse steps densified so editing behaves identically either way." }

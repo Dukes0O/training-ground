@@ -1,0 +1,41 @@
+{
+  "$schema": "../schema/drill.schema.json",
+  "schemaVersion": 1,
+  "id": "cutback-and-finish",
+  "title": "Cutback and Finish",
+  "description": "Find a wide player, carry the ball toward the end line and pass back into the path of a supporting finisher.",
+  "tags": ["finishing", "passing", "wide play", "combination"],
+  "notes": "SETUP: Three players, a mannequin and a mini goal in a 32 × 24 m area. Player 6 starts, player 7 offers width, and player 9 supports centrally. RUN IT: 1. Pass wide. 2. Carry toward the end line as the finisher moves into space. 3. Cut the ball back to the finisher. 4. Shoot after receiving. COACH IT: The wide player looks up before passing; the finisher adjusts to the ball and leaves space from the mannequin. The animation shows one option, not a required running pattern. EASIER: Remove the mannequin and shorten the pass. PROGRESS: Add a defender or use a larger goal with a goalkeeper. Rotate starter, wide player and finisher after each attempt; repeat from the opposite side.",
+  "themeColor": "#f97316",
+  "pitch": { "format": "grid", "overrides": { "length": 32, "width": 24 } },
+  "entities": [
+    { "kind": "player", "id": "starter", "team": "home", "number": 6 },
+    { "kind": "player", "id": "wide", "team": "home", "number": 7 },
+    { "kind": "player", "id": "finisher", "team": "home", "number": 9 },
+    { "kind": "mannequin", "id": "defender", "color": "#f87171" },
+    { "kind": "minigoal", "id": "goal" },
+    { "kind": "ball", "id": "ball" },
+    { "kind": "zone", "id": "wide-space", "rect": { "x": 10, "y": 2, "w": 18, "h": 5 }, "text": "WIDE SPACE", "color": "#fbbf24" },
+    { "kind": "arrow", "id": "pass-wide", "style": "pass", "from": { "x": 6, "y": 13.5 }, "to": { "x": 12.8, "y": 5.4 }, "fromStep": 0, "toStep": 1 },
+    { "kind": "arrow", "id": "cutback", "style": "pass", "from": { "x": 25.8, "y": 5 }, "to": { "x": 22.5, "y": 13.5 }, "fromStep": 3, "toStep": 3 },
+    { "kind": "arrow", "id": "shot", "style": "shot", "from": { "x": 22.5, "y": 13.5 }, "to": { "x": 30, "y": 12 }, "fromStep": 4, "toStep": 4 }
+  ],
+  "steps": [
+    { "name": "Use the width", "durationMs": 1200, "positions": {
+      "starter": { "x": 5, "y": 14 }, "wide": { "x": 12, "y": 5 }, "finisher": { "x": 17, "y": 17 },
+      "defender": { "x": 25, "y": 11 }, "goal": { "x": 30, "y": 12, "rotation": 90 }, "ball": { "x": 6, "y": 13.5 }
+    } },
+    { "name": "Find the wide player", "durationMs": 1400, "positions": {
+      "ball": { "x": 12.8, "y": 5.4, "ease": "linear" }, "finisher": { "x": 19, "y": 17 }
+    } },
+    { "name": "Carry forward; support behind the ball", "durationMs": 2300, "pauseAfterMs": 600, "positions": {
+      "wide": { "x": 25, "y": 5 }, "ball": { "x": 25.8, "y": 5 }, "finisher": { "x": 22, "y": 16 }
+    } },
+    { "name": "Cut the pass back into space", "durationMs": 1400, "pauseAfterMs": 700, "positions": {
+      "ball": { "x": 22.5, "y": 13.5, "ease": "linear" }, "finisher": { "x": 22, "y": 14 }
+    } },
+    { "name": "Finish after receiving", "durationMs": 1000, "pauseAfterMs": 900, "positions": {
+      "ball": { "x": 30, "y": 12, "ease": "linear" }, "finisher": { "x": 23, "y": 13 }
+    } }
+  ]
+}

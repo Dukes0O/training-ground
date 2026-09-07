@@ -1,22 +1,22 @@
-import { useState } from "react";
-import { MousePointer2, Type, Users } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
+import { ChevronDown, MousePointer2, SlidersHorizontal, Type, Users, X } from "lucide-react";
 import type { Tool } from "../state/store";
 import { useEditor } from "../state/store";
 import { resolveTeamStyles } from "../model/types";
 import { EQUIPMENT_LABELS } from "../board/entities/EquipmentGlyph";
+import "./editor-workspace.css";
 
 function railBtnCls(active: boolean) {
-  return `flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
-    active ? "bg-blue-800/10 text-blue-800 ring-1 ring-blue-800/30" : "text-zinc-600 hover:bg-zinc-100"
-  }`;
+  return `tg-tool-button${active ? " is-active" : ""}`;
 }
 
-function ToolButton({ tool, title, children }: { tool: Tool; title: string; children: React.ReactNode }) {
+function ToolButton({ tool, title, label, onSelect, children }: { tool: Tool; title: string; label: string; onSelect: () => void; children: React.ReactNode }) {
   const active = useEditor((s) => s.tool === tool);
   const setTool = useEditor((s) => s.setTool);
   return (
-    <button title={title} onClick={() => setTool(tool)} className={railBtnCls(active)}>
+    <button title={title} aria-label={title} aria-pressed={active} onClick={() => { setTool(tool); onSelect(); }} className={railBtnCls(active)}>
       {children}
+      <span>{label}</span>
     </button>
   );
 }
@@ -140,122 +140,241 @@ function Flyout({
   options,
   groupTools,
   title,
+  label,
+  onSelect,
 }: {
   options: { tool: Tool; label: string; icon: React.ReactNode }[];
   groupTools: Tool[];
   title: string;
+  label: string;
+  onSelect: () => void;
 }) {
   const tool = useEditor((s) => s.tool);
   const setTool = useEditor((s) => s.setTool);
   const [open, setOpen] = useState(false);
   const [last, setLast] = useState<Tool>(options[0].tool);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
   const activeInGroup = groupTools.includes(tool);
   const shown = options.find((o) => o.tool === (activeInGroup ? tool : last)) ?? options[0];
 
+  useEffect(() => {
+    if (!open) return;
+    const menu = menuRef.current;
+    (menu?.querySelector<HTMLButtonElement>('[aria-checked="true"]') ?? menu?.querySelector("button"))?.focus();
+    const closeOutside = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [open]);
+
   return (
-    <div className="relative">
+    <div
+      ref={rootRef}
+      className="tg-tool-flyout"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && open) {
+          event.stopPropagation();
+          setOpen(false);
+          triggerRef.current?.focus();
+        }
+      }}
+    >
       <button
-        title={`${title} — click again for options`}
-        onClick={() => {
-          if (activeInGroup) setOpen((o) => !o);
-          else {
-            setTool(shown.tool);
-            setOpen(true);
-          }
-        }}
+        ref={triggerRef}
+        title={title}
+        aria-label={title}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
+        onClick={() => setOpen((value) => !value)}
         className={railBtnCls(activeInGroup)}
       >
         {shown.icon}
+        <span>{label}</span>
+        <ChevronDown size={9} className="tg-tool-chevron" />
       </button>
       {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-full top-0 z-20 ml-1.5 w-44 rounded-lg border border-zinc-200 bg-white p-1 shadow-lg">
-            {options.map((o) => (
-              <button
-                key={o.tool}
-                onClick={() => {
-                  setTool(o.tool);
-                  setLast(o.tool);
-                  setOpen(false);
-                }}
-                className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs ${
-                  tool === o.tool ? "bg-blue-800/10 text-blue-800" : "text-zinc-700 hover:bg-zinc-100"
-                }`}
-              >
-                {o.icon}
-                {o.label}
-              </button>
-            ))}
-          </div>
-        </>
+        <div
+          ref={menuRef}
+          id={menuId}
+          role="menu"
+          aria-label={title}
+          className="tg-tool-menu"
+          onKeyDown={(event) => {
+            if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>("button")];
+            const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+            const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1
+              : (current + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length;
+            buttons[next]?.focus();
+          }}
+        >
+          <div className="tg-tool-menu-title">{label === "Arrows" ? "Show the movement" : "Set up the pitch"}</div>
+          {options.map((o) => (
+            <button
+              key={o.tool}
+              role="menuitemradio"
+              aria-checked={tool === o.tool}
+              onClick={() => {
+                setTool(o.tool);
+                setLast(o.tool);
+                setOpen(false);
+                triggerRef.current?.focus();
+                onSelect();
+              }}
+              className={`tg-tool-menu-option${tool === o.tool ? " is-active" : ""}`}
+            >
+              {o.icon}
+              {o.label}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );
 }
 
 export function ToolRail() {
-  // Select the stable drill reference; derive styles outside the selector
-  // (an object-returning selector would loop zustand's snapshot check).
+  // Select the stable drill reference; derive styles outside the selector.
   const drill = useEditor((s) => s.drill);
+  const tool = useEditor((s) => s.tool);
   const teams = resolveTeamStyles(drill);
+  const [compact, setCompact] = useState(() => window.matchMedia("(max-width: 800px)").matches);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const launcherRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
+  const paletteId = useId();
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 800px)");
+    const sync = () => { setCompact(media.matches); setPaletteOpen(false); };
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (!compact) return;
+    if (paletteOpen) closeRef.current?.focus();
+    else if (restoreFocus.current) {
+      launcherRef.current?.focus();
+      restoreFocus.current = false;
+    }
+  }, [compact, paletteOpen]);
+
+  const collapse = (focusLauncher = true) => {
+    if (!compact) return;
+    restoreFocus.current = focusLauncher;
+    setPaletteOpen(false);
+  };
+  const chooseTool = () => collapse();
+  const activeLabel = tool === "select" ? "Select and move" : tool.replaceAll("-", " ");
+
   return (
-    <div className="absolute left-3 top-1/2 z-10 flex -translate-y-1/2 flex-col items-center gap-1 rounded-xl border border-zinc-200 bg-white/95 p-1.5 shadow-sm backdrop-blur">
-      <ToolButton tool="select" title="Select & move (Esc)">
+    <>
+    {compact && <button
+      ref={launcherRef}
+      className={`tg-tools-launcher${tool !== "select" ? " has-active-tool" : ""}`}
+      title={`Board tools. Current tool: ${activeLabel}`}
+      aria-expanded={paletteOpen}
+      aria-controls={paletteOpen ? paletteId : undefined}
+      onClick={() => paletteOpen ? collapse() : setPaletteOpen(true)}
+      onKeyDown={(event) => { if (event.key === " ") event.stopPropagation(); }}
+    ><SlidersHorizontal size={15} aria-hidden="true" />Tools</button>}
+    {(!compact || paletteOpen) &&
+    <div
+      id={paletteId}
+      className={`tg-tool-rail${compact ? " is-compact" : ""}`}
+      role="region"
+      aria-label="Board tools"
+      onKeyDown={(event) => {
+        if (event.key === " " || event.key.startsWith("Arrow")) event.stopPropagation();
+        if (compact && event.key === "Escape") { event.stopPropagation(); collapse(); }
+      }}
+    >
+      {compact && <div className="tg-tools-panel-heading"><span>Board tools</span><button ref={closeRef} onClick={() => collapse()} aria-label="Close board tools" title="Close board tools"><X size={15} aria-hidden="true" /></button></div>}
+      <ToolButton tool="select" title="Select and move (Esc)" label="Select & move" onSelect={chooseTool}>
         <MousePointer2 size={17} />
       </ToolButton>
-      <div className="my-0.5 h-px w-6 bg-zinc-200" />
-      <ToolButton tool="add-home" title={`Add ${teams.home.label.toLowerCase()} player`}>
-        <PlayerDot fill={teams.home.fill} />
-      </ToolButton>
-      <ToolButton tool="add-away" title={`Add ${teams.away.label.toLowerCase()} player`}>
-        <PlayerDot fill={teams.away.fill} />
-      </ToolButton>
-      <ToolButton tool="add-neutral" title={`Add ${teams.neutral.label.toLowerCase()} player`}>
-        <PlayerDot fill={teams.neutral.fill} />
-      </ToolButton>
-      <div className="my-0.5 h-px w-6 bg-zinc-200" />
-      <ToolButton tool="add-ball" title="Add ball">
-        <BallDot />
-      </ToolButton>
-      <Flyout
-        title="Equipment"
-        groupTools={EQUIPMENT_OPTIONS}
-        options={EQUIPMENT_OPTIONS.map((tool) => ({
-          tool,
-          label: EQUIPMENT_LABELS[tool.slice(4)] ?? tool,
-          icon: EQUIPMENT_ICONS[tool],
-        }))}
-      />
-      <div className="my-0.5 h-px w-6 bg-zinc-200" />
-      <Flyout
-        title="Arrows — drag on the board"
-        groupTools={ARROW_OPTIONS.map((o) => o.tool)}
-        options={ARROW_OPTIONS.map((o) => ({ ...o, icon: <ArrowIcon style={o.tool} /> }))}
-      />
-      <ToolButton tool="draw-zone" title="Zone — drag a rectangle">
-        <svg width="18" height="18" viewBox="0 0 18 18">
-          <rect x="3" y="4" width="12" height="10" rx="1" fill="rgba(250,204,21,0.25)" stroke="#ca8a04" strokeWidth="1.3" strokeDasharray="2.6 1.8" />
-        </svg>
-      </ToolButton>
-      <ToolButton tool="add-label" title="Text label">
-        <Type size={16} />
-      </ToolButton>
-      <div className="my-0.5 h-px w-6 bg-zinc-200" />
-      <PlaceTeamButton />
-    </div>
+      <div className="tg-tool-group" role="group" aria-label="Add players">
+        <div className="tg-tool-group-label">Players</div>
+        <div className="tg-tool-grid tg-tool-grid-three">
+          <ToolButton tool="add-home" title={`Add ${teams.home.label.toLowerCase()} player`} label={teams.home.label} onSelect={chooseTool}>
+            <PlayerDot fill={teams.home.fill} />
+          </ToolButton>
+          <ToolButton tool="add-away" title={`Add ${teams.away.label.toLowerCase()} player`} label={teams.away.label} onSelect={chooseTool}>
+            <PlayerDot fill={teams.away.fill} />
+          </ToolButton>
+          <ToolButton tool="add-neutral" title={`Add ${teams.neutral.label.toLowerCase()} player`} label={teams.neutral.label} onSelect={chooseTool}>
+            <PlayerDot fill={teams.neutral.fill} />
+          </ToolButton>
+        </div>
+      </div>
+      <div className="tg-tool-group" role="group" aria-label="Pitch setup">
+        <div className="tg-tool-group-label">Setup</div>
+        <div className="tg-tool-grid">
+          <ToolButton tool="add-ball" title="Add ball" label="Ball" onSelect={chooseTool}>
+            <BallDot />
+          </ToolButton>
+          <Flyout
+            title="Equipment"
+            label="Gear"
+            onSelect={chooseTool}
+            groupTools={EQUIPMENT_OPTIONS}
+            options={EQUIPMENT_OPTIONS.map((tool) => ({
+              tool,
+              label: EQUIPMENT_LABELS[tool.slice(4)] ?? tool,
+              icon: EQUIPMENT_ICONS[tool],
+            }))}
+          />
+        </div>
+      </div>
+      <div className="tg-tool-group" role="group" aria-label="Draw on the pitch">
+        <div className="tg-tool-group-label">Draw</div>
+        <div className="tg-tool-grid tg-tool-grid-three">
+          <Flyout
+            title="Choose an arrow, then drag on the board"
+            label="Arrows"
+            onSelect={chooseTool}
+            groupTools={ARROW_OPTIONS.map((o) => o.tool)}
+            options={ARROW_OPTIONS.map((o) => ({ ...o, icon: <ArrowIcon style={o.tool} /> }))}
+          />
+          <ToolButton tool="draw-zone" title="Zone — drag a rectangle" label="Zone" onSelect={chooseTool}>
+            <svg width="18" height="18" viewBox="0 0 18 18">
+              <rect x="3" y="4" width="12" height="10" rx="1" fill="rgba(250,204,21,0.25)" stroke="#ca8a04" strokeWidth="1.3" strokeDasharray="2.6 1.8" />
+            </svg>
+          </ToolButton>
+          <ToolButton tool="add-label" title="Add a text label" label="Text" onSelect={chooseTool}>
+            <Type size={16} />
+          </ToolButton>
+        </div>
+      </div>
+      <PlaceTeamButton onSelect={() => collapse(false)} />
+    </div>}
+    </>
   );
 }
 
-function PlaceTeamButton() {
+function PlaceTeamButton({ onSelect }: { onSelect: () => void }) {
   const setPlaceTeamOpen = useEditor((s) => s.setPlaceTeamOpen);
   return (
     <button
       title="Place a full team (formation preset)"
-      onClick={() => setPlaceTeamOpen(true)}
-      className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-600 transition-colors hover:bg-zinc-100"
+      aria-label="Place a full team using a formation preset"
+      onClick={() => { setPlaceTeamOpen(true); onSelect(); }}
+      className="tg-tool-button tg-formation-button"
     >
       <Users size={17} />
+      <span>Formation</span>
     </button>
   );
 }

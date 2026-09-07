@@ -16,11 +16,24 @@ let refreshTimer: number | null = null;
 let settings: AppSettings = {};
 let initialized = false;
 /**
- * Rev our own last PUT will echo back through the file watcher. Consumed by
- * exactly one SSE event so genuinely external writes — including agent edits
- * that happen to keep the same rev field — are never mistaken for echoes.
+ * Our latest successful PUT may echo through the watcher after further edits.
+ * Match its file, revision, and content, then consume it once. Content matters:
+ * a watcher can coalesce our write with an agent edit that keeps the same rev.
  */
-let expectedEchoRev: number | null = null;
+let expectedWriteEcho: { id: string; rev: number; content: string } | null = null;
+
+function contentSignature(drill: Drill): string {
+  const { rev, createdAt, updatedAt, ...content } = drill;
+  return JSON.stringify(content, (_key, value: unknown) =>
+    value && typeof value === "object" && !Array.isArray(value)
+      ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)))
+      : value
+  );
+}
+
+function expectWriteEcho(id: string, rev: number, payload: Drill) {
+  expectedWriteEcho = { id, rev, content: contentSignature(payload) };
+}
 
 function toast(kind: "info" | "success" | "error", text: string) {
   useEditor.getState().addToast(kind, text);
@@ -119,9 +132,10 @@ export async function saveNow(force = false): Promise<void> {
   useEditor.setState({ saving: true });
   savingPromise = (async () => {
     try {
-      const r = await api.putDrill(drillId, serializeDense(drill), force ? null : state.lastSavedRev);
+      const payload = serializeDense(drill);
+      const r = await api.putDrill(drillId, payload, force ? null : state.lastSavedRev);
       savedRef = drill;
-      expectedEchoRev = r.rev;
+      expectWriteEcho(drillId, r.rev, payload);
       const stillDirty = useEditor.getState().drill !== drill;
       useEditor.setState({
         saving: false,
@@ -166,11 +180,12 @@ async function onDrillChangedOnDisk(id: string, fsEvent: string): Promise<void> 
     return;
   }
   try {
-    const raw = (await api.getDrill(id)) as { rev?: number };
+    const raw = (await api.getDrill(id)) as Drill;
     const rev = raw.rev ?? 0;
-    if (expectedEchoRev != null && rev === expectedEchoRev) {
-      expectedEchoRev = null; // our own write echoing back — exactly once
-      return;
+    const echo = expectedWriteEcho;
+    if (echo?.id === id) {
+      expectedWriteEcho = null;
+      if (rev === echo.rev && contentSignature(raw) === echo.content) return;
     }
     // Re-read state after the await: the user may have typed or switched
     // drills while the GET was in flight.
@@ -215,7 +230,9 @@ export async function newDrill(): Promise<void> {
   while (taken.has(id)) id = `untitled-${i++}`;
   const drill = makeDefaultDrill(id, undefined, useEditor.getState().appSettings.defaultPitch ?? "9v9");
   try {
-    const r = await api.putDrill(id, serializeDense(drill), null);
+    const payload = serializeDense(drill);
+    const r = await api.putDrill(id, payload, null);
+    expectWriteEcho(id, r.rev, payload);
     loadIntoEditor(drill, r.rev);
     settings = { ...settings, lastOpenId: id };
     void api.putSettings(settings).catch(() => undefined);
@@ -242,7 +259,9 @@ export async function duplicateDrill(id: string): Promise<void> {
     delete drill.rev;
     delete drill.createdAt;
     delete drill.updatedAt;
-    await api.putDrill(copyId, serializeDense(drill), null);
+    const payload = serializeDense(drill);
+    const r = await api.putDrill(copyId, payload, null);
+    expectWriteEcho(copyId, r.rev, payload);
     refreshLibrarySoon(0);
     await openDrill(copyId);
     toast("success", `Duplicated as "${drill.title}".`);

@@ -39,7 +39,7 @@ window.ATLAS_DATA = {
           "drills/",
           "schema/drill.schema.json"
         ],
-        "details": "Filename = drill id. Agents (Claude Code / Codex) write here directly; the app reads and writes through the server. Sparse steps are legal on disk; the app saves dense. Git history doubles as backup."
+        "details": "Filename = drill id. The bundled library has 12 starter drills covering ball mastery, passing, possession, defending, transition, and finishing. Agents (Claude Code / Codex) write here directly; the app reads and writes through the server. Sparse steps are legal on disk; the app saves dense. Git history doubles as backup."
       },
       {
         "id": "files.data",
@@ -53,7 +53,7 @@ window.ATLAS_DATA = {
           "data/settings.json",
           "data/trash/"
         ],
-        "details": "Deletes never destroy: drills move to data/trash/ with a timestamp and can be restored from the library's trash dialog. Rosters and settings are gitignored so children's names never reach the public repo."
+        "details": "Drills moved to trash go to data/trash/ with a timestamp and can be restored from Recently deleted in the sidebar. Rosters and settings are gitignored. Saved-drill bookmarks and coaching-brief drafts use optional browser storage, separate from these server-managed files."
       },
       {
         "id": "files.exports",
@@ -253,26 +253,44 @@ window.ATLAS_DATA = {
         "lane": "board",
         "x": 1200,
         "y": 540,
-        "summary": "Edit/Preview modes, play/scrub/loop/speed, the step strip (jump, reorder, duplicate, delete, inline durations).",
+        "summary": "Grouped playback controls and a numbered sequence strip: select, reorder, duplicate, delete, and set transition times.",
         "files": [
           "src/timeline/Timeline.tsx",
-          "src/timeline/usePlaybackClock.ts"
+          "src/timeline/usePlaybackClock.ts",
+          "src/ui/editor-workspace.css"
         ],
-        "details": "The clock advances by real elapsed time via rAF plus a watchdog interval, so hidden tabs never freeze playback."
+        "details": "Edit/Preview modes, previous/next step, play, scrub, loop, and speed share one transport bar. Step cards support drag reorder and Alt+Left/Right; the active card scrolls into view. The clock uses real elapsed time via rAF plus a watchdog interval. App navigation pauses playback when leaving the board."
       },
       {
         "id": "ui.panels",
-        "label": "Library, inspector, dialogs",
+        "label": "Workspace, library & coaching",
         "lane": "board",
         "x": 1490,
         "y": 540,
-        "summary": "Searchable library with live mini-board previews, context-sensitive inspector, roster/place-team/settings/trash/record dialogs.",
+        "summary": "Library and saved-drill views lead into a separate board with coach notes, edit details, and grouped tools.",
         "files": [
+          "src/App.tsx",
           "src/library/LibraryPanel.tsx",
           "src/inspector/InspectorPanel.tsx",
-          "src/ui/"
+          "src/ui/ToolRail.tsx",
+          "src/ui/Modal.tsx",
+          "src/ui/useHotkeys.ts",
+          "src/index.css"
         ],
-        "details": "Library previews render the actual drill JSON through a mini BoardSvg — nothing to go stale. The inspector edits whatever is selected: player identity, arrow style + visibility window, zone caption, step timing."
+        "details": "App owns view and coaching-panel state. Library cards render actual JSON through BoardSvg, search titles/descriptions/tags, filter any tag, and sort by title or update time. Bookmarks use optional browser localStorage. The board exposes coach notes and the existing inspector; selecting a piece opens Edit details. Native dialogs contain and return focus, while board shortcuts pause outside the board and behind dialogs/exports."
+      },
+      {
+        "id": "ui.brief",
+        "label": "Describe a drill",
+        "lane": "board",
+        "x": 1490,
+        "y": 910,
+        "summary": "A coaching objective and session context become a readable brief for the user to copy into Codex.",
+        "files": [
+          "src/ui/CoachBriefDialog.tsx",
+          "src/ui/coach-brief.css"
+        ],
+        "details": "The coach types or uses device dictation, reviews the prompt, and copies it into a Codex task in this repository. The form saves a draft in optional browser storage and selects the prompt if clipboard access fails. It has no model or speech backend. The prompt directs the agent to AGENTS.md and drill-authoring.md, a new drill JSON file, and validation."
       },
       {
         "id": "export.renderframes",
@@ -427,6 +445,16 @@ window.ATLAS_DATA = {
         "label": "selection · meta · dialogs"
       },
       {
+        "from": "ui.panels",
+        "to": "ui.brief",
+        "label": "describe a coaching objective"
+      },
+      {
+        "from": "ui.brief",
+        "to": "docs.agent",
+        "label": "coach copies brief to repo agent"
+      },
+      {
         "from": "board.boardsvg",
         "to": "export.renderframes",
         "label": "rasterized per frame"
@@ -455,6 +483,38 @@ window.ATLAS_DATA = {
   },
   "dataflow": {
     "flows": [
+      {
+        "id": "browse-to-board",
+        "title": "Find a drill and coach it",
+        "summary": "The library helps a coach find and save an idea, then opens a focused board with the drill's coaching notes.",
+        "steps": [
+          {
+            "actor": "Coach",
+            "action": "searches or filters the visual library",
+            "detail": "Search matches titles, descriptions, and tags. All-topic filtering and name/recent sorting work in the library and saved-drill views."
+          },
+          {
+            "actor": "Library",
+            "action": "renders starting setups from drill JSON",
+            "detail": "BoardSvg draws each preview. Cards show player count, step count, and animation length; demo seconds are not practice duration."
+          },
+          {
+            "actor": "Coach",
+            "action": "bookmarks an idea or opens its board",
+            "detail": "Bookmarks save drill IDs in this browser when storage is available. Opening another drill uses the existing persistence flow."
+          },
+          {
+            "actor": "Workspace",
+            "action": "shows coach notes beside the tactics board",
+            "detail": "Edit details opens the inspector; selecting a piece reveals its controls. The grouped tool palette and sequence strip edit the existing drill model."
+          },
+          {
+            "actor": "Coach",
+            "action": "returns to the library",
+            "detail": "Playback pauses. Board shortcuts stay inactive until the board is open again."
+          }
+        ]
+      },
       {
         "id": "edit-loop",
         "title": "The edit loop",
@@ -490,17 +550,27 @@ window.ATLAS_DATA = {
       {
         "id": "agent-loop",
         "title": "The agent route",
-        "summary": "An AI on a subscription writes a JSON file; the library updates live. Conflicts with in-app edits go through an explicit ladder instead of silent clobbering.",
+        "summary": "The coach gives an agent a drill request, directly or by copying a prepared brief. The agent writes and validates JSON; the running library refreshes from disk.",
         "steps": [
           {
             "actor": "Coach",
-            "action": "asks Claude Code / Codex for a drill in plain coaching language",
-            "detail": "\"9v9 build-out: keeper to the low fullback, up the line, switch through the pivot.\""
+            "action": "fills out Describe a drill",
+            "detail": "Type or use device dictation for the coaching objective, then add ages, players, space, time, and an optional progression. The draft stays in this browser when storage is available."
+          },
+          {
+            "actor": "Brief dialog",
+            "action": "prepares a readable prompt for review and copying",
+            "detail": "Clipboard success is shown; if clipboard access fails, the text is selected for manual copying. There is no model or speech backend."
+          },
+          {
+            "actor": "Coach",
+            "action": "pastes the brief into a Codex task opened in this repository",
+            "detail": "This is a manual handoff. The coach may also ask Claude Code or Codex directly without using the form."
           },
           {
             "actor": "Agent",
-            "action": "writes drills/<slug>.json following docs/drill-authoring.md",
-            "detail": "Sparse steps are fine; npm run validate checks structure, semantics, anchors, and meter-scale coordinates."
+            "action": "reads AGENTS.md and drill-authoring.md, then writes drills/<slug>.json",
+            "detail": "The brief requests setup, named movement steps, coaching points, variations, and validation with npm run validate -- drills/<file>.json."
           },
           {
             "actor": "Watcher",
@@ -555,6 +625,34 @@ window.ATLAS_DATA = {
   },
   "decisions": {
     "decisions": [
+      {
+        "id": "manual_coaching_brief",
+        "title": "Coaching ideas become a brief the user hands to Codex",
+        "status": "accepted",
+        "context": "A coach needs an easy way to state the intended learning outcome while keeping the existing workflow where an agent authors JSON files in the repository.",
+        "decision": "Describe a drill gathers the objective and session context, shows the complete prompt, and copies it for the coach to paste into a Codex task in this repository. It supplies the authoring-guide and validation instructions. Device dictation can enter text; no model or speech backend is added.",
+        "consequences": "The handoff remains visible and under the coach's control. Copying does not create a drill; the agent must receive the request, write the file, and validate it. Clipboard failure leaves selectable text, and optional browser storage retains the draft.",
+        "touches": [
+          "ui.brief",
+          "ui.panels",
+          "docs.agent",
+          "files.drills"
+        ]
+      },
+      {
+        "id": "browser_convenience_state",
+        "title": "Bookmarks and brief drafts stay separate from drill files",
+        "status": "accepted",
+        "context": "The library refresh adds saved-drill shortcuts and a reusable coaching-brief draft. These are browsing conveniences rather than changes to a drill's coaching content.",
+        "decision": "Store saved-drill IDs and brief fields in optional browser localStorage. Keep workspace navigation and coaching-panel selection in local React state. Continue storing all drill content in drills/*.json through the existing persistence layer.",
+        "consequences": "No schema or server storage change is required. Bookmarks and drafts are specific to the browser and can be lost if its storage is cleared. If storage is unavailable, the current form and bookmarks still work for the visit.",
+        "touches": [
+          "ui.panels",
+          "ui.brief",
+          "files.drills",
+          "api.persistence"
+        ]
+      },
       {
         "id": "single_render_path",
         "title": "One render path: every pixel comes from BoardSvg",
@@ -719,9 +817,11 @@ window.ATLAS_DATA = {
       {
         "id": "agent_route",
         "title": "How an AI writes a drill",
-        "question": "What makes 'ask Claude for a 9v9 pressing drill' actually work — and safe?",
-        "narrative": "Drills are single JSON files whose filename equals their id. An agent reads docs/drill-authoring.md (coordinates in meters, sparse steps legal, arrows anchor to entity ids), writes drills/<slug>.json, and runs npm run validate — which checks structure via the zod schema plus semantics the schema can't express: anchor refs that exist, step windows in range, and meter-scale coordinates (the #1 mistake is pixel-scale numbers, which would otherwise render an empty-looking board).\n\nchokidar watches the folder and pushes an SSE event; the library refreshes within about a second, and previews render the real file through a mini BoardSvg, so nothing goes stale.\n\nThe sharp edge is the OPEN drill. The app's own saves echo back through the watcher, so saveNow plants a consume-once expected-rev token; the first matching event is swallowed, and every other event is treated as genuinely external — including agent writes that keep the old rev field. External change + clean editor = silent reload that preserves the cursor. External change + unsaved edits = an explicit conflict dialog (use the disk version / keep mine and overwrite). The loader stays forgiving on top: duplicate ids keep-first, unknown position keys dropped, sparse steps densified at load so editing semantics don't depend on how the file arrived.",
+        "question": "How does a coaching objective become an animated drill?",
+        "narrative": "Describe a drill helps the coach state an objective and session context: ages, players, available space, time, and an optional progression. The coach can type or use device dictation. The form prepares a readable prompt and stores a local browser draft when storage is available. It copies text to the clipboard, or selects it for manual copying if permission fails. It does not call a model, record speech, or write a drill.\n\nThe coach pastes that brief into a Codex task opened in this repository. An agent reads AGENTS.md and docs/drill-authoring.md, creates drills/<slug>.json with a filename matching its id, and runs npm run validate. The brief requests realistic motion, named animation steps, setup instructions, coaching points, and simpler/harder variations. The coach can also ask an agent directly without the form.\n\nchokidar watches the folder and pushes an SSE event. The library refreshes, and cards draw the file's starting setup through BoardSvg. Opening a card reveals its coaching notes and animation on the tactics board.\n\nFor an open drill, persistence distinguishes the app's own save from an external edit using a consume-once expected-rev token. External changes reload a clean editor. If local edits are unsaved, the conflict dialog requires the coach to choose the disk version or keep and overwrite with their edits. Sparse steps remain legal; the loader normalizes them for editing.",
         "highlights": [
+          "ui.brief",
+          "ui.panels",
           "docs.agent",
           "files.drills",
           "server.watch",
@@ -729,6 +829,7 @@ window.ATLAS_DATA = {
           "model.types"
         ],
         "decisions": [
+          "manual_coaching_brief",
           "files_not_sqlite",
           "dense_save_sparse_load",
           "dumb_server"
@@ -802,7 +903,7 @@ window.ATLAS_DATA = {
   "overview": {
     "title": "Training Ground Atlas",
     "subtitle": "How the drill designer fits together — and why it's built this way",
-    "what": "Training Ground is a local-first soccer drill designer and animator for one youth coach. A React SPA draws an SVG tactics board; drills live as single JSON files; a tiny Express server does file CRUD on 127.0.0.1:8123; exports turn the same board into PNG, MP4, GIF, narrated clips, and site bundles for the team's GitHub Pages site.",
+    "what": "Training Ground is a local soccer drill designer and animator for a youth coach. The workspace opens to a visual library with 12 starter drills, search, topic filters, sorting, and browser-local bookmarks. A separate tactics board brings together coach notes, grouped tools, and a step sequence. Describe a drill prepares a brief to copy into Codex. Drills remain JSON files served by Express on 127.0.0.1:8123; the same SVG renderer produces the board and media exports.",
     "run": "Double-click start-training-ground.bat (first run installs+builds). The app serves at http://127.0.0.1:8123 and this atlas at http://127.0.0.1:8123/atlas (or open docs/project_atlas/index.html straight from disk).",
     "principles": [
       {
@@ -815,7 +916,11 @@ window.ATLAS_DATA = {
       },
       {
         "name": "The agent route is a first-class user",
-        "text": "Claude Code / Codex author drills by writing files. A watcher pushes SSE so they appear in the library within a second; rev stamps + a conflict ladder keep the app and agents from clobbering each other; the loader is forgiving (sparse steps, dropped unknowns)."
+        "text": "The coach can prepare a brief in Describe a drill, then copy it into a Codex task in this repository. The app prepares text; the agent writes and validates JSON files. A watcher refreshes the library, and revision checks protect unsaved edits. Device dictation is optional; there is no integrated model or speech service."
+      },
+      {
+        "name": "Browse first, focus on the board",
+        "text": "Library and saved-drill views help the coach find a practice idea before editing. Coach notes stay visible beside the tactics board. View state, bookmarks, and brief drafts do not alter the drill format; bookmarks and drafts can use browser storage when available."
       },
       {
         "name": "Meters everywhere",

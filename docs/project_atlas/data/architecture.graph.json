@@ -15,7 +15,7 @@
       "x": 40, "y": 150,
       "summary": "The drill library — one human-readable JSON file per drill. This folder IS the database and the agent interface.",
       "files": ["drills/", "schema/drill.schema.json"],
-      "details": "Filename = drill id. Agents (Claude Code / Codex) write here directly; the app reads and writes through the server. Sparse steps are legal on disk; the app saves dense. Git history doubles as backup."
+      "details": "Filename = drill id. The bundled library has 12 starter drills covering ball mastery, passing, possession, defending, transition, and finishing. Agents (Claude Code / Codex) write here directly; the app reads and writes through the server. Sparse steps are legal on disk; the app saves dense. Git history doubles as backup."
     },
     {
       "id": "files.data",
@@ -24,7 +24,7 @@
       "x": 40, "y": 330,
       "summary": "Per-machine personal data: the team roster (kids' names — gitignored), app settings, and the soft-delete trash.",
       "files": ["data/rosters.json", "data/settings.json", "data/trash/"],
-      "details": "Deletes never destroy: drills move to data/trash/ with a timestamp and can be restored from the library's trash dialog. Rosters and settings are gitignored so children's names never reach the public repo."
+      "details": "Drills moved to trash go to data/trash/ with a timestamp and can be restored from Recently deleted in the sidebar. Rosters and settings are gitignored. Saved-drill bookmarks and coaching-brief drafts use optional browser storage, separate from these server-managed files."
     },
     {
       "id": "files.exports",
@@ -166,18 +166,27 @@
       "label": "Timeline & transport",
       "lane": "board",
       "x": 1200, "y": 540,
-      "summary": "Edit/Preview modes, play/scrub/loop/speed, the step strip (jump, reorder, duplicate, delete, inline durations).",
-      "files": ["src/timeline/Timeline.tsx", "src/timeline/usePlaybackClock.ts"],
-      "details": "The clock advances by real elapsed time via rAF plus a watchdog interval, so hidden tabs never freeze playback."
+      "summary": "Grouped playback controls and a numbered sequence strip: select, reorder, duplicate, delete, and set transition times.",
+      "files": ["src/timeline/Timeline.tsx", "src/timeline/usePlaybackClock.ts", "src/ui/editor-workspace.css"],
+      "details": "Edit/Preview modes, previous/next step, play, scrub, loop, and speed share one transport bar. Step cards support drag reorder and Alt+Left/Right; the active card scrolls into view. The clock uses real elapsed time via rAF plus a watchdog interval. App navigation pauses playback when leaving the board."
     },
     {
       "id": "ui.panels",
-      "label": "Library, inspector, dialogs",
+      "label": "Workspace, library & coaching",
       "lane": "board",
       "x": 1490, "y": 540,
-      "summary": "Searchable library with live mini-board previews, context-sensitive inspector, roster/place-team/settings/trash/record dialogs.",
-      "files": ["src/library/LibraryPanel.tsx", "src/inspector/InspectorPanel.tsx", "src/ui/"],
-      "details": "Library previews render the actual drill JSON through a mini BoardSvg — nothing to go stale. The inspector edits whatever is selected: player identity, arrow style + visibility window, zone caption, step timing."
+      "summary": "Library and saved-drill views lead into a separate board with coach notes, edit details, and grouped tools.",
+      "files": ["src/App.tsx", "src/library/LibraryPanel.tsx", "src/inspector/InspectorPanel.tsx", "src/ui/ToolRail.tsx", "src/ui/Modal.tsx", "src/ui/useHotkeys.ts", "src/index.css"],
+      "details": "App owns view and coaching-panel state. Library cards render actual JSON through BoardSvg, search titles/descriptions/tags, filter any tag, and sort by title or update time. Bookmarks use optional browser localStorage. The board exposes coach notes and the existing inspector; selecting a piece opens Edit details. Native dialogs contain and return focus, while board shortcuts pause outside the board and behind dialogs/exports."
+    },
+    {
+      "id": "ui.brief",
+      "label": "Describe a drill",
+      "lane": "board",
+      "x": 1490, "y": 910,
+      "summary": "A coaching objective and session context become a readable brief for the user to copy into Codex.",
+      "files": ["src/ui/CoachBriefDialog.tsx", "src/ui/coach-brief.css"],
+      "details": "The coach types or uses device dictation, reviews the prompt, and copies it into a Codex task in this repository. The form saves a draft in optional browser storage and selects the prompt if clipboard access fails. It has no model or speech backend. The prompt directs the agent to AGENTS.md and drill-authoring.md, a new drill JSON file, and validation."
     },
     {
       "id": "export.renderframes",
@@ -230,6 +239,8 @@
     { "from": "board.interaction", "to": "state.store", "label": "edits (gestured)" },
     { "from": "ui.timeline", "to": "state.store", "label": "playback & step ops" },
     { "from": "ui.panels", "to": "state.store", "label": "selection · meta · dialogs" },
+    { "from": "ui.panels", "to": "ui.brief", "label": "describe a coaching objective" },
+    { "from": "ui.brief", "to": "docs.agent", "label": "coach copies brief to repo agent" },
     { "from": "board.boardsvg", "to": "export.renderframes", "label": "rasterized per frame" },
     { "from": "export.renderframes", "to": "export.encoders", "label": "canvas frames" },
     { "from": "export.encoders", "to": "server.express", "label": "POST blobs & bundle" },

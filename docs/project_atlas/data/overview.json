@@ -1,7 +1,7 @@
 {
   "title": "Training Ground Atlas",
   "subtitle": "How the drill designer fits together — and why it's built this way",
-  "what": "Training Ground is a local-first soccer drill designer and animator for one youth coach. A React SPA draws an SVG tactics board; drills live as single JSON files; a tiny Express server does file CRUD on 127.0.0.1:8123; exports turn the same board into PNG, MP4, GIF, narrated clips, and site bundles for the team's GitHub Pages site.",
+  "what": "Training Ground is a local soccer drill designer and animator for a youth coach. The workspace opens to a visual library with 12 starter drills, search, topic filters, sorting, and browser-local bookmarks. A separate tactics board brings together coach notes, grouped tools, and a step sequence. Describe a drill prepares a brief to copy into Codex. Drills remain JSON files served by Express on 127.0.0.1:8123; the same SVG renderer produces the board and media exports.",
   "run": "Double-click start-training-ground.bat (first run installs+builds). The app serves at http://127.0.0.1:8123 and this atlas at http://127.0.0.1:8123/atlas (or open docs/project_atlas/index.html straight from disk).",
   "principles": [
     {
@@ -14,7 +14,11 @@
     },
     {
       "name": "The agent route is a first-class user",
-      "text": "Claude Code / Codex author drills by writing files. A watcher pushes SSE so they appear in the library within a second; rev stamps + a conflict ladder keep the app and agents from clobbering each other; the loader is forgiving (sparse steps, dropped unknowns)."
+      "text": "The coach can prepare a brief in Describe a drill, then copy it into a Codex task in this repository. The app prepares text; the agent writes and validates JSON files. A watcher refreshes the library, and revision checks protect unsaved edits. Device dictation is optional; there is no integrated model or speech service."
+    },
+    {
+      "name": "Browse first, focus on the board",
+      "text": "Library and saved-drill views help the coach find a practice idea before editing. Coach notes stay visible beside the tactics board. View state, bookmarks, and brief drafts do not alter the drill format; bookmarks and drafts can use browser storage when available."
     },
     {
       "name": "Meters everywhere",

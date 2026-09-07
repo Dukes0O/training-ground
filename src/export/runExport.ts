@@ -1,9 +1,9 @@
 import { api } from "../api/client";
 import { getTimeline } from "../model/resolve";
 import { useEditor } from "../state/store";
-import { exportPng } from "./exportPng";
-import { estimateGifIsHeavy, exportGif } from "./exportGif";
-import { exportVideo } from "./exportVideo";
+
+// Load renderers and encoders only when an export starts. Imports stay inside
+// guarded so loading errors and cancellation use the normal export feedback.
 
 // One export runs at a time; the modal's Cancel aborts it.
 let controller: AbortController | null = null;
@@ -54,6 +54,8 @@ function revealToast(text: string, path: string) {
 export async function runPngExport(): Promise<void> {
   const { drill, currentStep, gridOn } = useEditor.getState();
   await guarded("Snapshot PNG", async (signal) => {
+    const { exportPng } = await import("./exportPng");
+    signal.throwIfAborted();
     const r = await exportPng(drill, currentStep, gridOn, 1920, signal);
     revealToast(`Snapshot saved: ${r.path}`, r.path);
     return r;
@@ -63,6 +65,8 @@ export async function runPngExport(): Promise<void> {
 export async function runVideoExport(): Promise<void> {
   const { drill, gridOn, appSettings } = useEditor.getState();
   await guarded("Video", async (signal) => {
+    const { exportVideo } = await import("./exportVideo");
+    signal.throwIfAborted();
     const r = await exportVideo(drill, gridOn, {
       widthPx: appSettings.video?.width ?? 1280,
       fps: appSettings.video?.fps ?? 30,
@@ -75,14 +79,15 @@ export async function runVideoExport(): Promise<void> {
 }
 
 export async function runGifExport(): Promise<void> {
-  const { drill, gridOn } = useEditor.getState();
-  if (estimateGifIsHeavy(getTimeline(drill).totalMs)) {
-    useEditor
-      .getState()
-      .addToast("info", "Heads up: this drill runs past 20s — the GIF will be large. MP4 is usually the better post.");
-  }
-  const { appSettings } = useEditor.getState();
+  const { drill, gridOn, appSettings } = useEditor.getState();
   await guarded("GIF", async (signal) => {
+    const { estimateGifIsHeavy, exportGif } = await import("./exportGif");
+    signal.throwIfAborted();
+    if (estimateGifIsHeavy(getTimeline(drill).totalMs)) {
+      useEditor
+        .getState()
+        .addToast("info", "Heads up: this drill runs past 20s — the GIF will be large. MP4 is usually the better post.");
+    }
     const r = await exportGif(drill, gridOn, {
       widthPx: appSettings.gif?.width ?? 720,
       fps: appSettings.gif?.fps ?? 12,
@@ -104,15 +109,21 @@ export async function runBundleExport(): Promise<void> {
   await guarded("Site bundle", async (signal) => {
     const assets: string[] = [];
     setJob({ kind: "Site bundle", phase: "Poster PNG", done: 0, total: 1 });
-    const png = await exportPng(drill, 0, gridOn);
+    const { exportPng } = await import("./exportPng");
+    signal.throwIfAborted();
+    const png = await exportPng(drill, 0, gridOn, 1920, signal);
     assets.push(png.path.split(/[\\/]/).pop()!);
 
+    const { exportGif } = await import("./exportGif");
+    signal.throwIfAborted();
     const gif = await exportGif(drill, gridOn, {
       signal,
       onProgress: (d, t, p) => setJob({ kind: "Site bundle", phase: `GIF — ${p}`, done: d, total: t }),
     });
     assets.push(gif.path.split(/[\\/]/).pop()!);
 
+    const { exportVideo } = await import("./exportVideo");
+    signal.throwIfAborted();
     const video = await exportVideo(drill, gridOn, {
       signal,
       onProgress: (d, t, p) => setJob({ kind: "Site bundle", phase: `Video — ${p}`, done: d, total: t }),

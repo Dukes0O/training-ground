@@ -1,0 +1,44 @@
+{
+  "$schema": "../schema/drill.schema.json",
+  "schemaVersion": 1,
+  "id": "wall-pass-to-finish",
+  "title": "Give, Go and Finish",
+  "description": "Use a teammate to play around a mannequin, receive the return pass in space and finish into a mini goal.",
+  "tags": ["passing", "finishing", "combination", "pairs"],
+  "notes": "SETUP: Two players, one ball, a mannequin and a mini goal in a 28 × 20 m area. Player 7 starts with the ball; player 9 offers a diagonal pass. RUN IT: 1. Pass to the supporting player. 2. Run around the mannequin while the supporter holds the ball. 3. Receive a return pass ahead of the run. 4. Take a settling touch. 5. Finish. COACH IT: Pass to a reachable foot, move after releasing the ball, and time the return to the runner. EASIER: Move the mannequin farther from the passing lane. PROGRESS: Replace it with a defender who first walks, then plays freely. Swap passer and runner after each attempt; retrieve the ball after the shot.",
+  "themeColor": "#f59e0b",
+  "pitch": { "format": "grid", "overrides": { "length": 28, "width": 20 } },
+  "entities": [
+    { "kind": "player", "id": "runner", "team": "home", "number": 7 },
+    { "kind": "player", "id": "support", "team": "home", "number": 9 },
+    { "kind": "mannequin", "id": "defender", "color": "#f87171" },
+    { "kind": "minigoal", "id": "goal" },
+    { "kind": "ball", "id": "ball" },
+    { "kind": "arrow", "id": "give", "style": "pass", "from": { "x": 6, "y": 11 }, "to": { "x": 12, "y": 5.8 }, "fromStep": 0, "toStep": 1 },
+    { "kind": "arrow", "id": "go", "style": "run", "from": { "x": 5, "y": 11 }, "to": { "x": 17, "y": 13 }, "via": [{ "x": 11, "y": 15 }], "fromStep": 2, "toStep": 2 },
+    { "kind": "arrow", "id": "return", "style": "pass", "from": { "x": 12, "y": 5.8 }, "to": { "x": 18, "y": 12.5 }, "fromStep": 3, "toStep": 3 },
+    { "kind": "arrow", "id": "finish", "style": "shot", "from": { "x": 21.8, "y": 11 }, "to": { "x": 27, "y": 10 }, "fromStep": 5, "toStep": 5 }
+  ],
+  "steps": [
+    { "name": "See the teammate and the space beyond", "durationMs": 1200, "positions": {
+      "runner": { "x": 5, "y": 11 }, "support": { "x": 12, "y": 5 },
+      "defender": { "x": 12, "y": 10 }, "goal": { "x": 27, "y": 10, "rotation": 90 },
+      "ball": { "x": 6, "y": 11 }
+    } },
+    { "name": "Give the pass", "durationMs": 1200, "positions": {
+      "ball": { "x": 12, "y": 5.8, "ease": "linear" }
+    } },
+    { "name": "Go around the mannequin", "durationMs": 2200, "positions": {
+      "runner": { "x": 17, "y": 13, "via": [{ "x": 11, "y": 15 }] }
+    } },
+    { "name": "Return the ball ahead of the runner", "durationMs": 1200, "pauseAfterMs": 600, "positions": {
+      "ball": { "x": 18, "y": 12.5, "ease": "linear" }
+    } },
+    { "name": "Set up the finish", "durationMs": 1200, "positions": {
+      "runner": { "x": 21, "y": 11 }, "ball": { "x": 21.8, "y": 11 }
+    } },
+    { "name": "Finish into the mini goal", "durationMs": 850, "pauseAfterMs": 900, "positions": {
+      "ball": { "x": 27, "y": 10, "ease": "linear" }
+    } }
+  ]
+}

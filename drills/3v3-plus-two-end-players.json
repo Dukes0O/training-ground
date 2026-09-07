@@ -1,0 +1,51 @@
+{
+  "$schema": "../schema/drill.schema.json",
+  "schemaVersion": 1,
+  "id": "3v3-plus-two-end-players",
+  "title": "Play from End to End",
+  "description": "Three against three with two neutral end players. Keep the ball, find a forward passing lane and connect one end of the area to the other.",
+  "tags": ["possession", "passing", "3v3", "small-sided", "support"],
+  "notes": "SETUP: Two teams of three inside a 32 × 22 m area. Add one neutral player in each marked end zone. Neutral players help whichever team has the ball. RUN IT: 1. Receive from an end player. 2. Use a supporting teammate to move away from pressure. 3. Find a forward pass. 4. Connect to the opposite end player for a point, then keep possession and play back toward the other end. The animation shows one successful route. After a turnover, the new team may use either end to begin its next connection. COACH IT: Spread out to offer different passing angles and move again after passing. EASIER: Give neutral players extra space or enlarge the middle area. PROGRESS: Ask the team to involve all three central players before scoring. Rotate the two end players after each short round.",
+  "themeColor": "#6366f1",
+  "pitch": { "format": "grid", "overrides": { "length": 32, "width": 22 } },
+  "teams": { "neutral": { "label": "End players" } },
+  "entities": [
+    { "kind": "zone", "id": "end-left", "rect": { "x": 1, "y": 1, "w": 4, "h": 20 }, "text": "END", "color": "#fbbf24" },
+    { "kind": "zone", "id": "end-right", "rect": { "x": 27, "y": 1, "w": 4, "h": 20 }, "text": "END", "color": "#fbbf24" },
+    { "kind": "player", "id": "p1", "team": "home", "number": 6 },
+    { "kind": "player", "id": "p2", "team": "home", "number": 8 },
+    { "kind": "player", "id": "p3", "team": "home", "number": 10 },
+    { "kind": "player", "id": "d1", "team": "away", "number": 4 },
+    { "kind": "player", "id": "d2", "team": "away", "number": 5 },
+    { "kind": "player", "id": "d3", "team": "away", "number": 7 },
+    { "kind": "player", "id": "n1", "team": "neutral", "number": 1 },
+    { "kind": "player", "id": "n2", "team": "neutral", "number": 2 },
+    { "kind": "ball", "id": "ball" },
+    { "kind": "arrow", "id": "start-pass", "style": "pass", "from": { "x": 4, "y": 11 }, "to": { "x": 13, "y": 16 }, "fromStep": 0, "toStep": 1 },
+    { "kind": "arrow", "id": "forward-pass", "style": "pass", "from": { "x": 11, "y": 6 }, "to": { "x": 22, "y": 5.5 }, "fromStep": 3, "toStep": 3 },
+    { "kind": "arrow", "id": "end-pass", "style": "pass", "from": { "x": 22, "y": 5.5 }, "to": { "x": 28, "y": 11 }, "fromStep": 4, "toStep": 4 }
+  ],
+  "steps": [
+    { "name": "Connect the two neutral end players", "durationMs": 1400, "positions": {
+      "p1": { "x": 9, "y": 5 }, "p2": { "x": 14, "y": 17 }, "p3": { "x": 21, "y": 7 },
+      "d1": { "x": 12, "y": 7 }, "d2": { "x": 17, "y": 12 }, "d3": { "x": 22, "y": 16 },
+      "n1": { "x": 3, "y": 11 }, "n2": { "x": 29, "y": 11 }, "ball": { "x": 4, "y": 11 }
+    } },
+    { "name": "Receive from the first end player", "durationMs": 1500, "positions": {
+      "ball": { "x": 13, "y": 16, "ease": "linear" }, "p1": { "x": 10, "y": 7 },
+      "d1": { "x": 11, "y": 10 }, "d2": { "x": 18, "y": 14 }
+    } },
+    { "name": "Use support to move away from pressure", "durationMs": 1500, "positions": {
+      "ball": { "x": 11, "y": 6, "ease": "linear" }, "p1": { "x": 10, "y": 6 },
+      "p3": { "x": 23, "y": 5 }, "d1": { "x": 13, "y": 8 }, "d3": { "x": 23, "y": 13 }
+    } },
+    { "name": "Find the forward passing lane", "durationMs": 1500, "pauseAfterMs": 650, "positions": {
+      "ball": { "x": 22, "y": 5.5, "ease": "linear" }, "d2": { "x": 18, "y": 8 }, "d3": { "x": 24, "y": 9 }
+    } },
+    { "name": "Reach the opposite end; now play back", "durationMs": 1600, "pauseAfterMs": 1000, "positions": {
+      "ball": { "x": 28, "y": 11, "ease": "linear" }, "p3": { "x": 24, "y": 6 },
+      "p1": { "x": 17, "y": 5 }, "p2": { "x": 20, "y": 17 },
+      "d1": { "x": 17, "y": 8 }, "d2": { "x": 21, "y": 10 }, "d3": { "x": 25, "y": 12 }
+    } }
+  ]
+}

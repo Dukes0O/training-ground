@@ -5,19 +5,26 @@ import { redo, undo, useEditor } from "../state/store";
 const NUDGE = 0.5;
 const NUDGE_BIG = 2;
 
-export function useHotkeys() {
+export function useHotkeys(enabled = true) {
   useEffect(() => {
+    if (!enabled) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement;
+      if (e.defaultPrevented || e.isComposing) return;
+      // Never edit the board through an open dialog, including native dialogs.
+      if (document.querySelector('dialog[open], [aria-modal="true"]')) return;
+      const state = useEditor.getState();
+      // Export progress currently uses a separate overlay instead of Modal.
+      if (state.exportJob) return;
+      const t = e.target instanceof Element ? e.target : null;
       if (
-        t.tagName === "INPUT" ||
-        t.tagName === "TEXTAREA" ||
-        t.tagName === "SELECT" ||
-        t.isContentEditable
+        !t ||
+        t.closest("input, textarea, select") ||
+        (t instanceof HTMLElement && t.isContentEditable)
       ) {
         return;
       }
-      const state = useEditor.getState();
+      // Space must still activate a focused control without toggling playback too.
+      if (e.key === " " && t.closest('button, a[href], [role="button"], [role="link"], summary')) return;
       const key = e.key.toLowerCase();
       if ((e.ctrlKey || e.metaKey) && key === "s") {
         e.preventDefault();
@@ -61,5 +68,5 @@ export function useHotkeys() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [enabled]);
 }

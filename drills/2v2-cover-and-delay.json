@@ -1,0 +1,47 @@
+{
+  "$schema": "../schema/drill.schema.json",
+  "schemaVersion": 1,
+  "id": "2v2-cover-and-delay",
+  "title": "2v2 Pressure and Cover",
+  "description": "Defend two mini goals as a pair. One defender meets the ball while the other covers the space behind, then they exchange roles when the pass moves.",
+  "tags": ["defending", "2v2", "communication", "small-sided"],
+  "notes": "SETUP: Two attackers and two defenders in a 26 × 20 m area, with two mini goals on the right. Start a new ball from the left. Attackers can score in either goal. RUN IT: 1. The closest defender moves toward the ball. 2. The second defender stays behind and inside. 3. When the attackers switch sides, change who pressures and who covers. 4. Move together if the ball goes back. The example ends with the attackers recycling possession. COACH IT: Talk early, slow down as you approach, and keep enough space to react to a change of direction. EASIER: Start with attackers walking. PROGRESS: Let defenders score by carrying a won ball over the left end line. Swap team roles after a short round.",
+  "themeColor": "#ef4444",
+  "pitch": { "format": "grid", "overrides": { "length": 26, "width": 20 } },
+  "teams": { "home": { "label": "Attackers" }, "away": { "label": "Defenders" } },
+  "entities": [
+    { "kind": "player", "id": "a1", "team": "home", "number": 7 },
+    { "kind": "player", "id": "a2", "team": "home", "number": 9 },
+    { "kind": "player", "id": "d1", "team": "away", "number": 4 },
+    { "kind": "player", "id": "d2", "team": "away", "number": 5 },
+    { "kind": "minigoal", "id": "goal-top" },
+    { "kind": "minigoal", "id": "goal-bottom" },
+    { "kind": "ball", "id": "ball" },
+    { "kind": "arrow", "id": "close-down", "style": "run", "from": { "x": 14, "y": 7 }, "to": { "x": 13, "y": 6 }, "color": "#f87171", "fromStep": 0, "toStep": 1 },
+    { "kind": "arrow", "id": "switch", "style": "pass", "from": { "x": 10.8, "y": 6 }, "to": { "x": 8, "y": 13 }, "fromStep": 2, "toStep": 2 }
+  ],
+  "steps": [
+    { "name": "Protect both mini goals", "durationMs": 1400, "positions": {
+      "a1": { "x": 6, "y": 6 }, "a2": { "x": 6, "y": 14 },
+      "d1": { "x": 14, "y": 7 }, "d2": { "x": 17, "y": 12 },
+      "goal-top": { "x": 25, "y": 5, "rotation": 90 }, "goal-bottom": { "x": 25, "y": 15, "rotation": 90 },
+      "ball": { "x": 6.8, "y": 6 }
+    } },
+    { "name": "One pressures; one covers behind", "durationMs": 1600, "pauseAfterMs": 650, "positions": {
+      "a1": { "x": 10, "y": 6 }, "ball": { "x": 10.8, "y": 6 },
+      "d1": { "x": 13, "y": 6 }, "d2": { "x": 16, "y": 11 }
+    } },
+    { "name": "Pass across: exchange defending roles", "durationMs": 1600, "pauseAfterMs": 700, "positions": {
+      "a2": { "x": 8, "y": 14 }, "ball": { "x": 8, "y": 13, "ease": "linear" },
+      "d1": { "x": 15, "y": 8 }, "d2": { "x": 12, "y": 12 }
+    } },
+    { "name": "Delay the dribble; cover the middle", "durationMs": 1800, "pauseAfterMs": 650, "positions": {
+      "a2": { "x": 13, "y": 16 }, "ball": { "x": 13.8, "y": 16 },
+      "d2": { "x": 15.5, "y": 15 }, "d1": { "x": 17, "y": 11 }
+    } },
+    { "name": "Ball goes back: move together again", "durationMs": 1600, "pauseAfterMs": 900, "positions": {
+      "a1": { "x": 10, "y": 7 }, "ball": { "x": 10.8, "y": 7, "ease": "linear" },
+      "d1": { "x": 13, "y": 8 }, "d2": { "x": 17, "y": 12 }
+    } }
+  ]
+}

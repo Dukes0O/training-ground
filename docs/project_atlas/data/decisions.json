@@ -1,6 +1,24 @@
 {
   "decisions": [
     {
+      "id": "manual_coaching_brief",
+      "title": "Coaching ideas become a brief the user hands to Codex",
+      "status": "accepted",
+      "context": "A coach needs an easy way to state the intended learning outcome while keeping the existing workflow where an agent authors JSON files in the repository.",
+      "decision": "Describe a drill gathers the objective and session context, shows the complete prompt, and copies it for the coach to paste into a Codex task in this repository. It supplies the authoring-guide and validation instructions. Device dictation can enter text; no model or speech backend is added.",
+      "consequences": "The handoff remains visible and under the coach's control. Copying does not create a drill; the agent must receive the request, write the file, and validate it. Clipboard failure leaves selectable text, and optional browser storage retains the draft.",
+      "touches": ["ui.brief", "ui.panels", "docs.agent", "files.drills"]
+    },
+    {
+      "id": "browser_convenience_state",
+      "title": "Bookmarks and brief drafts stay separate from drill files",
+      "status": "accepted",
+      "context": "The library refresh adds saved-drill shortcuts and a reusable coaching-brief draft. These are browsing conveniences rather than changes to a drill's coaching content.",
+      "decision": "Store saved-drill IDs and brief fields in optional browser localStorage. Keep workspace navigation and coaching-panel selection in local React state. Continue storing all drill content in drills/*.json through the existing persistence layer.",
+      "consequences": "No schema or server storage change is required. Bookmarks and drafts are specific to the browser and can be lost if its storage is cleared. If storage is unavailable, the current form and bookmarks still work for the visit.",
+      "touches": ["ui.panels", "ui.brief", "files.drills", "api.persistence"]
+    },
+    {
       "id": "single_render_path",
       "title": "One render path: every pixel comes from BoardSvg",
       "status": "accepted",

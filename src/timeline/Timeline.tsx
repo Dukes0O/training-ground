@@ -1,19 +1,12 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
-  ChevronRight,
-  Copy,
-  Pause,
-  Pencil,
-  Play,
-  Plus,
-  Repeat,
-  SkipBack,
-  SkipForward,
-  Trash2,
+  ChevronRight, Copy, Layers3, Pause, Pencil, Play, Plus,
+  Repeat, SkipBack, SkipForward, Trash2,
 } from "lucide-react";
 import { getTimeline, stepAtTime } from "../model/resolve";
 import type { Step } from "../model/types";
 import { useEditor } from "../state/store";
+import "../ui/editor-workspace.css";
 
 function fmt(ms: number): string {
   const total = Math.max(0, ms) / 1000;
@@ -33,85 +26,49 @@ function Transport() {
   const { play, pause, setTimeMs, setSpeed, setLoop, setMode, jumpToStep } = useEditor.getState();
   const tl = getTimeline(drill);
   const activeStep = mode === "playback" ? stepAtTime(tl, timeMs) : currentStep;
+  const position = Math.min(mode === "playback" ? timeMs : (tl.stepArrivalMs[activeStep] ?? 0), tl.totalMs);
 
   return (
-    <div className="flex items-center gap-2 border-b border-zinc-100 px-3 py-1.5">
-      <div className="flex overflow-hidden rounded-md border border-zinc-300 text-xs font-medium">
-        <button
-          onClick={() => setMode("edit")}
-          className={`flex items-center gap-1 px-2 py-1 ${mode === "edit" ? "bg-blue-800 text-white" : "bg-white text-zinc-600 hover:bg-zinc-50"}`}
-        >
-          <Pencil size={12} />
-          Edit
+    <div className="tg-transport">
+      <div className="tg-sequence-heading">
+        <Layers3 size={16} aria-hidden="true" />
+        <strong>Drill sequence</strong>
+        <span>{drill.steps.length} {drill.steps.length === 1 ? "step" : "steps"}</span>
+      </div>
+      <div className="tg-mode-toggle" role="group" aria-label="Editor mode">
+        <button onClick={() => setMode("edit")} aria-pressed={mode === "edit"} className={mode === "edit" ? "is-active" : ""}>
+          <Pencil size={12} aria-hidden="true" /> Edit
         </button>
-        <button
-          onClick={() => setMode("playback")}
-          className={`flex items-center gap-1 px-2 py-1 ${mode === "playback" ? "bg-blue-800 text-white" : "bg-white text-zinc-600 hover:bg-zinc-50"}`}
-        >
-          <Play size={12} />
-          Preview
+        <button onClick={() => setMode("playback")} aria-pressed={mode === "playback"} className={mode === "playback" ? "is-active" : ""}>
+          <Play size={12} aria-hidden="true" /> Preview
         </button>
       </div>
-      <div className="h-5 w-px bg-zinc-200" />
-      <button
-        title="Previous step"
-        onClick={() => jumpToStep(activeStep - 1)}
-        className="rounded-md p-1.5 text-zinc-600 hover:bg-zinc-100"
-      >
-        <SkipBack size={15} />
-      </button>
-      <button
-        title={playing ? "Pause (Space)" : "Play (Space)"}
-        onClick={() => (playing ? pause() : play())}
-        className="rounded-md bg-blue-800 p-2 text-white hover:bg-blue-900"
-      >
-        {playing ? <Pause size={15} /> : <Play size={15} />}
-      </button>
-      <button
-        title="Next step"
-        onClick={() => jumpToStep(activeStep + 1)}
-        className="rounded-md p-1.5 text-zinc-600 hover:bg-zinc-100"
-      >
-        <SkipForward size={15} />
-      </button>
-      <button
-        title="Loop"
-        onClick={() => setLoop(!loop)}
-        className={`rounded-md p-1.5 ${loop ? "bg-blue-800/10 text-blue-800 ring-1 ring-blue-800/30" : "text-zinc-600 hover:bg-zinc-100"}`}
-      >
-        <Repeat size={15} />
-      </button>
-      <select
-        value={speed}
-        onChange={(e) => setSpeed(Number(e.target.value))}
-        title="Playback speed"
-        className="rounded-md border border-zinc-300 bg-white px-1.5 py-1 text-xs text-zinc-700"
-      >
-        <option value={0.5}>0.5×</option>
-        <option value={1}>1×</option>
-        <option value={1.5}>1.5×</option>
-      </select>
-      <span className="w-24 shrink-0 text-right font-mono text-xs tabular-nums text-zinc-500">
-        {fmt(mode === "playback" ? timeMs : (tl.stepArrivalMs[activeStep] ?? 0))} / {fmt(tl.totalMs)}
-      </span>
-      <div className="relative min-w-0 flex-1 px-1">
-        <input
-          type="range"
-          min={0}
-          max={Math.max(tl.totalMs, 1)}
-          step={16}
-          value={Math.min(mode === "playback" ? timeMs : (tl.stepArrivalMs[activeStep] ?? 0), tl.totalMs)}
-          onChange={(e) => setTimeMs(Number(e.target.value))}
-          className="w-full accent-blue-800"
-        />
-        {tl.stepArrivalMs.map((t, i) => (
-          <div
-            key={i}
-            className="pointer-events-none absolute top-1/2 h-2.5 w-0.5 -translate-y-1/2 rounded bg-zinc-400/80"
-            style={{ left: `calc(${(t / Math.max(tl.totalMs, 1)) * 100}% )` }}
-          />
-        ))}
+      <div className="tg-playback-controls" role="group" aria-label="Playback controls">
+        <button title="Previous step" aria-label="Previous step" disabled={activeStep === 0} onClick={() => jumpToStep(activeStep - 1)} className="tg-transport-icon">
+          <SkipBack size={15} aria-hidden="true" />
+        </button>
+        <button title={playing ? "Pause (Space)" : "Play (Space)"} aria-label={playing ? "Pause animation" : "Play animation"} onClick={() => (playing ? pause() : play())} className="tg-play-button">
+          {playing ? <Pause size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" fill="currentColor" />}
+        </button>
+        <button title="Next step" aria-label="Next step" disabled={activeStep >= drill.steps.length - 1} onClick={() => jumpToStep(activeStep + 1)} className="tg-transport-icon">
+          <SkipForward size={15} aria-hidden="true" />
+        </button>
+        <button title={loop ? "Turn loop off" : "Loop animation"} aria-label="Loop animation" aria-pressed={loop} onClick={() => setLoop(!loop)} className={`tg-transport-icon${loop ? " is-active" : ""}`}>
+          <Repeat size={15} aria-hidden="true" />
+        </button>
+        <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} title="Playback speed" aria-label="Playback speed" className="tg-playback-speed">
+          <option value={0.5}>0.5×</option>
+          <option value={1}>1×</option>
+          <option value={1.5}>1.5×</option>
+        </select>
       </div>
+      <div className="tg-scrubber">
+        <input type="range" min={0} max={Math.max(tl.totalMs, 1)} step={16} value={position} onChange={(e) => setTimeMs(Number(e.target.value))} aria-label="Animation position" aria-valuetext={`${fmt(position)} of ${fmt(tl.totalMs)}`} />
+        <div className="tg-scrubber-markers" aria-hidden="true">
+          {tl.stepArrivalMs.map((t, i) => <i key={i} style={{ left: `${(t / Math.max(tl.totalMs, 1)) * 100}%` }} />)}
+        </div>
+      </div>
+      <span className="tg-playback-time"><strong>{fmt(position)}</strong><span> / {fmt(tl.totalMs)}</span></span>
     </div>
   );
 }
@@ -128,96 +85,85 @@ function DurationInput({ k, step }: { k: number; step: Step }) {
     else setText(String(value));
   };
   return (
-    <div className="group/conn flex w-12 shrink-0 flex-col items-center justify-center gap-0.5 self-center">
-      <ChevronRight size={12} className="text-zinc-300" />
-      <div className="flex items-center gap-0.5">
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-          className="w-8 rounded border border-zinc-200 px-0.5 py-0 text-center text-[10px] text-zinc-600 outline-none focus:ring-1 focus:ring-blue-700/40"
-        />
-        <span className="text-[10px] text-zinc-400">s</span>
-      </div>
-      <button
-        title="Insert a step here"
-        onClick={() => addStepAfter(k - 1)}
-        className="rounded px-1 text-[10px] font-semibold text-zinc-300 opacity-0 transition-opacity hover:bg-blue-50 hover:text-blue-700 group-hover/conn:opacity-100"
-      >
-        +
-      </button>
+    <div className="tg-step-connector">
+      <ChevronRight size={14} aria-hidden="true" />
+      <label title={`Transition into step ${k + 1}, in seconds`}>
+        <input value={text} inputMode="decimal" aria-label={`Transition into step ${k + 1}, in seconds`} onChange={(e) => setText(e.target.value)} onBlur={commit} onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()} />
+        <span>s</span>
+      </label>
+      <button title="Insert a step here" aria-label={`Insert a step before step ${k + 1}`} onClick={() => addStepAfter(k - 1)}><Plus size={11} aria-hidden="true" /></button>
     </div>
   );
 }
 
 function StepStrip({ activeStep }: { activeStep: number }) {
   const steps = useEditor((s) => s.drill.steps);
+  const activeRef = useRef<HTMLDivElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
   const { jumpToStep, addStepAfter, duplicateStep, deleteStep, moveStep } = useEditor.getState();
 
+  useEffect(() => {
+    const card = activeRef.current;
+    const strip = stripRef.current;
+    if (!card || !strip) return;
+    const cardBounds = card.getBoundingClientRect();
+    const stripBounds = strip.getBoundingClientRect();
+    if (cardBounds.left < stripBounds.left) strip.scrollLeft -= stripBounds.left - cardBounds.left + 12;
+    else if (cardBounds.right > stripBounds.right) strip.scrollLeft += cardBounds.right - stripBounds.right + 12;
+  }, [activeStep, steps.length]);
+
   return (
-    <div className="flex min-h-0 flex-1 items-stretch gap-0 overflow-x-auto px-3 py-1.5">
+    <div ref={stripRef} className="tg-step-strip" role="group" aria-label="Drill steps">
       {steps.map((step, k) => (
         <Fragment key={k}>
           {k > 0 && <DurationInput k={k} step={step} />}
           <div
+            ref={k === activeStep ? activeRef : undefined}
             draggable
             onDragStart={(e) => {
               e.dataTransfer.setData("text/step-index", String(k));
               e.dataTransfer.effectAllowed = "move";
             }}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              const from = Number(e.dataTransfer.getData("text/step-index"));
-              if (Number.isInteger(from) && from !== k) moveStep(from, k);
+            onDragOver={(e) => {
+              if (e.dataTransfer.types.includes("text/step-index")) e.preventDefault();
             }}
-            onClick={() => jumpToStep(k)}
-            className={`group relative w-28 shrink-0 cursor-pointer rounded-lg border px-2 py-1 transition-colors ${
-              k === activeStep
-                ? "border-blue-800/50 bg-blue-50 ring-1 ring-blue-800/30"
-                : "border-zinc-200 bg-white hover:bg-zinc-50"
-            }`}
+            onDrop={(e) => {
+              const source = e.dataTransfer.getData("text/step-index");
+              if (source === "") return;
+              e.preventDefault();
+              const from = Number(source);
+              if (Number.isInteger(from) && from >= 0 && from < steps.length && from !== k) moveStep(from, k);
+            }}
+            className={`tg-step-card${k === activeStep ? " is-active" : ""}`}
           >
-            <div className="text-[10px] font-semibold tracking-wide text-zinc-400">
-              {k === 0 ? "SETUP" : `STEP ${k + 1}`}
-            </div>
-            <div className="truncate text-xs font-medium text-zinc-800">{step.name || "—"}</div>
-            <div className="absolute right-1 top-1 hidden gap-0.5 group-hover:flex">
-              <button
-                title="Duplicate step"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  duplicateStep(k);
-                }}
-                className="rounded bg-white/90 p-0.5 text-zinc-500 shadow-sm hover:text-blue-800"
-              >
-                <Copy size={12} />
-              </button>
-              {steps.length > 1 && (
-                <button
-                  title="Delete step"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteStep(k);
-                  }}
-                  className="rounded bg-white/90 p-0.5 text-zinc-500 shadow-sm hover:text-red-600"
-                >
-                  <Trash2 size={12} />
-                </button>
-              )}
+            <button
+              className="tg-step-select"
+              aria-pressed={k === activeStep}
+              aria-label={`${k === 0 ? "Setup" : `Step ${k + 1}`}: ${step.name || "Untitled step"}`}
+              title="Select step. Drag to reorder, or use Alt + Left / Right."
+              onClick={() => jumpToStep(k)}
+              onKeyDown={(e) => {
+                if (!e.altKey || !["ArrowLeft", "ArrowRight"].includes(e.key)) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const next = k + (e.key === "ArrowLeft" ? -1 : 1);
+                if (next < 0 || next >= steps.length) return;
+                moveStep(k, next);
+                stripRef.current?.querySelectorAll<HTMLButtonElement>(".tg-step-select")[next]?.focus();
+              }}
+            >
+              <span className="tg-step-eyebrow"><span className="tg-step-number">{String(k + 1).padStart(2, "0")}</span>{k === 0 ? "Setup" : "Movement"}</span>
+              <strong>{step.name || (k === 0 ? "Starting positions" : "New movement")}</strong>
+              <span className="tg-step-caption">{k === activeStep ? "Current step" : k === 0 ? "Set the scene" : "Select to edit"}</span>
+            </button>
+            <div className="tg-step-actions">
+              <button title="Duplicate step" aria-label={`Duplicate step ${k + 1}`} onClick={() => duplicateStep(k)}><Copy size={12} aria-hidden="true" /></button>
+              {steps.length > 1 && <button title="Delete step" aria-label={`Delete step ${k + 1}`} onClick={() => deleteStep(k)} className="tg-step-delete"><Trash2 size={12} aria-hidden="true" /></button>}
             </div>
           </div>
         </Fragment>
       ))}
-      <button
-        onClick={() => addStepAfter(steps.length - 1)}
-        title="Add step (current poses carry forward)"
-        className="ml-2 flex w-20 shrink-0 items-center justify-center gap-1 self-stretch rounded-lg border border-dashed border-zinc-300 text-xs font-medium text-zinc-500 hover:border-blue-800/40 hover:text-blue-800"
-      >
-        <Plus size={13} />
-        Step
-      </button>
+      <button onClick={() => addStepAfter(steps.length - 1)} title="Add a step using the current positions" className="tg-add-step"><Plus size={18} aria-hidden="true" /><span>Add step</span></button>
     </div>
   );
 }
@@ -231,9 +177,15 @@ export function Timeline() {
   const activeStep = mode === "playback" ? stepAtTime(tl, timeMs) : currentStep;
 
   return (
-    <div className="flex h-[124px] shrink-0 flex-col border-t border-zinc-200 bg-white">
+    <section
+      className="tg-timeline"
+      aria-label="Drill timeline"
+      onKeyDown={(event) => {
+        if (event.key === " " || event.key.startsWith("Arrow")) event.stopPropagation();
+      }}
+    >
       <Transport />
       <StepStrip activeStep={activeStep} />
-    </div>
+    </section>
   );
 }

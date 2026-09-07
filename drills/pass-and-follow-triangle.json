@@ -1,0 +1,48 @@
+{
+  "$schema": "../schema/drill.schema.json",
+  "schemaVersion": 1,
+  "id": "pass-and-follow-triangle",
+  "title": "Pass and Follow",
+  "description": "Move the ball around a triangle and follow each pass to the next station. Practice receiving into space and keeping the next pass moving.",
+  "tags": ["passing", "receiving", "warmup", "beginner"],
+  "notes": "SETUP: Four players, one ball and three cones in a triangle inside a 20 × 18 m area. Two players start at the first cone. RUN IT: 1. Pass to the top station. 2. Follow outside the passing lane while the receiver passes on. 3. Send the ball back to the starting station. 4. Complete the rotation and repeat. COACH IT: Show where you want the pass, receive away from the cone, and pass before joining the next station. The animation separates each action so the rotation is easy to see. EASIER: Bring the cones closer. PROGRESS: Reverse direction, then try a first touch across the body before passing. Let every player work both directions.",
+  "themeColor": "#3b82f6",
+  "pitch": { "format": "grid", "overrides": { "length": 20, "width": 18 } },
+  "entities": [
+    { "kind": "player", "id": "p1", "team": "home", "number": 1 },
+    { "kind": "player", "id": "p2", "team": "home", "number": 2 },
+    { "kind": "player", "id": "p3", "team": "home", "number": 3 },
+    { "kind": "player", "id": "p4", "team": "home", "number": 4 },
+    { "kind": "ball", "id": "ball" },
+    { "kind": "cone", "id": "station-a" },
+    { "kind": "cone", "id": "station-b" },
+    { "kind": "cone", "id": "station-c" },
+    { "kind": "arrow", "id": "pass-a", "style": "pass", "from": { "x": 4, "y": 13.5 }, "to": { "x": 9.2, "y": 4 }, "fromStep": 0, "toStep": 1 },
+    { "kind": "arrow", "id": "pass-b", "style": "pass", "from": { "x": 10, "y": 4 }, "to": { "x": 16, "y": 13.5 }, "fromStep": 2, "toStep": 2 },
+    { "kind": "arrow", "id": "pass-c", "style": "pass", "from": { "x": 16, "y": 14 }, "to": { "x": 4, "y": 14 }, "fromStep": 3, "toStep": 3 }
+  ],
+  "steps": [
+    { "name": "Four players, three stations", "durationMs": 1200, "positions": {
+      "p1": { "x": 3, "y": 14 }, "p2": { "x": 10, "y": 3 },
+      "p3": { "x": 17, "y": 14 }, "p4": { "x": 2, "y": 16 },
+      "ball": { "x": 4, "y": 13.5 },
+      "station-a": { "x": 3, "y": 12 }, "station-b": { "x": 10, "y": 1 }, "station-c": { "x": 17, "y": 12 }
+    } },
+    { "name": "Pass to the top station", "durationMs": 1200, "positions": {
+      "ball": { "x": 9.2, "y": 4, "ease": "linear" }
+    } },
+    { "name": "Pass on; first passer follows", "durationMs": 2000, "positions": {
+      "ball": { "x": 16, "y": 13.5, "ease": "linear" },
+      "p1": { "x": 8, "y": 3, "via": [{ "x": 4, "y": 7 }] },
+      "p4": { "x": 3, "y": 14 }
+    } },
+    { "name": "Return to the waiting player", "durationMs": 2000, "positions": {
+      "ball": { "x": 4, "y": 14, "ease": "linear" },
+      "p2": { "x": 19, "y": 16, "via": [{ "x": 20, "y": 6 }] }
+    } },
+    { "name": "Finish the rotation and repeat", "durationMs": 2300, "pauseAfterMs": 800, "positions": {
+      "p3": { "x": 2, "y": 16, "via": [{ "x": 11, "y": 16.5 }] },
+      "p1": { "x": 10, "y": 3 }, "p2": { "x": 17, "y": 14 }
+    } }
+  ]
+}

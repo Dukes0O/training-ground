@@ -21,8 +21,19 @@ Follow **`docs/drill-authoring.md`** (coordinate system, entity kinds, step sema
 `npm run validate` before finishing. The shipped drills in `drills/` are the style reference.
 The app picks up file changes live — no restart needed.
 
+The bundled library has 12 starter drills. The **Describe a drill** dialog prepares a coaching
+brief for the user to copy into a Codex task in this repository. It stores the draft in the
+browser and supplies authoring and validation instructions. There is no model API or speech
+recognition integration; the user may use device dictation in the form.
+
 ## Architecture map
 
+- `src/App.tsx` — workspace shell with library, saved-drill, and tactics-board views. View and coaching-panel state are local React state; leaving the board pauses playback. The coaching panel shows drill notes or the existing inspector.
+- `src/library/LibraryPanel.tsx` — visual cards with real BoardSvg previews, search, all-tag filtering, sorting, duplicate/trash actions, and browser-local saved-drill IDs. Preview requests are cached by file revision/update time; the open drill uses live editor state.
+- `src/ui/CoachBriefDialog.tsx` — coaching objective and session context → a readable prompt copied to Codex. Native dialog, local draft, clipboard success/fallback; no direct model calls.
+- `src/ui/ToolRail.tsx` and `src/timeline/Timeline.tsx` — grouped board tools and sequence/playback controls. Step cards support drag reorder and Alt+Left/Right keyboard reorder.
+- `src/ui/Modal.tsx` and `src/ui/useHotkeys.ts` — native modal focus handling and board-only shortcuts. A modal without onClose requires an explicit action; shortcuts respect focused controls and active dialogs/exports.
+- `src/index.css`, `src/ui/editor-workspace.css`, and `src/ui/coach-brief.css` — responsive workspace, editor, and scoped brief-dialog styles. BoardSvg remains separate from application chrome.
 - `src/model/types.ts` — data model (meters everywhere); `schema.ts` is its zod mirror (keep in sync — a compile-time check enforces it)
 - `src/model/resolve.ts` — sparse→dense pose resolution; everything that draws goes through it
 - `src/board/BoardSvg.tsx` — THE renderer. Pure function of a snapshot; the editor mounts it live and exports rasterize the same component. Keep it free of external refs/webfonts/foreignObject
@@ -35,6 +46,7 @@ The app picks up file changes live — no restart needed.
 - Units are meters; 1 SVG user unit = 1 m; origin = pitch top-left; 3 m apron is legal space.
 - Drill `id` === filename slug; server writes are atomic (tmp + rename); deletes go to `data/trash/`.
 - The server stamps `rev`/`createdAt`/`updatedAt` — never hand-edit those.
+- Browser bookmarks and coaching-brief drafts are convenience state, not drill data. Their storage is optional; drill files remain the source of truth.
 - `exports/` is generated output (gitignored). Site bundles for the soccer-quizzes site land there.
 - The architecture atlas (`docs/project_atlas`, served at `/atlas`) documents components, flows
   and accepted decisions — when your change adds/renames components or overturns a decision,

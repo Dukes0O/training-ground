@@ -1,238 +1,430 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ArchiveRestore, Copy, Plus, Search, Trash2, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Bookmark,
+  Clock3,
+  Copy,
+  Layers3,
+  Search,
+  Sparkles,
+  Trash2,
+  Users,
+  X,
+} from "lucide-react";
 import { api } from "../api/client";
 import type { DrillSummary } from "../api/client";
-import { deleteDrillById, duplicateDrill, newDrill, openDrill } from "../api/persistence";
+
 import { BoardSvg } from "../board/BoardSvg";
 import { parseDrill } from "../model/schema";
-import { snapshotAtStep } from "../model/resolve";
+import { getTimeline, snapshotAtStep } from "../model/resolve";
 import type { Drill } from "../model/types";
-import { APRON, defaultGridOn, resolvePitch } from "../pitch/formats";
+import { defaultGridOn } from "../pitch/formats";
 import { useEditor } from "../state/store";
 
-const previewCache = new Map<string, Drill | "error">();
-
-function usePreviewDrill(id: string, rev: number | undefined, invalid: boolean | undefined) {
-  const key = `${id}@${rev ?? 0}`;
-  const [value, setValue] = useState<Drill | "error" | null>(() =>
-    invalid ? "error" : (previewCache.get(key) ?? null)
-  );
+// A refreshed summary is also a fresh preview key: agents can change files
+// without changing server-owned rev/updatedAt fields.
+const previewCache = new WeakMap<DrillSummary, Drill>();
+function usePreviewDrill(item: DrillSummary) {
+  const [result, setResult] = useState<{
+    item: DrillSummary;
+    value: Drill | "error";
+  } | null>(null);
   useEffect(() => {
-    if (invalid) {
-      setValue("error");
-      return;
-    }
-    const cached = previewCache.get(key);
-    if (cached) {
-      setValue(cached);
-      return;
-    }
+    if (item.invalid || previewCache.has(item)) return;
     let alive = true;
     api
-      .getDrill(id)
+      .getDrill(item.id)
       .then((raw) => {
         const drill = parseDrill(raw);
-        previewCache.set(key, drill);
-        if (alive) setValue(drill);
+        previewCache.set(item, drill);
+        if (alive) setResult({ item, value: drill });
       })
       .catch(() => {
-        previewCache.set(key, "error");
-        if (alive) setValue("error");
+        if (alive) setResult({ item, value: "error" });
       });
     return () => {
       alive = false;
     };
-  }, [key, id, invalid]);
-  return value;
+  }, [item]);
+  return item.invalid
+    ? "error"
+    : (previewCache.get(item) ?? (result?.item === item ? result.value : null));
 }
-
-function PreviewBox({ drill }: { drill: Drill | "error" | null }) {
-  if (drill === "error" || drill === null) {
-    return (
-      <div className="flex aspect-[3/2] w-full items-center justify-center rounded-md border border-zinc-200 bg-zinc-100 text-zinc-400">
-        {drill === "error" ? <AlertTriangle size={18} /> : null}
-      </div>
-    );
-  }
-  const spec = resolvePitch(drill.pitch);
-  const aspect = (spec.length + 2 * APRON) / (spec.width + 2 * APRON);
+export function DrillPreview({ drill }: { drill: Drill | "error" | null }) {
   return (
-    <div
-      className="pointer-events-none w-full overflow-hidden rounded-md border border-zinc-200"
-      style={{ aspectRatio: String(aspect) }}
-    >
-      <BoardSvg snapshot={snapshotAtStep(drill, 0, defaultGridOn(drill.pitch))} />
+    <div className="drill-preview" aria-hidden="true">
+      {drill === "error" ? (
+        <AlertTriangle size={24} />
+      ) : drill ? (
+        <BoardSvg
+          snapshot={snapshotAtStep(drill, 0, defaultGridOn(drill.pitch))}
+        />
+      ) : (
+        <span className="preview-loading">Loading board…</span>
+      )}
     </div>
   );
 }
-
-function LibraryCard({ item }: { item: DrillSummary }) {
-  const activeId = useEditor((s) => s.drillId);
-  const liveDrill = useEditor((s) => s.drill);
-  const isActive = item.id === activeId;
-  const fetched = usePreviewDrill(item.id, item.rev, item.invalid);
-  const preview = isActive ? liveDrill : fetched;
-
+function LibraryCard({
+  item,
+  saved,
+  onSave,
+  onOpen,
+  onDuplicate,
+  onTrash,
+}: {
+  item: DrillSummary;
+  saved: boolean;
+  onSave: () => void;
+  onOpen: (id: string) => void;
+  onDuplicate: (id: string) => void;
+  onTrash: (id: string) => void;
+}) {
+  const fetched = usePreviewDrill(item);
+  const live = useEditor((s) => (s.drillId === item.id ? s.drill : null));
+  const drill = live ?? fetched;
+  const valid = drill && drill !== "error" ? drill : null;
+  const players = valid?.entities.filter((e) => e.kind === "player").length;
+  const seconds = valid ? Math.round(getTimeline(valid).totalMs / 1000) : null;
   return (
-    <div
-      onClick={() => {
-        if (!isActive && !item.invalid) void openDrill(item.id);
-      }}
-      className={`group cursor-pointer rounded-lg border p-2 transition-colors ${
-        isActive
-          ? "border-blue-800/40 bg-blue-50/60 ring-1 ring-blue-800/30"
-          : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50"
-      }`}
-    >
-      <PreviewBox drill={preview} />
-      <div className="mt-1.5 flex items-start justify-between gap-1">
-        <div className="min-w-0">
-          <div className="truncate text-sm font-medium text-zinc-900">{item.title}</div>
-          <div className="truncate text-xs text-zinc-500">
+    <article className="drill-card">
+      <button
+        className="drill-card-open"
+        onClick={() => onOpen(item.id)}
+        disabled={item.invalid}
+        aria-label={`Open ${item.title}`}
+      >
+        <DrillPreview drill={drill} />
+        <div className="drill-card-copy">
+          <div className="drill-tags">
+            {(item.tags ?? []).slice(0, 2).map((t) => (
+              <span key={t}>{t.replaceAll("-", " ")}</span>
+            ))}
+          </div>
+          <h3>{item.title}</h3>
+          <p>
             {item.invalid
-              ? `Invalid file: ${item.error ?? "parse error"}`
-              : [
-                  typeof item.pitch === "string" ? item.pitch : item.pitch?.format,
-                  `${item.stepCount ?? 0} step${(item.stepCount ?? 0) === 1 ? "" : "s"}`,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
+              ? `This drill needs a repair: ${item.error ?? "invalid file"}`
+              : item.description ||
+                "A blank canvas for your next coaching idea."}
+          </p>
+          <div className="drill-card-meta">
+            <span>
+              <Users size={13} />
+              {players ?? "—"} players
+            </span>
+            <span>
+              <Layers3 size={13} />
+              {item.stepCount ?? 0} {(item.stepCount ?? 0) === 1 ? "step" : "steps"}
+            </span>
+            {seconds != null && (
+              <span title="Animation length, not practice duration">
+                <Clock3 size={13} />
+                {seconds}s demo
+              </span>
+            )}
           </div>
         </div>
-        <div className="flex shrink-0 gap-0.5">
+      </button>
+      <button
+        className={`card-bookmark ${saved ? "is-saved" : ""}`}
+        onClick={onSave}
+        aria-label={`${saved ? "Unsave" : "Save"} ${item.title}`}
+        aria-pressed={saved}
+        title={saved ? "Remove from saved drills" : "Save for later"}
+      >
+        <Bookmark size={17} fill={saved ? "currentColor" : "none"} />
+      </button>
+      <div className="drill-card-footer">
+        <button onClick={() => onOpen(item.id)} disabled={item.invalid}>
+          Open drill <ArrowRight size={14} />
+        </button>
+        <div>
           <button
+            aria-label={`Duplicate ${item.title}`}
             title="Duplicate drill"
-            onClick={(e) => {
-              e.stopPropagation();
-              void duplicateDrill(item.id);
+            disabled={item.invalid}
+            onClick={() => {
+              onDuplicate(item.id);
             }}
-            className="rounded-md p-1 text-zinc-400 opacity-0 transition-opacity hover:bg-blue-50 hover:text-blue-700 group-hover:opacity-100"
           >
             <Copy size={14} />
           </button>
           <button
+            aria-label={`Trash ${item.title}`}
             title="Move to trash"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (window.confirm(`Move "${item.title}" to data/trash?`)) {
-                void deleteDrillById(item.id);
-              }
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Move “${item.title}” to trash? You can restore it later.`,
+                )
+              )
+                onTrash(item.id);
             }}
-            className="rounded-md p-1 text-zinc-400 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
           >
             <Trash2 size={14} />
           </button>
         </div>
       </div>
-      {item.tags && item.tags.length > 0 && (
-        <div className="mt-1 flex flex-wrap gap-1">
-          {item.tags.map((t) => (
-            <span key={t} className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600">
-              {t}
-            </span>
-          ))}
-        </div>
-      )}
-    </div>
+    </article>
   );
 }
-
-export function LibraryPanel() {
+const FAVORITES_KEY = "training-ground.saved-drills";
+function readSaved(): string[] {
+  try {
+    const value: unknown = JSON.parse(
+      localStorage.getItem(FAVORITES_KEY) ?? "[]",
+    );
+    return Array.isArray(value)
+      ? value.filter((v): v is string => typeof v === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+export function LibraryPanel({
+  onOpen,
+  onBrief,
+  onDuplicate,
+  onTrash,
+  savedOnly = false,
+}: {
+  onOpen: (id: string) => void;
+  onBrief: () => void;
+  onDuplicate: (id: string) => void;
+  onTrash: (id: string) => void;
+  savedOnly?: boolean;
+}) {
   const library = useEditor((s) => s.library);
-  const setRosterOpen = useEditor((s) => s.setRosterOpen);
+  const drill = useEditor((s) => s.drill);
+  const drillId = useEditor((s) => s.drillId);
   const [q, setQ] = useState("");
-  const [activeTag, setActiveTag] = useState<string | null>(null);
-
-  const tags = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const d of library ?? []) {
-      for (const t of d.tags ?? []) counts.set(t, (counts.get(t) ?? 0) + 1);
+  const [activeTag, setActiveTag] = useState("");
+  const [sort, setSort] = useState("title");
+  const [saved, setSaved] = useState(readSaved);
+  const tags = useMemo(
+    () => [...new Set((library ?? []).flatMap((d) => d.tags ?? []))].sort(),
+    [library],
+  );
+  const primaryTags = [
+    "passing",
+    "ball mastery",
+    "finishing",
+    "defending",
+    "possession",
+    "transition",
+  ].filter((t) => tags.includes(t));
+  const filtered = useMemo(
+    () =>
+      (library ?? [])
+        .filter(
+          (d) =>
+            (!savedOnly || saved.includes(d.id)) &&
+            (!activeTag || d.tags?.includes(activeTag)) &&
+            `${d.title} ${d.description ?? ""} ${(d.tags ?? []).join(" ")}`
+              .toLowerCase()
+              .includes(q.trim().toLowerCase()),
+        )
+        .sort((a, b) =>
+          sort === "recent"
+            ? (b.updatedAt ?? "").localeCompare(a.updatedAt ?? "") ||
+              a.title.localeCompare(b.title)
+            : a.title.localeCompare(b.title),
+        ),
+    [library, q, activeTag, sort, saved, savedOnly],
+  );
+  const toggleSaved = (id: string) => {
+    const next = saved.includes(id)
+      ? saved.filter((v) => v !== id)
+      : [...saved, id];
+    setSaved(next);
+    try {
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(next));
+    } catch {
+      useEditor
+        .getState()
+        .addToast(
+          "info",
+          "Saved for this visit. This browser could not store your saved drills.",
+        );
     }
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([t]) => t);
-  }, [library]);
-
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return (library ?? [])
-      .filter((d) => {
-        if (activeTag && !(d.tags ?? []).includes(activeTag)) return false;
-        if (!needle) return true;
-        const hay = `${d.title} ${d.description ?? ""} ${(d.tags ?? []).join(" ")}`.toLowerCase();
-        return hay.includes(needle);
-      })
-      // Most recently touched first — filename order is meaningless to a coach.
-      .sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? "") || a.title.localeCompare(b.title));
-  }, [library, q, activeTag]);
-
+  };
   return (
-    <aside className="flex w-[280px] shrink-0 flex-col border-r border-zinc-200 bg-white">
-      <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-3 py-2.5">
-        <span className="text-sm font-semibold text-zinc-800">Library</span>
-        <div className="flex items-center gap-1">
-          <button
-            title="Trash (restore deleted drills)"
-            onClick={() => useEditor.getState().setTrashOpen(true)}
-            className="rounded-md p-1.5 text-zinc-600 hover:bg-zinc-100"
-          >
-            <ArchiveRestore size={16} />
-          </button>
-          <button
-            title="Team roster"
-            onClick={() => setRosterOpen(true)}
-            className="rounded-md p-1.5 text-zinc-600 hover:bg-zinc-100"
-          >
-            <Users size={16} />
-          </button>
-          <button
-            title="New drill"
-            onClick={() => void newDrill()}
-            className="flex items-center gap-1 rounded-md bg-blue-800 px-2 py-1.5 text-xs font-medium text-white hover:bg-blue-900"
-          >
-            <Plus size={14} />
-            New
-          </button>
+    <main className="library-page" id="main-content">
+      <div className="page-heading">
+        <div>
+          <div className="eyebrow">THE COACH’S WORKSPACE</div>
+          <h1>
+            {savedOnly ? "Your go-to drills." : "Good sessions start here."}
+          </h1>
+          <p>
+            {savedOnly
+              ? "Keep your favourites close. Make your next session easier."
+              : "Find an idea. Make it yours. Bring it to the pitch."}
+          </p>
         </div>
+        <span className="library-count">
+          <Layers3 size={16} />
+          {library?.length ?? "—"} drills in your library
+        </span>
       </div>
-      <div className="border-b border-zinc-200 p-2">
-        <div className="relative">
-          <Search size={14} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search drills"
-            spellCheck={false}
-            className="w-full rounded-md border border-zinc-300 bg-white py-1.5 pl-7 pr-2 text-sm outline-none focus:ring-2 focus:ring-blue-700/40"
-          />
+      {!savedOnly && (
+        <section className="library-hero" aria-label="Continue coaching">
+          <div className="hero-copy">
+            <span className="hero-kicker">
+              <span /> FROM THE TACTICS BOARD TO THE TOUCHLINE
+            </span>
+            <h2>
+              A clear plan.
+              <br />A confident team.
+            </h2>
+            <p>
+              Turn the moments you want to coach into drills your players can
+              see, understand and practise.
+            </p>
+            <div className="hero-actions">
+              <button
+                className="button-lime"
+                onClick={() => drillId && onOpen(drillId)}
+                disabled={!drillId}
+              >
+                Continue on the board <ArrowRight size={16} />
+              </button>
+              <button className="hero-brief" onClick={onBrief}>
+                <Sparkles size={15} /> Describe a drill
+              </button>
+            </div>
+          </div>
+          <div className="hero-board">
+            <div className="hero-board-top">
+              <span className="live-dot" /> ON YOUR BOARD{" "}
+              <span>{drill.steps.length} {drill.steps.length === 1 ? "step" : "steps"}</span>
+            </div>
+            <DrillPreview drill={drillId ? drill : null} />
+            <div className="hero-board-title">
+              {drillId ? drill.title : "Loading your workspace…"}
+              <ArrowRight size={16} />
+            </div>
+          </div>
+        </section>
+      )}
+      <section className="library-section" aria-labelledby="library-title">
+        <div className="section-heading">
+          <div>
+            <h2 id="library-title">
+              {savedOnly ? "Saved drills" : "Explore the drill library"}
+            </h2>
+            <p>Animated ideas for purposeful practice.</p>
+          </div>
+          <label className="sort-label">
+            Sort by{" "}
+            <select
+              aria-label="Sort drills"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+            >
+              <option value="title">Name A–Z</option>
+              <option value="recent">Recently updated</option>
+            </select>
+          </label>
         </div>
-        {tags.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
+        <div className="library-filter-bar">
+          <div className="library-search">
+            <Search size={17} />
+            <input
+              aria-label="Search drills"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search a skill, drill or coaching idea…"
+            />
+            {q && (
+              <button onClick={() => setQ("")} aria-label="Clear search">
+                <X size={15} />
+              </button>
+            )}
+          </div>
+          <select
+            aria-label="Filter by any tag"
+            value={activeTag}
+            onChange={(e) => setActiveTag(e.target.value)}
+          >
+            <option value="">All topics</option>
             {tags.map((t) => (
+              <option key={t} value={t}>
+                {t.replaceAll("-", " ")}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-row">
+          <div className="topic-chips">
+            {["", ...primaryTags].map((t) => (
               <button
                 key={t}
-                onClick={() => setActiveTag(activeTag === t ? null : t)}
-                className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors ${
-                  activeTag === t
-                    ? "bg-blue-800 text-white"
-                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
-                }`}
+                aria-pressed={activeTag === t}
+                className={activeTag === t ? "active" : ""}
+                onClick={() => setActiveTag(t)}
               >
-                {t}
+                {t ? t.replaceAll("-", " ") : "All drills"}
               </button>
             ))}
           </div>
+          <span role="status">
+            {filtered.length} {filtered.length === 1 ? "drill" : "drills"}
+          </span>
+        </div>
+        {library === null ? (
+          <div className="library-empty">
+            <Layers3 size={30} />
+            <h3>Loading your drill library…</h3>
+            <p>Connecting to the local Training Ground server.</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="library-empty">
+            <Search size={30} />
+            <h3>
+              {savedOnly && !q && !activeTag
+                ? "Build your shortlist"
+                : "No drills found"}
+            </h3>
+            <p>
+              {savedOnly && !q && !activeTag
+                ? "Use the bookmark on any drill to save it here."
+                : "Try a different skill or clear your filters."}
+            </p>
+            {(q || activeTag) && (
+              <button
+                className="button-primary"
+                onClick={() => {
+                  setQ("");
+                  setActiveTag("");
+                }}
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="drill-grid">
+            {filtered.map((item) => (
+              <LibraryCard
+                key={item.id}
+                item={item}
+                saved={saved.includes(item.id)}
+                onSave={() => toggleSaved(item.id)}
+                onOpen={onOpen}
+                onDuplicate={onDuplicate}
+                onTrash={onTrash}
+              />
+            ))}
+          </div>
         )}
+      </section>
+      <div className="library-footnote">
+        <span className="live-dot" /> Your drills live on this computer. Changes
+        save automatically.
       </div>
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2">
-        {library === null && <p className="p-2 text-sm text-zinc-500">Loading…</p>}
-        {library !== null && filtered.length === 0 && (
-          <p className="p-2 text-sm text-zinc-500">
-            {library.length === 0 ? "No drills yet — create one!" : "No drills match."}
-          </p>
-        )}
-        {filtered.map((item) => (
-          <LibraryCard key={item.id} item={item} />
-        ))}
-      </div>
-    </aside>
+    </main>
   );
 }

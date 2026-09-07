@@ -1,0 +1,43 @@
+{
+  "$schema": "../schema/drill.schema.json",
+  "schemaVersion": 1,
+  "id": "mirror-dribbling",
+  "title": "Mirror Dribbling",
+  "description": "Work in pairs: one player leads with the ball while a partner copies the changes of direction in the next lane.",
+  "tags": ["ball mastery", "dribbling", "warmup", "pairs"],
+  "notes": "SETUP: Divide an 18 × 14 m area into two lanes. Give each player a ball. RUN IT: 1. Start level with your partner. 2. The leader travels down the lane. 3. Turn back. 4. Add a sideways change of direction. The partner follows the movement while staying in their own lane. COACH IT: Keep glancing at the partner, slow down before turning, and choose touches that keep the ball within reach. EASIER: Let the partner shadow without a ball. PROGRESS: Let the leader vary pace and use either foot. Swap the leader every 30 seconds; allow a short reset between turns.",
+  "themeColor": "#14b8a6",
+  "pitch": { "format": "grid", "overrides": { "length": 18, "width": 14 } },
+  "teams": { "home": { "label": "Leader" }, "neutral": { "label": "Mirror" } },
+  "entities": [
+    { "kind": "zone", "id": "lane-left", "rect": { "x": 1, "y": 1, "w": 7, "h": 12 }, "text": "LEAD", "color": "#38bdf8" },
+    { "kind": "zone", "id": "lane-right", "rect": { "x": 10, "y": 1, "w": 7, "h": 12 }, "text": "MIRROR", "color": "#fbbf24" },
+    { "kind": "player", "id": "leader", "team": "home", "number": 1 },
+    { "kind": "player", "id": "mirror", "team": "neutral", "number": 2 },
+    { "kind": "ball", "id": "ball1" },
+    { "kind": "ball", "id": "ball2" },
+    { "kind": "arrow", "id": "lead-route", "style": "dribble", "from": { "x": 4, "y": 4.8 }, "to": { "x": 4, "y": 10.8 }, "fromStep": 0, "toStep": 1 }
+  ],
+  "steps": [
+    { "name": "Start side by side in separate lanes", "durationMs": 1200, "positions": {
+      "leader": { "x": 4, "y": 4 }, "ball1": { "x": 4, "y": 4.8 },
+      "mirror": { "x": 13, "y": 4 }, "ball2": { "x": 13, "y": 4.8 }
+    } },
+    { "name": "Leader goes; partner follows", "durationMs": 1800, "positions": {
+      "leader": { "x": 4, "y": 10 }, "ball1": { "x": 4, "y": 10.8 },
+      "mirror": { "x": 13, "y": 9.5 }, "ball2": { "x": 13, "y": 10.3 }
+    } },
+    { "name": "Turn back with the ball close", "durationMs": 1800, "positions": {
+      "leader": { "x": 6, "y": 6, "via": [{ "x": 6, "y": 10.5 }] },
+      "ball1": { "x": 6, "y": 5.2, "via": [{ "x": 6.6, "y": 10.5 }] },
+      "mirror": { "x": 15, "y": 6.5, "via": [{ "x": 15, "y": 10 }] },
+      "ball2": { "x": 15, "y": 5.7, "via": [{ "x": 15.6, "y": 10 }] }
+    } },
+    { "name": "Change direction across the lane", "durationMs": 1500, "pauseAfterMs": 800, "positions": {
+      "leader": { "x": 3, "y": 3, "via": [{ "x": 5.5, "y": 3 }] },
+      "ball1": { "x": 2.2, "y": 3, "via": [{ "x": 5, "y": 2.5 }] },
+      "mirror": { "x": 12.5, "y": 3.5, "via": [{ "x": 14.5, "y": 3.5 }] },
+      "ball2": { "x": 11.7, "y": 3.5, "via": [{ "x": 14, "y": 3 }] }
+    } }
+  ]
+}
