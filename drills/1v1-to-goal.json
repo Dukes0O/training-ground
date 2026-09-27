@@ -4,35 +4,113 @@
   "id": "1v1-to-goal",
   "title": "1v1 to Goal",
   "description": "Attacker takes on a defender at the top of the box and finishes.",
-  "tags": ["finishing", "1v1", "shooting"],
+  "tags": [
+    "finishing",
+    "1v1",
+    "shooting"
+  ],
   "notes": "Attack at speed — hesitate and the defender recovers. Cut hard off the first touch and shoot low across the keeper. Rotate attacker, defender, keeper every three reps.",
   "themeColor": "#b91c1c",
-  "pitch": "half-11v11",
+  "pitch": "8v8",
   "entities": [
-    { "kind": "player", "id": "gk", "team": "away", "number": 1, "position": "GK" },
-    { "kind": "player", "id": "def", "team": "away", "number": 5, "position": "CB" },
-    { "kind": "player", "id": "att", "team": "home", "number": 9, "position": "ST" },
-    { "kind": "ball", "id": "ball" },
-    { "kind": "arrow", "id": "dribble-1", "style": "dribble", "from": { "x": 22, "y": 34 }, "to": { "x": 15, "y": 32.5 }, "fromStep": 1, "toStep": 1 },
-    { "kind": "arrow", "id": "shot-1", "style": "shot", "from": { "x": 12.5, "y": 29.5 }, "to": { "x": 0.5, "y": 30.5 }, "fromStep": 2, "toStep": 2 }
+    {
+      "kind": "player",
+      "id": "gk",
+      "team": "away",
+      "number": 1,
+      "position": "GK"
+    },
+    {
+      "kind": "player",
+      "id": "def",
+      "team": "away",
+      "number": 5,
+      "position": "CB"
+    },
+    {
+      "kind": "player",
+      "id": "att",
+      "team": "home",
+      "number": 9,
+      "position": "ST"
+    },
+    {
+      "kind": "ball",
+      "id": "ball"
+    },
+    {
+      "kind": "arrow",
+      "id": "dribble-1",
+      "style": "dribble",
+      "from": {
+        "x": 22,
+        "y": 34
+      },
+      "to": {
+        "x": 15,
+        "y": 32.5
+      },
+      "fromStep": 1,
+      "toStep": 1
+    },
+    {
+      "kind": "arrow",
+      "id": "shot-1",
+      "style": "shot",
+      "from": {
+        "x": 12.5,
+        "y": 29.5
+      },
+      "to": {
+        "x": 0.5,
+        "y": 30.5
+      },
+      "fromStep": 2,
+      "toStep": 2
+    }
   ],
   "steps": [
     {
       "name": "Setup",
       "positions": {
-        "gk": { "x": 1.5, "y": 32 },
-        "def": { "x": 12, "y": 30 },
-        "att": { "x": 22, "y": 34 },
-        "ball": { "x": 21, "y": 33.2 }
+        "gk": {
+          "x": 1.84,
+          "y": 20.22
+        },
+        "def": {
+          "x": 12,
+          "y": 30
+        },
+        "att": {
+          "x": 22,
+          "y": 34
+        },
+        "ball": {
+          "x": 21,
+          "y": 33.2
+        }
       }
     },
     {
       "name": "Drive at the defender",
       "durationMs": 1600,
       "positions": {
-        "att": { "x": 15, "y": 32.5 },
-        "ball": { "x": 14.2, "y": 32 },
-        "def": { "x": 11, "y": 31 }
+        "gk": {
+          "x": 1.5,
+          "y": 32
+        },
+        "def": {
+          "x": 11,
+          "y": 31
+        },
+        "att": {
+          "x": 15,
+          "y": 32.5
+        },
+        "ball": {
+          "x": 14.2,
+          "y": 32
+        }
       }
     },
     {
@@ -40,11 +118,39 @@
       "durationMs": 1400,
       "pauseAfterMs": 800,
       "positions": {
-        "att": { "x": 12.5, "y": 29.5, "via": [{ "x": 13.5, "y": 30.5 }] },
-        "ball": { "x": 0.5, "y": 30.5, "ease": "linear", "via": [{ "x": 12.8, "y": 29.8 }] },
-        "def": { "x": 10.5, "y": 32 },
-        "gk": { "x": 1, "y": 29.5 }
+        "gk": {
+          "x": 1,
+          "y": 29.5
+        },
+        "def": {
+          "x": 10.5,
+          "y": 32
+        },
+        "att": {
+          "x": 12.5,
+          "y": 29.5,
+          "via": [
+            {
+              "x": 13.5,
+              "y": 30.5
+            }
+          ]
+        },
+        "ball": {
+          "x": 0.5,
+          "y": 30.5,
+          "via": [
+            {
+              "x": 12.8,
+              "y": 29.8
+            }
+          ],
+          "ease": "linear"
+        }
       }
     }
-  ]
+  ],
+  "rev": 4,
+  "createdAt": "2026-06-14T15:16:38.222Z",
+  "updatedAt": "2026-09-07T23:35:16.366Z"
 }

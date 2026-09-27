@@ -4,78 +4,321 @@
   "id": "9v9-build-out",
   "title": "9v9 Build-Out vs Two Pressers",
   "description": "Pattern for playing out from the back in a 1-3-3-2 against a two-striker press.",
-  "tags": ["build-out", "9v9", "possession", "pattern"],
+  "tags": [
+    "build-out",
+    "9v9",
+    "possession",
+    "pattern"
+  ],
   "notes": "This file intentionally uses SPARSE steps: each step lists only the entities that move, and the app forward-fills the rest. Trigger: when the first presser commits to the center back, the low fullback is free — play through them and switch via the pivot if the press follows.",
   "themeColor": "#1e40af",
-  "pitch": "9v9",
+  "pitch": "8v8",
   "teams": {
-    "home": { "label": "Dukes" }
+    "home": {
+      "label": "Dukes"
+    },
+    "neutral": {
+      "fill": "#f59e0b",
+      "text": "#1c1917"
+    }
   },
   "entities": [
-    { "kind": "player", "id": "gk", "team": "home", "number": 1, "position": "GK" },
-    { "kind": "player", "id": "rb", "team": "home", "number": 2, "position": "RB" },
-    { "kind": "player", "id": "cb", "team": "home", "number": 3, "position": "CB" },
-    { "kind": "player", "id": "lb", "team": "home", "number": 4, "position": "LB" },
-    { "kind": "player", "id": "rm", "team": "home", "number": 7, "position": "RM" },
-    { "kind": "player", "id": "cm", "team": "home", "number": 8, "position": "CM" },
-    { "kind": "player", "id": "lm", "team": "home", "number": 11, "position": "LM" },
-    { "kind": "player", "id": "st", "team": "home", "number": 9, "position": "ST" },
-    { "kind": "player", "id": "ss", "team": "home", "number": 10, "position": "SS" },
-    { "kind": "player", "id": "x1", "team": "away", "number": 9 },
-    { "kind": "player", "id": "x2", "team": "away", "number": 10 },
-    { "kind": "player", "id": "x3", "team": "away", "number": 8 },
-    { "kind": "player", "id": "x4", "team": "away", "number": 6 },
-    { "kind": "ball", "id": "ball" },
-    { "kind": "arrow", "id": "pass-1", "style": "pass", "from": { "ref": "gk" }, "to": { "ref": "lb" }, "fromStep": 1, "toStep": 1 },
-    { "kind": "arrow", "id": "pass-2", "style": "pass", "from": { "ref": "lb" }, "to": { "ref": "lm" }, "fromStep": 2, "toStep": 2 },
-    { "kind": "arrow", "id": "pass-3", "style": "pass", "from": { "ref": "lm" }, "to": { "ref": "cm" }, "fromStep": 3, "toStep": 3 },
-    { "kind": "arrow", "id": "pass-4", "style": "pass", "from": { "ref": "cm" }, "to": { "ref": "rm" }, "fromStep": 4, "toStep": 4 },
-    { "kind": "arrow", "id": "run-rb", "style": "run", "from": { "ref": "rb" }, "to": { "x": 22, "y": 9 }, "fromStep": 4, "toStep": 4 }
+    {
+      "kind": "player",
+      "id": "gk",
+      "team": "home",
+      "number": 1,
+      "position": "GK"
+    },
+    {
+      "kind": "player",
+      "id": "rb",
+      "team": "home",
+      "number": 2,
+      "position": "RB"
+    },
+    {
+      "kind": "player",
+      "id": "cb",
+      "team": "home",
+      "number": 3,
+      "position": "CDM"
+    },
+    {
+      "kind": "player",
+      "id": "lb",
+      "team": "home",
+      "number": 4,
+      "position": "LB"
+    },
+    {
+      "kind": "player",
+      "id": "rm",
+      "team": "home",
+      "number": 7,
+      "position": "RM"
+    },
+    {
+      "kind": "player",
+      "id": "cm",
+      "team": "home",
+      "number": 8,
+      "position": "CAM"
+    },
+    {
+      "kind": "player",
+      "id": "lm",
+      "team": "home",
+      "number": 11,
+      "position": "LM"
+    },
+    {
+      "kind": "player",
+      "id": "st",
+      "team": "home",
+      "number": 9,
+      "position": "ST"
+    },
+    {
+      "kind": "ball",
+      "id": "ball"
+    },
+    {
+      "kind": "arrow",
+      "id": "pass-1",
+      "style": "pass",
+      "from": {
+        "ref": "gk"
+      },
+      "to": {
+        "ref": "lb"
+      },
+      "fromStep": 1,
+      "toStep": 1
+    },
+    {
+      "kind": "arrow",
+      "id": "pass-2",
+      "style": "pass",
+      "from": {
+        "ref": "lb"
+      },
+      "to": {
+        "ref": "lm"
+      },
+      "fromStep": 2,
+      "toStep": 2
+    },
+    {
+      "kind": "arrow",
+      "id": "pass-3",
+      "style": "pass",
+      "from": {
+        "ref": "lm"
+      },
+      "to": {
+        "ref": "cm"
+      },
+      "fromStep": 3,
+      "toStep": 3
+    },
+    {
+      "kind": "arrow",
+      "id": "pass-4",
+      "style": "pass",
+      "from": {
+        "ref": "cm"
+      },
+      "to": {
+        "ref": "rm"
+      },
+      "fromStep": 4,
+      "toStep": 4
+    },
+    {
+      "kind": "arrow",
+      "id": "run-rb",
+      "style": "run",
+      "from": {
+        "ref": "rb"
+      },
+      "to": {
+        "x": 22,
+        "y": 9
+      },
+      "fromStep": 4,
+      "toStep": 4
+    }
   ],
   "steps": [
     {
       "name": "Setup",
       "positions": {
-        "gk": { "x": 3, "y": 25 },
-        "rb": { "x": 12, "y": 12 },
-        "cb": { "x": 10, "y": 25 },
-        "lb": { "x": 12, "y": 38 },
-        "rm": { "x": 24, "y": 12 },
-        "cm": { "x": 22, "y": 25 },
-        "lm": { "x": 24, "y": 38 },
-        "st": { "x": 32, "y": 20 },
-        "ss": { "x": 32, "y": 30 },
-        "x1": { "x": 16, "y": 22 },
-        "x2": { "x": 16, "y": 30 },
-        "x3": { "x": 28, "y": 18 },
-        "x4": { "x": 28, "y": 32 },
-        "ball": { "x": 4.2, "y": 26 }
+        "gk": {
+          "x": 3,
+          "y": 25
+        },
+        "rb": {
+          "x": 6.94,
+          "y": 14.14
+        },
+        "cb": {
+          "x": 13.37,
+          "y": 27.02
+        },
+        "lb": {
+          "x": 7.51,
+          "y": 34.1
+        },
+        "rm": {
+          "x": 24.64,
+          "y": 5.18
+        },
+        "cm": {
+          "x": 20.58,
+          "y": 22.75
+        },
+        "lm": {
+          "x": 27.03,
+          "y": 43
+        },
+        "st": {
+          "x": 32.71,
+          "y": 25.43
+        },
+        "ball": {
+          "x": 4.2,
+          "y": 26
+        }
       }
     },
     {
       "name": "Keeper finds the free fullback",
       "durationMs": 1500,
       "positions": {
-        "ball": { "x": 12.6, "y": 37, "ease": "linear" },
-        "x2": { "x": 13.5, "y": 28 }
+        "gk": {
+          "x": 3,
+          "y": 25
+        },
+        "rb": {
+          "x": 12,
+          "y": 12
+        },
+        "cb": {
+          "x": 10,
+          "y": 25
+        },
+        "lb": {
+          "x": 12,
+          "y": 38
+        },
+        "rm": {
+          "x": 24,
+          "y": 12
+        },
+        "cm": {
+          "x": 22,
+          "y": 25
+        },
+        "lm": {
+          "x": 24,
+          "y": 38
+        },
+        "st": {
+          "x": 32,
+          "y": 20
+        },
+        "ball": {
+          "x": 12.6,
+          "y": 37,
+          "ease": "linear"
+        }
       }
     },
     {
       "name": "Up the line",
       "durationMs": 1500,
       "positions": {
-        "ball": { "x": 23.4, "y": 37.4, "ease": "linear" },
-        "lm": { "x": 23.8, "y": 36.6 },
-        "x4": { "x": 26, "y": 34 }
+        "gk": {
+          "x": 3,
+          "y": 25
+        },
+        "rb": {
+          "x": 12,
+          "y": 12
+        },
+        "cb": {
+          "x": 10,
+          "y": 25
+        },
+        "lb": {
+          "x": 12,
+          "y": 38
+        },
+        "rm": {
+          "x": 24,
+          "y": 12
+        },
+        "cm": {
+          "x": 22,
+          "y": 25
+        },
+        "lm": {
+          "x": 23.8,
+          "y": 36.6
+        },
+        "st": {
+          "x": 32,
+          "y": 20
+        },
+        "ball": {
+          "x": 23.4,
+          "y": 37.4,
+          "ease": "linear"
+        }
       }
     },
     {
       "name": "Inside to the pivot",
       "durationMs": 1400,
       "positions": {
-        "ball": { "x": 22.4, "y": 25.8, "ease": "linear" },
-        "cm": { "x": 22, "y": 25.2 },
-        "x2": { "x": 18, "y": 28 }
+        "gk": {
+          "x": 3,
+          "y": 25
+        },
+        "rb": {
+          "x": 12,
+          "y": 12
+        },
+        "cb": {
+          "x": 10,
+          "y": 25
+        },
+        "lb": {
+          "x": 12,
+          "y": 38
+        },
+        "rm": {
+          "x": 24,
+          "y": 12
+        },
+        "cm": {
+          "x": 22,
+          "y": 25.2
+        },
+        "lm": {
+          "x": 23.8,
+          "y": 36.6
+        },
+        "st": {
+          "x": 32,
+          "y": 20
+        },
+        "ball": {
+          "x": 22.4,
+          "y": 25.8,
+          "ease": "linear"
+        }
       }
     },
     {
@@ -83,11 +326,53 @@
       "durationMs": 1700,
       "pauseAfterMs": 700,
       "positions": {
-        "ball": { "x": 24.4, "y": 13, "ease": "linear" },
-        "rm": { "x": 24.8, "y": 12.4 },
-        "rb": { "x": 22, "y": 9, "via": [{ "x": 17, "y": 9.5 }] },
-        "x3": { "x": 26.5, "y": 20 }
+        "gk": {
+          "x": 3,
+          "y": 25
+        },
+        "rb": {
+          "x": 22,
+          "y": 9,
+          "via": [
+            {
+              "x": 17,
+              "y": 9.5
+            }
+          ]
+        },
+        "cb": {
+          "x": 10,
+          "y": 25
+        },
+        "lb": {
+          "x": 12,
+          "y": 38
+        },
+        "rm": {
+          "x": 24.8,
+          "y": 12.4
+        },
+        "cm": {
+          "x": 22,
+          "y": 25.2
+        },
+        "lm": {
+          "x": 23.8,
+          "y": 36.6
+        },
+        "st": {
+          "x": 32,
+          "y": 20
+        },
+        "ball": {
+          "x": 24.4,
+          "y": 13,
+          "ease": "linear"
+        }
       }
     }
-  ]
+  ],
+  "rev": 51,
+  "createdAt": "2026-06-14T15:17:13.839Z",
+  "updatedAt": "2026-06-14T15:22:42.870Z"
 }
