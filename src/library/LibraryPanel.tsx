@@ -422,8 +422,8 @@ export function LibraryPanel({
         )}
       </section>
       <div className="library-footnote">
-        <span className="live-dot" /> Your drills live on this computer. Changes
-        save automatically.
+        <span className="live-dot" /> Your drills live on this computer. Board edits
+        stay temporary until you save them.
       </div>
     </main>
   );

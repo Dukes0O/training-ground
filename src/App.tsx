@@ -19,10 +19,12 @@ import {
 } from "lucide-react";
 import {
   deleteDrillById,
+  discardChanges,
   duplicateDrill,
   initPersistence,
   newDrill,
   openDrill,
+  saveNow,
 } from "./api/persistence";
 import { BoardSvg } from "./board/BoardSvg";
 import { BoardViewport } from "./board/BoardViewport";
@@ -52,10 +54,12 @@ import { BoardDisplayControls } from "./ui/BoardDisplayControls";
 import { TopBar } from "./ui/TopBar";
 import { CoachBriefDialog } from "./ui/CoachBriefDialog";
 import { useHotkeys } from "./ui/useHotkeys";
+import { UnsavedChangesModal } from "./ui/UnsavedChangesModal";
 import { useEditor } from "./state/store";
 
 const EMPTY_SELECTION: ReadonlySet<string> = new Set();
 type View = "library" | "saved" | "board";
+type PendingAction = () => void | Promise<void>;
 
 export default function App() {
   const [view, setView] = useState<View>("library");
@@ -64,6 +68,9 @@ export default function App() {
     () => window.matchMedia("(min-width: 801px)").matches,
   );
   const switching = useRef(false);
+  const pendingAction = useRef<PendingAction | null>(null);
+  const [unsavedOpen, setUnsavedOpen] = useState(false);
+  const [unsavedBusy, setUnsavedBusy] = useState(false);
   const [inspectorTab, setInspectorTab] = useState<"notes" | "edit">("notes");
   useHotkeys(view === "board" && !briefOpen);
   usePlaybackClock();
@@ -79,6 +86,17 @@ export default function App() {
   const mode = useEditor((s) => s.mode);
   const timeMs = useEditor((s) => s.timeMs);
   const recordingActive = useEditor((s) => s.recordingActive);
+  const dirty = useEditor((s) => s.dirty);
+  const newDraft = useEditor((s) => s.newDraft);
+  useEffect(() => {
+    if (!dirty) return;
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    return () => window.removeEventListener("beforeunload", warnBeforeUnload);
+  }, [dirty]);
   const timeline = useMemo(() => getTimeline(drill), [drill]);
   const visibleStep =
     mode === "playback" ? stepAtTime(timeline, timeMs) : currentStep;
@@ -99,8 +117,45 @@ export default function App() {
         setInspectorOpen(true);
     }
   }, [selection]);
-  const navigate = (next: View) => {
-    if (switching.current) return;
+  const guardUnsaved = (action: PendingAction) => {
+    const state = useEditor.getState();
+    if (state.conflict) {
+      state.addToast("info", "Resolve the disk conflict before continuing.");
+      return;
+    }
+    if (state.dirty) {
+      pendingAction.current = action;
+      setUnsavedOpen(true);
+      return;
+    }
+    void action();
+  };
+  const cancelPending = () => {
+    if (unsavedBusy) return;
+    pendingAction.current = null;
+    setUnsavedOpen(false);
+  };
+  const resolvePending = async (decision: "save" | "discard") => {
+    if (unsavedBusy) return;
+    setUnsavedBusy(true);
+    if (decision === "save") await saveNow();
+    else await discardChanges();
+    setUnsavedBusy(false);
+
+    const state = useEditor.getState();
+    if (state.conflict) {
+      pendingAction.current = null;
+      setUnsavedOpen(false);
+      return;
+    }
+    if (state.dirty) return;
+
+    const action = pendingAction.current;
+    pendingAction.current = null;
+    setUnsavedOpen(false);
+    if (action) await action();
+  };
+  const navigateNow = (next: View) => {
     if (next !== "board" && useEditor.getState().recordingActive) {
       useEditor
         .getState()
@@ -113,7 +168,18 @@ export default function App() {
     if (next !== "board") useEditor.getState().pause();
     setView(next);
   };
-  const open = async (id: string) => {
+  const navigate = (next: View) => {
+    if (switching.current) return;
+    if (next !== "board" && recordingActive) {
+      useEditor
+        .getState()
+        .addToast("info", "Stop and save the recording before leaving the board.");
+      return;
+    }
+    if (next !== "board" && dirty) guardUnsaved(() => navigateNow(next));
+    else navigateNow(next);
+  };
+  const openNow = async (id: string) => {
     if (switching.current || !useEditor.getState().drillId) return;
     switching.current = true;
     try {
@@ -126,7 +192,11 @@ export default function App() {
       switching.current = false;
     }
   };
-  const create = async () => {
+  const open = (id: string) => {
+    if (id === useEditor.getState().drillId) void openNow(id);
+    else guardUnsaved(() => openNow(id));
+  };
+  const createNow = async () => {
     if (switching.current || !useEditor.getState().drillId) return;
     switching.current = true;
     try {
@@ -140,7 +210,8 @@ export default function App() {
       switching.current = false;
     }
   };
-  const duplicate = async (id: string) => {
+  const create = () => guardUnsaved(createNow);
+  const duplicateNow = async (id: string) => {
     if (switching.current || !useEditor.getState().drillId) return;
     switching.current = true;
     try {
@@ -154,7 +225,8 @@ export default function App() {
       switching.current = false;
     }
   };
-  const trash = async (id: string) => {
+  const duplicate = (id: string) => guardUnsaved(() => duplicateNow(id));
+  const trashNow = async (id: string) => {
     if (switching.current || !useEditor.getState().drillId) return;
     switching.current = true;
     try {
@@ -162,6 +234,10 @@ export default function App() {
     } finally {
       switching.current = false;
     }
+  };
+  const trash = (id: string) => {
+    if (id === useEditor.getState().drillId) guardUnsaved(() => trashNow(id));
+    else void trashNow(id);
   };
   return (
     <div className={`app-shell ${view === "board" ? "is-board" : ""}`}>
@@ -448,6 +524,15 @@ export default function App() {
       <RosterDialog />
       <PlaceTeamDialog />
       <ConflictModal />
+      <UnsavedChangesModal
+        open={unsavedOpen}
+        title={drill.title}
+        newDraft={newDraft}
+        busy={unsavedBusy}
+        onSave={() => void resolvePending("save")}
+        onDiscard={() => void resolvePending("discard")}
+        onCancel={cancelPending}
+      />
       <ExportProgressModal />
       <RecordDialog />
       <TrashDialog />

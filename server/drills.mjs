@@ -93,6 +93,9 @@ export function drillsRouter() {
       }
     }
     const ifMatch = req.get("If-Match");
+    if (req.get("If-None-Match") === "*" && existing) {
+      return res.status(409).json({ error: "drill already exists", currentRev: existing.rev ?? 0 });
+    }
     if (ifMatch != null && existing && String(existing.rev ?? 0) !== ifMatch) {
       return res.status(409).json({ error: "rev mismatch", currentRev: existing.rev ?? 0 });
     }

@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "id": "preview-kickoff-left",
   "title": "PREVIEW — Left kickoff: watch, then learn",
-  "description": "Watch the kickoff once, then replay with field thirds, three coaching pauses and fading support runs. RM starts toward goal after LM reaches the ball.",
+  "description": "Watch the kickoff, then replay the left-side break with a deep wide run, two runners inside the posts, and clear cross, cutback, or support options.",
   "tags": [
     "preview",
     "kickoff",
@@ -11,7 +11,7 @@
     "left",
     "teaching replay"
   ],
-  "notes": "WORKING PREVIEW ONLY. This copy is separate from the saved drill library. No Git commit or push.\n\nFIRST PASS: Watch the whole play once without field highlights or coaching stops. Primary CAM, pass and wide-run arrows remain.\n\nSECOND PASS: The field is divided lengthwise into defensive, possession and attacking thirds, and across its width into left, centre and right lanes. The left lane activates when the CAM moves. The possession third activates when the CAM receives; pause for 1.5 seconds. The attacking third replaces it as the forward pass arrives; pause for 1.7 seconds when LM reaches the ball. RM then starts a diagonal run toward goal; pause for 2 seconds to review support.\n\nPALE CURVED ARROWS: Supporting runs appear briefly before the teaching replay and fade as the kickoff begins, leaving the primary actions clear. The far midfielder's later run has its own brief arrow.\n\nASSUMPTION: The final run shows what to do IF our wide midfielder secures the ball. Opposition and the contested outcome are still to be added. The far midfielder only begins the run here; no finish is scripted.\n\nVOICE: The app's Record button can record the coach's voice over playback. This preview contains no audio.\n\nFIRST VERSION: Our eight players only; the sequence stops at the expected challenge. Opposition positions and the result of that challenge are deliberately left for the next version.\n\nSETUP: Attack left to right on the 60 × 40 m 8v8 pitch. Left is the top touchline, matching your formation diagram. GK; LD and RD; CDM slightly ahead of them; LM and RM; CAM; ST. For this kickoff variation, BOTH wide mids begin just inside their own half at the halfway line, rather than in their normal deeper positions. The ball begins on the centre spot. Numbers identify roles, not a named roster.\n\nTRIGGER: As the striker takes the kickoff back, the CAM moves left to receive. The LM reads that movement and accelerates beyond halfway once the ball moves. These actions happen together. The CAM releases the next pass early into space ahead of the LM, without waiting for the LM to stop or check back.\n\nTEAM MOVEMENT: ST runs forward and toward the chosen side to support inside the ball. CAM follows the pass as an inside/backward option. The far RM moves forward and narrows while remaining on the far side. LD, RD and CDM all step up and shift left; CDM stays slightly ahead of the two defenders, available to drop into their line if needed. GK moves up modestly behind the defence.\n\nSTOP AND REVIEW: The shaded area is where an opponent is expected to challenge the LM. It does not show a guaranteed successful reception. Review the timing of the run, the weight of the early pass and the supporting distances before adding defenders.\n\nASSUMPTIONS: Distances and timing are a first coaching sketch, not measurements supplied by you. The animation uses continuous movement, with a hold at setup and at the challenge. Pair with the mirrored right-side kickoff.\n\nFORMATION REFERENCE: https://dukes0o.github.io/soccer-quizzes/resources/formation.html?id=formation-21211",
+  "notes": "FIRST PASS: Watch the kickoff flow without teaching overlays. The striker lays the ball back, the CAM releases the LM early, and the team moves forward together.\n\nSECOND PASS: Field thirds and lanes make the timing visible. The LM drives close to the end line. ST #9 attacks inside the near post and RM #7 attacks the far-post channel, so both can finish a cross.\n\nFINAL DECISION: CAM #10 holds near the edge of the central attacking lane for the cutback. LD #4 advances behind the LM as the safer support pass and can cross if the ball is recycled. Dashed routes show the three choices: cut back to 10, use 4, or cross toward 9 and 7.\n\nSETUP: Attack left to right on the 60 × 40 m 8v8 pitch. The left side is the top touchline. Pair this drill with the mirrored right-side kickoff.",
   "themeColor": "#2563eb",
   "pitch": "8v8",
   "teams": {
@@ -510,16 +510,136 @@
         "y": 26
       },
       "to": {
-        "x": 40.5,
-        "y": 23
+        "x": 51,
+        "y": 22.7
       },
       "via": [
         {
-          "x": 37.6,
-          "y": 24.8
+          "x": 43,
+          "y": 24.5
         }
       ],
       "color": "#c5dac6a0",
+      "fromStep": 12,
+      "toStep": 12
+    },
+    {
+      "kind": "zone",
+      "id": "option-cam-circle",
+      "shape": "ellipse",
+      "rect": {
+        "x": 40.5,
+        "y": 12,
+        "w": 5,
+        "h": 5
+      },
+      "color": "#fde68a80",
+      "fromStep": 12,
+      "toStep": 12
+    },
+    {
+      "kind": "zone",
+      "id": "option-ld-circle",
+      "shape": "ellipse",
+      "rect": {
+        "x": 39.5,
+        "y": 5.7,
+        "w": 5,
+        "h": 5
+      },
+      "color": "#93c5fd80",
+      "fromStep": 12,
+      "toStep": 12
+    },
+    {
+      "kind": "zone",
+      "id": "option-cross-circle",
+      "shape": "ellipse",
+      "rect": {
+        "x": 52.7,
+        "y": 18.5,
+        "w": 5,
+        "h": 5
+      },
+      "color": "#fca5a580",
+      "fromStep": 12,
+      "toStep": 12
+    },
+    {
+      "kind": "arrow",
+      "id": "option-cutback-cam",
+      "style": "run",
+      "from": {
+        "ref": "lm"
+      },
+      "to": {
+        "ref": "cam"
+      },
+      "color": "#fde68a",
+      "fromStep": 12,
+      "toStep": 12
+    },
+    {
+      "kind": "arrow",
+      "id": "option-back-ld",
+      "style": "run",
+      "from": {
+        "ref": "lm"
+      },
+      "to": {
+        "ref": "ld"
+      },
+      "color": "#93c5fd",
+      "fromStep": 12,
+      "toStep": 12
+    },
+    {
+      "kind": "arrow",
+      "id": "option-wide-cross",
+      "style": "run",
+      "from": {
+        "ref": "lm"
+      },
+      "to": {
+        "x": 55.2,
+        "y": 21
+      },
+      "via": [
+        {
+          "x": 53,
+          "y": 10.5
+        },
+        {
+          "x": 54.5,
+          "y": 16
+        }
+      ],
+      "color": "#fca5a5",
+      "fromStep": 12,
+      "toStep": 12
+    },
+    {
+      "kind": "arrow",
+      "id": "option-ld-cross",
+      "style": "run",
+      "from": {
+        "ref": "ld"
+      },
+      "to": {
+        "x": 55.2,
+        "y": 21
+      },
+      "via": [
+        {
+          "x": 42.76735995230965,
+          "y": 11.842961509053163
+        },
+        {
+          "x": 51.263436264029224,
+          "y": 15.356107970690038
+        }
+      ],
+      "color": "#93c5fd",
       "fromStep": 12,
       "toStep": 12
     }
@@ -818,8 +938,8 @@
           "ease": "linear"
         },
         "st": {
-          "x": 37.5,
-          "y": 14.5,
+          "x": 40.73,
+          "y": 17.69,
           "ease": "linear"
         },
         "ball": {
@@ -946,7 +1066,7 @@
       }
     },
     {
-      "name": "WATCH · RM starts toward goal after LM receives",
+      "name": "WATCH · LM drives deep; 9 and 7 attack the goal",
       "durationMs": 1400,
       "pauseAfterMs": 700,
       "positions": {
@@ -956,8 +1076,8 @@
           "ease": "linear"
         },
         "ld": {
-          "x": 21,
-          "y": 9,
+          "x": 42,
+          "y": 8.2,
           "ease": "linear"
         },
         "rd": {
@@ -971,33 +1091,33 @@
           "ease": "linear"
         },
         "lm": {
-          "x": 40.7,
-          "y": 6.5,
+          "x": 50,
+          "y": 5.7,
           "ease": "linear"
         },
         "rm": {
-          "x": 40.5,
-          "y": 23,
+          "x": 51,
+          "y": 22.7,
           "via": [
             {
-              "x": 37.6,
-              "y": 24.8
+              "x": 43,
+              "y": 24.5
             }
           ],
           "ease": "linear"
         },
         "cam": {
-          "x": 33,
-          "y": 11.8,
+          "x": 43,
+          "y": 14.5,
           "ease": "linear"
         },
         "st": {
-          "x": 42,
-          "y": 13.5,
+          "x": 52,
+          "y": 19.2,
           "ease": "linear"
         },
         "ball": {
-          "x": 41.3,
+          "x": 50.5,
           "y": 5.8,
           "ease": "linear"
         },
@@ -1540,7 +1660,7 @@
       }
     },
     {
-      "name": "PAUSE · If LM secures it, RM starts toward goal",
+      "name": "PAUSE · LM drives deep: cross, cut back, or use 4",
       "durationMs": 1400,
       "pauseAfterMs": 2000,
       "positions": {
@@ -1550,8 +1670,8 @@
           "ease": "linear"
         },
         "ld": {
-          "x": 21,
-          "y": 9,
+          "x": 42,
+          "y": 8.2,
           "ease": "linear"
         },
         "rd": {
@@ -1565,33 +1685,33 @@
           "ease": "linear"
         },
         "lm": {
-          "x": 40.7,
-          "y": 6.5,
+          "x": 50,
+          "y": 5.7,
           "ease": "linear"
         },
         "rm": {
-          "x": 40.5,
-          "y": 23,
+          "x": 51,
+          "y": 22.7,
           "via": [
             {
-              "x": 37.6,
-              "y": 24.8
+              "x": 43,
+              "y": 24.5
             }
           ],
           "ease": "linear"
         },
         "cam": {
-          "x": 33,
-          "y": 11.8,
+          "x": 43,
+          "y": 14.5,
           "ease": "linear"
         },
         "st": {
-          "x": 42,
-          "y": 13.5,
+          "x": 52,
+          "y": 19.2,
           "ease": "linear"
         },
         "ball": {
-          "x": 41.3,
+          "x": 50.5,
           "y": 5.8,
           "ease": "linear"
         },
@@ -1630,7 +1750,7 @@
       }
     }
   ],
-  "rev": 12,
+  "rev": 21,
   "createdAt": "2026-09-20T21:43:25.133Z",
-  "updatedAt": "2026-09-20T22:34:51.108Z"
+  "updatedAt": "2026-09-27T18:33:25.298Z"
 }

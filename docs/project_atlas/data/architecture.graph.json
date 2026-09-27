@@ -76,9 +76,9 @@
       "label": "Persistence orchestrator",
       "lane": "api",
       "x": 620, "y": 330,
-      "summary": "Autosave (debounced, drag-aware), SSE-driven reloads, own-write echo suppression, and the conflict ladder.",
+      "summary": "Explicit save/discard drafts, SSE-driven reloads, own-write echo suppression, and the conflict ladder.",
       "files": ["src/api/persistence.ts"],
-      "details": "Tracks the drill object reference that matches disk (savedRef) to tell edits from loads. Own save/new/duplicate echoes match file ID, revision, and content once; same-revision external edits still reload or conflict. A clean editor reloads silently; a dirty editor opens the conflict modal (keep mine = force PUT, use disk = reload). Also boot, open/new/duplicate/delete flows."
+      "details": "Tracks the drill object reference that matches disk (savedRef) to tell edits from loads. Board changes remain in memory until Save; Discard restores disk. New and duplicated drills remain temporary drafts until their first save. Own write echoes match file ID, revision, and content once; same-revision external edits still reload or conflict. Navigation guards require save, discard, or cancel."
     },
     {
       "id": "model.types",
@@ -234,7 +234,7 @@
     { "from": "server.express", "to": "api.client", "label": "JSON over localhost" },
     { "from": "api.client", "to": "api.persistence", "label": "typed calls" },
     { "from": "api.persistence", "to": "state.store", "label": "load · reload · conflicts" },
-    { "from": "state.store", "to": "api.persistence", "label": "autosave (debounced)" },
+    { "from": "state.store", "to": "api.persistence", "label": "explicit save · discard" },
     { "from": "model.types", "to": "api.persistence", "label": "parseDrill (forgiving)" },
     { "from": "model.serialize", "to": "api.persistence", "label": "dense wire form" },
     { "from": "model.types", "to": "model.resolve", "label": "" },

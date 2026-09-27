@@ -761,6 +761,38 @@ button {
   align-items: center;
   gap: 7px;
 }
+.editor-save-button,
+.editor-discard-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.editor-save-button {
+  background: var(--emerald);
+  color: white;
+}
+.editor-save-button:hover:not(:disabled) {
+  background: #195e45;
+}
+.editor-discard-button {
+  border: 1px solid #d8dfd5;
+  background: white;
+  color: #4c6252;
+}
+.editor-discard-button:hover:not(:disabled) {
+  background: #f0f3ec;
+  color: #244c36;
+}
+.editor-save-button:disabled,
+.editor-discard-button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
 .editor-header-actions > select {
   max-width: 155px;
   font-size: 11px;

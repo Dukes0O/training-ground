@@ -127,11 +127,11 @@ window.ATLAS_DATA = {
         "lane": "api",
         "x": 620,
         "y": 330,
-        "summary": "Autosave (debounced, drag-aware), SSE-driven reloads, own-write echo suppression, and the conflict ladder.",
+        "summary": "Explicit save/discard drafts, SSE-driven reloads, own-write echo suppression, and the conflict ladder.",
         "files": [
           "src/api/persistence.ts"
         ],
-        "details": "Tracks the drill object reference that matches disk (savedRef) to tell edits from loads. Own save/new/duplicate echoes match file ID, revision, and content once; same-revision external edits still reload or conflict. A clean editor reloads silently; a dirty editor opens the conflict modal (keep mine = force PUT, use disk = reload). Also boot, open/new/duplicate/delete flows."
+        "details": "Tracks the drill object reference that matches disk (savedRef) to tell edits from loads. Board changes remain in memory until Save; Discard restores disk. New and duplicated drills remain temporary drafts until their first save. Own write echoes match file ID, revision, and content once; same-revision external edits still reload or conflict. Navigation guards require save, discard, or cancel."
       },
       {
         "id": "model.types",
@@ -407,7 +407,7 @@ window.ATLAS_DATA = {
       {
         "from": "state.store",
         "to": "api.persistence",
-        "label": "autosave (debounced)"
+        "label": "explicit save · discard"
       },
       {
         "from": "model.types",
@@ -563,7 +563,7 @@ window.ATLAS_DATA = {
       {
         "id": "edit-loop",
         "title": "The edit loop",
-        "summary": "A drag on the board becomes a saved file in about a second — and the file watcher's echo of that save is recognized and ignored.",
+        "summary": "Board edits remain a reversible draft until the coach explicitly saves or discards them.",
         "steps": [
           {
             "actor": "Coach",
@@ -577,8 +577,13 @@ window.ATLAS_DATA = {
           },
           {
             "actor": "Persistence",
-            "action": "autosave fires after an 800ms quiet period",
-            "detail": "serializeDense materializes forward-fill, rounds to cm, and PUTs with If-Match: rev."
+            "action": "marks the drill as an unsaved draft",
+            "detail": "Undo, redo, playback, and preview operate on the in-memory drill without changing the JSON file."
+          },
+          {
+            "actor": "Coach",
+            "action": "chooses Save or Discard",
+            "detail": "Save serializes and PUTs with If-Match: rev. Discard reloads the last saved file. Leaving with changes offers Save, Discard, or Keep editing."
           },
           {
             "actor": "Server",
@@ -625,7 +630,7 @@ window.ATLAS_DATA = {
           {
             "actor": "Coach",
             "action": "reviews and adjusts the result on the board",
-            "detail": "Manual changes save to the same drill file. The coach can return to Codex for further changes at any time."
+            "detail": "Manual changes remain temporary until Save writes the same drill file. The coach can preview, undo, discard, or return to Codex at any time."
           }
         ]
       },
@@ -880,7 +885,7 @@ window.ATLAS_DATA = {
         "id": "agent_route",
         "title": "How an AI writes a drill",
         "question": "How does a coaching objective become an animated drill?",
-        "narrative": "The coach can dictate a learning goal directly in a Codex task opened in this repository, or create and edit the drill manually on Training Ground's board. Both paths use the same JSON files. The coach can ask for a first version, adjust it on the board, then return to Codex for further changes.\n\nFor an agent request, read AGENTS.md and docs/drill-authoring.md, create or edit drills/<slug>.json with a filename matching its id, and run npm run validate. The request may cover setup, motion, coaching points, or variations. Dictation happens in Codex itself. Do not add paid AI or speech API integrations unless the user explicitly asks later.\n\nDescribe a drill explains both paths and offers an action to open the board. An optional expandable form can organize an objective and session details into a written brief to copy into Codex. It keeps a browser draft when storage is available and selects text if clipboard access fails. This helper is not required before an agent can build a drill.\n\nchokidar watches the folder and pushes an SSE event. The library refreshes, and cards draw the file's starting setup through BoardSvg. Opening a card reveals its coaching notes and animation on the tactics board.\n\nFor an open drill, persistence identifies its own save once by file ID, revision, and content. Real external changes reload a clean editor. If local edits are unsaved, the conflict dialog requires the coach to choose the disk version or keep and overwrite with their edits. Sparse steps remain legal; the loader normalizes them for editing.",
+        "narrative": "The coach can dictate a learning goal directly in a Codex task opened in this repository, or create and edit the drill manually on Training Ground's board. Both paths use the same JSON files. The coach can ask for a first version, adjust it on the board, then return to Codex for further changes.\n\nFor an agent request, read AGENTS.md and drill-authoring.md, create or edit drills/<slug>.json with a filename matching its id, and run npm run validate. The request may cover setup, motion, coaching points, or variations. Dictation happens in Codex itself. Do not add paid AI or speech API integrations unless the user explicitly asks later.\n\nDescribe a drill explains both paths and offers an action to open the board. An optional expandable form can organize an objective and session details into a written brief to copy into Codex. It keeps a browser draft when storage is available and selects text if clipboard access fails. This helper is not required before an agent can build a drill.\n\nchokidar watches the folder and pushes an SSE event. The library refreshes, and cards draw the file's starting setup through BoardSvg. Opening a card reveals its coaching notes and animation on the tactics board.\n\nManual board edits stay in memory as an unsaved draft. Save explicitly writes the file; Discard restores the last saved version. New and duplicated drills do not create files until their first save. Leaving or switching with changes requires Save, Discard, or Keep editing. Persistence recognizes its own save once by file ID, revision, and content. Real external changes reload a clean editor or open the conflict dialog when a draft is dirty. Sparse steps remain legal; the loader normalizes them for editing.",
         "highlights": [
           "ui.brief",
           "ui.panels",

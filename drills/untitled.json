@@ -1,0 +1,283 @@
+{
+  "$schema": "../schema/drill.schema.json",
+  "schemaVersion": 1,
+  "id": "untitled",
+  "title": "Tiki-Taka Gate Rotation",
+  "description": "Pass into the middle, combine through three cone gates, dribble to the far line, then repeat back on the mirrored side.",
+  "tags": ["passing", "combination-play", "one-touch", "rotation"],
+  "notes": "Keep the middle player available on an open body shape. The runner follows each return pass to the next gate. Use firm, accurate passes through the gates and play one touch when the weight is right. At the end cone, the receiver keeps the ball and joins the far line. The pattern then comes back along the upper side so both feet and both passing angles are trained.",
+  "themeColor": "#7c3aed",
+  "pitch": "9v9",
+  "teams": {
+    "home": { "label": "Runners", "fill": "#1d4ed8" },
+    "away": { "label": "Middle", "fill": "#dc2626" }
+  },
+  "entities": [
+    { "kind": "ball", "id": "ball" },
+    { "kind": "cone", "id": "cone" },
+    { "kind": "cone", "id": "cone-2" },
+    { "kind": "cone", "id": "cone-3" },
+    { "kind": "cone", "id": "cone-4" },
+    { "kind": "cone", "id": "cone-5" },
+    { "kind": "cone", "id": "cone-6" },
+    { "kind": "cone", "id": "cone-7" },
+    { "kind": "cone", "id": "cone-8" },
+    { "kind": "cone", "id": "cone-9" },
+    { "kind": "cone", "id": "cone-10" },
+    { "kind": "player", "id": "p-home-1", "team": "home", "number": 1, "name": "Runner 1" },
+    { "kind": "player", "id": "p-home-2", "team": "home", "number": 2, "name": "Runner 2" },
+    { "kind": "player", "id": "p-home-3", "team": "home", "number": 3, "name": "Runner 3" },
+    { "kind": "player", "id": "p-away-1", "team": "away", "number": 1, "name": "Middle" },
+    { "kind": "arrow", "id": "pass", "style": "pass", "from": { "x": 13.205257285074978, "y": 23.929073607325964 }, "to": { "ref": "p-away-1" }, "fromStep": 1, "toStep": 1 },
+    { "kind": "arrow", "id": "pass-2", "style": "pass", "from": { "ref": "p-away-1" }, "to": { "ref": "p-home-1" }, "fromStep": 2, "toStep": 2 },
+    { "kind": "arrow", "id": "pass-3", "style": "pass", "from": { "x": 17.29340654504371, "y": 28.35789911320254 }, "to": { "ref": "p-away-1" }, "fromStep": 3, "toStep": 3 },
+    { "kind": "arrow", "id": "pass-4", "style": "pass", "from": { "ref": "p-away-1" }, "to": { "x": 20.742772297635767, "y": 30.146461197963102 }, "fromStep": 4, "toStep": 4 },
+    { "kind": "arrow", "id": "pass-5", "style": "pass", "from": { "x": 21.679633046040905, "y": 29.976125219326352 }, "to": { "ref": "p-away-1" }, "fromStep": 5, "toStep": 5 },
+    { "kind": "arrow", "id": "pass-6", "style": "pass", "from": { "ref": "p-away-1" }, "to": { "x": 27.215668144862377, "y": 28.230144984907806 }, "fromStep": 6, "toStep": 6 },
+    { "kind": "arrow", "id": "dribble", "style": "dribble", "from": { "x": 28.365459588149278, "y": 27.037771691278873 }, "to": { "x": 32.36842799289663, "y": 24.099418163231395 }, "fromStep": 7, "toStep": 7 },
+    { "kind": "arrow", "id": "pass-second-1", "style": "pass", "from": { "x": 13.2, "y": 23.93 }, "to": { "ref": "p-away-1" }, "fromStep": 8, "toStep": 8 },
+    { "kind": "arrow", "id": "pass-second-2", "style": "pass", "from": { "ref": "p-away-1" }, "to": { "ref": "p-home-2" }, "fromStep": 9, "toStep": 9 },
+    { "kind": "arrow", "id": "pass-second-3", "style": "pass", "from": { "ref": "p-home-2" }, "to": { "ref": "p-away-1" }, "fromStep": 10, "toStep": 10 },
+    { "kind": "arrow", "id": "pass-second-4", "style": "pass", "from": { "ref": "p-away-1" }, "to": { "ref": "p-home-2" }, "fromStep": 11, "toStep": 11 },
+    { "kind": "arrow", "id": "pass-second-5", "style": "pass", "from": { "ref": "p-home-2" }, "to": { "ref": "p-away-1" }, "fromStep": 12, "toStep": 12 },
+    { "kind": "arrow", "id": "pass-second-6", "style": "pass", "from": { "ref": "p-away-1" }, "to": { "ref": "p-home-2" }, "fromStep": 13, "toStep": 13 },
+    { "kind": "arrow", "id": "dribble-second", "style": "dribble", "from": { "x": 27.2, "y": 28.2 }, "to": { "x": 32.4, "y": 24.7 }, "fromStep": 14, "toStep": 14 },
+    { "kind": "arrow", "id": "mirror-pass-1", "style": "pass", "from": { "x": 31.4, "y": 24.2 }, "to": { "ref": "p-away-1" }, "fromStep": 15, "toStep": 15 },
+    { "kind": "arrow", "id": "mirror-pass-2", "style": "pass", "from": { "ref": "p-away-1" }, "to": { "ref": "p-home-1" }, "fromStep": 16, "toStep": 16 },
+    { "kind": "arrow", "id": "mirror-pass-3", "style": "pass", "from": { "ref": "p-home-1" }, "to": { "ref": "p-away-1" }, "fromStep": 17, "toStep": 17 },
+    { "kind": "arrow", "id": "mirror-pass-4", "style": "pass", "from": { "ref": "p-away-1" }, "to": { "ref": "p-home-1" }, "fromStep": 18, "toStep": 18 },
+    { "kind": "arrow", "id": "mirror-pass-5", "style": "pass", "from": { "ref": "p-home-1" }, "to": { "ref": "p-away-1" }, "fromStep": 19, "toStep": 19 },
+    { "kind": "arrow", "id": "mirror-pass-6", "style": "pass", "from": { "ref": "p-away-1" }, "to": { "ref": "p-home-1" }, "fromStep": 20, "toStep": 20 },
+    { "kind": "arrow", "id": "mirror-dribble", "style": "dribble", "from": { "x": 17.2, "y": 19.2 }, "to": { "x": 12.5, "y": 23.9 }, "fromStep": 21, "toStep": 21 }
+  ],
+  "steps": [
+    {
+      "name": "Setup — queue left, middle player ready",
+      "durationMs": 800,
+      "positions": {
+        "ball": { "x": 13.54, "y": 23.85 },
+        "cone": { "x": 15.85, "y": 22.23 },
+        "cone-2": { "x": 15.63, "y": 25.76 },
+        "cone-3": { "x": 19.89, "y": 19.84 },
+        "cone-4": { "x": 23.3, "y": 19.59 },
+        "cone-5": { "x": 19.76, "y": 27.17 },
+        "cone-6": { "x": 23.38, "y": 27.17 },
+        "cone-7": { "x": 25.98, "y": 25.21 },
+        "cone-8": { "x": 25.77, "y": 21.89 },
+        "cone-9": { "x": 29.39, "y": 23.72 },
+        "cone-10": { "x": 12.06, "y": 23.89 },
+        "p-home-1": { "x": 11.97, "y": 24.48 },
+        "p-home-2": { "x": 8.39, "y": 23.93 },
+        "p-home-3": { "x": 6.82, "y": 24.18 },
+        "p-away-1": { "x": 21.25, "y": 23.55 }
+      }
+    },
+    {
+      "name": "1. Start pass to middle; runner goes around the first gate",
+      "durationMs": 1100,
+      "pauseAfterMs": 250,
+      "positions": {
+        "ball": { "x": 20.35, "y": 23.55, "ease": "linear" },
+        "p-home-1": { "x": 17.3, "y": 28.35, "via": [{ "x": 14.5, "y": 27 }] },
+        "p-home-2": { "x": 10.1, "y": 24.1 },
+        "p-home-3": { "x": 7.4, "y": 24.2 }
+      }
+    },
+    {
+      "name": "2. Middle plays diagonally to the runner",
+      "durationMs": 900,
+      "pauseAfterMs": 250,
+      "positions": {
+        "ball": { "x": 17.3, "y": 28.05, "ease": "linear" },
+        "p-home-1": { "x": 17.3, "y": 28.35 },
+        "p-home-2": { "x": 10.6, "y": 24.1 },
+        "p-home-3": { "x": 7.8, "y": 24.2 }
+      }
+    },
+    {
+      "name": "3. Return to middle; runner advances to the square gate",
+      "durationMs": 950,
+      "pauseAfterMs": 250,
+      "positions": {
+        "ball": { "x": 20.35, "y": 23.75, "ease": "linear" },
+        "p-home-1": { "x": 21.55, "y": 30, "via": [{ "x": 19.2, "y": 29.6 }] },
+        "p-home-2": { "x": 11, "y": 24.1 }
+      }
+    },
+    {
+      "name": "4. Square pass through the lower cone gate",
+      "durationMs": 900,
+      "pauseAfterMs": 250,
+      "positions": {
+        "ball": { "x": 21.55, "y": 29.1, "ease": "linear" },
+        "p-home-1": { "x": 21.55, "y": 30 }
+      }
+    },
+    {
+      "name": "5. Return to middle; runner advances to the last gate",
+      "durationMs": 950,
+      "pauseAfterMs": 250,
+      "positions": {
+        "ball": { "x": 20.4, "y": 23.8, "ease": "linear" },
+        "p-home-1": { "x": 27.2, "y": 28.2, "via": [{ "x": 24.5, "y": 29.5 }] }
+      }
+    },
+    {
+      "name": "6. Angled pass through the last gate",
+      "durationMs": 950,
+      "pauseAfterMs": 300,
+      "positions": {
+        "ball": { "x": 27.2, "y": 27.75, "ease": "linear" },
+        "p-home-1": { "x": 27.2, "y": 28.2 }
+      }
+    },
+    {
+      "name": "7. Keep the ball and dribble to the far line",
+      "durationMs": 1200,
+      "pauseAfterMs": 400,
+      "positions": {
+        "ball": { "x": 31.15, "y": 24.2, "via": [{ "x": 29.4, "y": 26.2 }] },
+        "p-home-1": { "x": 31.4, "y": 24.2, "via": [{ "x": 29.5, "y": 26.3 }] },
+        "p-home-2": { "x": 11.97, "y": 24.48 },
+        "p-home-3": { "x": 8.4, "y": 24.1 }
+      }
+    },
+    {
+      "name": "8. Next player starts the same progression",
+      "durationMs": 1100,
+      "pauseAfterMs": 250,
+      "positions": {
+        "ball": { "x": 20.35, "y": 23.55, "ease": "linear" },
+        "p-home-2": { "x": 17.3, "y": 28.35, "via": [{ "x": 14.5, "y": 27 }] },
+        "p-home-3": { "x": 11.1, "y": 24.3 }
+      }
+    },
+    {
+      "name": "9. Middle returns diagonally to runner two",
+      "durationMs": 900,
+      "pauseAfterMs": 200,
+      "positions": {
+        "ball": { "x": 17.3, "y": 28.05, "ease": "linear" }
+      }
+    },
+    {
+      "name": "10. Runner two returns and advances",
+      "durationMs": 900,
+      "pauseAfterMs": 200,
+      "positions": {
+        "ball": { "x": 20.35, "y": 23.75, "ease": "linear" },
+        "p-home-2": { "x": 21.55, "y": 30, "via": [{ "x": 19.2, "y": 29.6 }] },
+        "p-home-3": { "x": 11.7, "y": 24.4 }
+      }
+    },
+    {
+      "name": "11. Middle plays square through the lower gate",
+      "durationMs": 900,
+      "pauseAfterMs": 200,
+      "positions": {
+        "ball": { "x": 21.55, "y": 29.1, "ease": "linear" }
+      }
+    },
+    {
+      "name": "12. Runner two returns and moves to the last gate",
+      "durationMs": 900,
+      "pauseAfterMs": 200,
+      "positions": {
+        "ball": { "x": 20.4, "y": 23.8, "ease": "linear" },
+        "p-home-2": { "x": 27.2, "y": 28.2, "via": [{ "x": 24.5, "y": 29.5 }] }
+      }
+    },
+    {
+      "name": "13. Middle finds runner two through the last gate",
+      "durationMs": 950,
+      "pauseAfterMs": 250,
+      "positions": {
+        "ball": { "x": 27.2, "y": 27.75, "ease": "linear" }
+      }
+    },
+    {
+      "name": "14. Runner two dribbles to join the far line",
+      "durationMs": 1200,
+      "pauseAfterMs": 450,
+      "positions": {
+        "ball": { "x": 32, "y": 24.8, "via": [{ "x": 29.5, "y": 26.3 }] },
+        "p-home-2": { "x": 32.4, "y": 24.8, "via": [{ "x": 29.6, "y": 26.4 }] },
+        "p-home-1": { "x": 30.6, "y": 23.7 },
+        "p-home-3": { "x": 11.97, "y": 24.48 }
+      }
+    },
+    {
+      "name": "15. Far-line player passes into middle and starts back",
+      "durationMs": 1100,
+      "pauseAfterMs": 250,
+      "positions": {
+        "ball": { "x": 22.1, "y": 23.55, "ease": "linear" },
+        "p-home-1": { "x": 27.2, "y": 19.15, "via": [{ "x": 29.6, "y": 21 }] },
+        "p-home-2": { "x": 31.7, "y": 24.9 }
+      }
+    },
+    {
+      "name": "16. Middle plays an angled return through the right gate",
+      "durationMs": 950,
+      "pauseAfterMs": 250,
+      "positions": {
+        "ball": { "x": 27.2, "y": 19.55, "ease": "linear" }
+      }
+    },
+    {
+      "name": "17. Return to middle; runner advances to the upper gate",
+      "durationMs": 950,
+      "pauseAfterMs": 250,
+      "positions": {
+        "ball": { "x": 22.1, "y": 23.45, "ease": "linear" },
+        "p-home-1": { "x": 21.55, "y": 17.4, "via": [{ "x": 24.5, "y": 18.1 }] }
+      }
+    },
+    {
+      "name": "18. Square pass through the upper cone gate",
+      "durationMs": 900,
+      "pauseAfterMs": 250,
+      "positions": {
+        "ball": { "x": 21.55, "y": 18.35, "ease": "linear" }
+      }
+    },
+    {
+      "name": "19. Return to middle; runner advances left",
+      "durationMs": 950,
+      "pauseAfterMs": 250,
+      "positions": {
+        "ball": { "x": 22.05, "y": 23.45, "ease": "linear" },
+        "p-home-1": { "x": 17.2, "y": 19.2, "via": [{ "x": 19.2, "y": 18.2 }] }
+      }
+    },
+    {
+      "name": "20. Middle plays diagonally through the last return gate",
+      "durationMs": 950,
+      "pauseAfterMs": 300,
+      "positions": {
+        "ball": { "x": 17.2, "y": 19.55, "ease": "linear" }
+      }
+    },
+    {
+      "name": "21. Keep the ball and dribble back to the start line",
+      "durationMs": 1200,
+      "pauseAfterMs": 400,
+      "positions": {
+        "ball": { "x": 13.1, "y": 23.9, "via": [{ "x": 15.2, "y": 21.2 }] },
+        "p-home-1": { "x": 12.6, "y": 24.1, "via": [{ "x": 15.1, "y": 21.1 }] },
+        "p-home-3": { "x": 11.6, "y": 24.5 }
+      }
+    },
+    {
+      "name": "22. Join the queue; next player is ready",
+      "durationMs": 850,
+      "pauseAfterMs": 500,
+      "positions": {
+        "ball": { "x": 13.54, "y": 23.85, "ease": "linear" },
+        "p-home-1": { "x": 8.4, "y": 24.2, "via": [{ "x": 10.2, "y": 24.7 }] },
+        "p-home-3": { "x": 11.97, "y": 24.48 },
+        "p-home-2": { "x": 31.4, "y": 24.2 }
+      }
+    }
+  ]
+}

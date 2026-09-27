@@ -15,11 +15,12 @@
     {
       "id": "edit-loop",
       "title": "The edit loop",
-      "summary": "A drag on the board becomes a saved file in about a second — and the file watcher's echo of that save is recognized and ignored.",
+      "summary": "Board edits remain a reversible draft until the coach explicitly saves or discards them.",
       "steps": [
         { "actor": "Coach", "action": "drags a player on the SVG board", "detail": "useBoardInteraction starts a gesture: history pauses so the whole drag is one undo entry." },
         { "actor": "Store", "action": "drill state updates per pointer move", "detail": "moveEntity writes the pose into the current step; endGesture replays the drag as a single tracked change." },
-        { "actor": "Persistence", "action": "autosave fires after an 800ms quiet period", "detail": "serializeDense materializes forward-fill, rounds to cm, and PUTs with If-Match: rev." },
+        { "actor": "Persistence", "action": "marks the drill as an unsaved draft", "detail": "Undo, redo, playback, and preview operate on the in-memory drill without changing the JSON file." },
+        { "actor": "Coach", "action": "chooses Save or Discard", "detail": "Save serializes and PUTs with If-Match: rev. Discard reloads the last saved file. Leaving with changes offers Save, Discard, or Keep editing." },
         { "actor": "Server", "action": "atomic write, rev+1", "detail": "tmp file + rename so readers never see a half-written drill; rev/updatedAt stamped." },
         { "actor": "Watcher", "action": "chokidar sees the change → SSE", "detail": "The app consumes an expected echo once when file ID, revision, and content match its own successful save/new/duplicate write. External edits at the same revision still reload or conflict." }
       ]
@@ -34,7 +35,7 @@
         { "actor": "Watcher", "action": "SSE drills-changed within ~1s", "detail": "awaitWriteFinish debounces partial writes." },
         { "actor": "App", "action": "library refreshes; open drill reloads or conflicts", "detail": "Not the open drill → card appears. Open and clean → silent reload preserving cursor. Open and dirty → conflict dialog: use disk vs keep mine." },
         { "actor": "Loader", "action": "parseDrill forgives and normalizes", "detail": "Duplicate ids keep-first, unknown position keys dropped, sparse steps densified so editing behaves identically either way." },
-        { "actor": "Coach", "action": "reviews and adjusts the result on the board", "detail": "Manual changes save to the same drill file. The coach can return to Codex for further changes at any time." }
+        { "actor": "Coach", "action": "reviews and adjusts the result on the board", "detail": "Manual changes remain temporary until Save writes the same drill file. The coach can preview, undo, discard, or return to Codex at any time." }
       ]
     },
     {

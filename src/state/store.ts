@@ -23,6 +23,7 @@ import { buildFormationSlots, matchRosterToSlots } from "../model/formations";
 import { APRON, defaultGridOn, pitchFormatId, resolvePitch } from "../pitch/formats";
 import { isValidPolygon, pointsBounds, resizePolygon } from "../model/annotationGeometry";
 import { duplicateSelection } from "../model/duplicateSelection";
+import { drillContentSignature } from "../model/serialize";
 import { useBoardDisplay } from "./boardDisplay";
 
 export type Tool =
@@ -127,7 +128,10 @@ interface EditorState {
   drillId: string | null;
   lastSavedRev: number | null;
   savedAt: string | null;
+  savedContentSignature: string;
   dirty: boolean;
+  /** True until a new or duplicated drill is explicitly saved for the first time. */
+  newDraft: boolean;
   saving: boolean;
   conflict: { diskRev: number | null } | null;
 
@@ -230,6 +234,7 @@ interface EditorState {
 export const useEditor = create<EditorState>()(
   temporal(
     immer((set, get) => {
+      const initialDrill = makeDefaultDrill("untitled");
       const clamp = (drill: Drill, pt: Point): Point => {
         const spec = resolvePitch(drill.pitch);
         return {
@@ -238,11 +243,13 @@ export const useEditor = create<EditorState>()(
         };
       };
       return {
-        drill: makeDefaultDrill("untitled"),
+        drill: initialDrill,
         drillId: null,
         lastSavedRev: null,
         savedAt: null,
+        savedContentSignature: drillContentSignature(initialDrill),
         dirty: false,
+        newDraft: false,
         saving: false,
         conflict: null,
         library: null,
@@ -783,7 +790,9 @@ export const useEditor = create<EditorState>()(
             s.drillId = drill.id;
             s.lastSavedRev = rev;
             s.savedAt = drill.updatedAt ?? null;
+            s.savedContentSignature = drillContentSignature(drill);
             s.dirty = false;
+            s.newDraft = false;
             s.saving = false;
             s.conflict = null;
             s.gridOn = defaultGridOn(drill.pitch);
@@ -879,8 +888,13 @@ function reconcileAfterHistory() {
   const maxStep = s.drill.steps.length - 1;
   const ids = new Set(s.drill.entities.map((e) => e.id));
   const selection = s.selection.filter((id) => ids.has(id));
-  if (s.currentStep > maxStep || selection.length !== s.selection.length) {
-    useEditor.setState({ currentStep: Math.min(s.currentStep, maxStep), selection });
+  const dirty = s.newDraft || drillContentSignature(s.drill) !== s.savedContentSignature;
+  if (s.currentStep > maxStep || selection.length !== s.selection.length || dirty !== s.dirty) {
+    useEditor.setState({
+      currentStep: Math.min(s.currentStep, maxStep),
+      selection,
+      dirty,
+    });
   }
 }
 

@@ -82,3 +82,12 @@ export function serializeDense(drill: Drill): Drill {
     steps,
   }) as Drill;
 }
+
+/** Stable comparison form for saved-vs-draft checks. */
+export function drillContentSignature(drill: Drill): string {
+  return JSON.stringify(serializeDense(drill), (_key, value: unknown) =>
+    value && typeof value === "object" && !Array.isArray(value)
+      ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)))
+      : value
+  );
+}

@@ -5,6 +5,8 @@ import {
   Download,
   HelpCircle,
   Redo2,
+  RotateCcw,
+  Save,
   Settings,
   Undo2,
 } from "lucide-react";
@@ -16,11 +18,13 @@ import {
   runPngExport,
   runVideoExport,
 } from "../export/runExport";
+import { discardChanges, saveNow } from "../api/persistence";
 import { redo, undo, useCanRedo, useCanUndo, useEditor } from "../state/store";
 
 function SaveStatus() {
   const dirty = useEditor((s) => s.dirty);
   const saving = useEditor((s) => s.saving);
+  const newDraft = useEditor((s) => s.newDraft);
   const savedAt = useEditor((s) => s.savedAt);
   const conflict = useEditor((s) => s.conflict);
   let text: string;
@@ -30,6 +34,8 @@ function SaveStatus() {
     cls = "text-red-600 font-medium";
   } else if (saving) {
     text = "Saving…";
+  } else if (newDraft) {
+    text = "Temporary draft · not saved";
   } else if (dirty) {
     text = "Unsaved changes";
   } else if (savedAt) {
@@ -131,6 +137,9 @@ export function TopBar() {
   const setGridOn = useEditor((s) => s.setGridOn);
   const canUndo = useCanUndo();
   const canRedo = useCanRedo();
+  const dirty = useEditor((s) => s.dirty);
+  const saving = useEditor((s) => s.saving);
+  const conflict = useEditor((s) => s.conflict);
   const spec = resolvePitch(pitch);
 
   return (
@@ -170,6 +179,25 @@ export function TopBar() {
             </option>
           ))}
         </select>
+        <div className="h-5 w-px bg-zinc-200" />
+        <button
+          onClick={() => void saveNow()}
+          disabled={!dirty || saving || conflict != null}
+          title="Save drill (Ctrl+S)"
+          className="editor-save-button"
+        >
+          <Save size={15} />
+          Save
+        </button>
+        <button
+          onClick={() => void discardChanges()}
+          disabled={!dirty || saving}
+          title="Discard all unsaved changes"
+          className="editor-discard-button"
+        >
+          <RotateCcw size={15} />
+          Discard
+        </button>
         <div className="h-5 w-px bg-zinc-200" />
         <button
           onClick={undo}

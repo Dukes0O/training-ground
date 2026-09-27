@@ -36,12 +36,13 @@ export const api = {
 
   getDrill: (id: string) => j<unknown>(`/api/drills/${encodeURIComponent(id)}`),
 
-  putDrill: (id: string, drill: Drill, ifMatchRev?: number | null) =>
+  putDrill: (id: string, drill: Drill, ifMatchRev?: number | null, createOnly = false) =>
     j<{ ok: true; rev: number; updatedAt: string }>(`/api/drills/${encodeURIComponent(id)}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         ...(ifMatchRev != null ? { "If-Match": String(ifMatchRev) } : {}),
+        ...(createOnly ? { "If-None-Match": "*" } : {}),
       },
       body: JSON.stringify(drill),
     }),

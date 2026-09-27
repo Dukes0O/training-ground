@@ -23,6 +23,7 @@ vi.mock("../client", async (importOriginal) => {
 
 let persistence: typeof import("../persistence");
 let editor: typeof import("../../state/store").useEditor;
+let undo: typeof import("../../state/store").undo;
 let onChange: (event: DrillChangeEvent) => void;
 let disk: Map<string, Drill>;
 
@@ -69,7 +70,7 @@ beforeEach(async () => {
     onChange = callback;
     return () => undefined;
   });
-  ({ useEditor: editor } = await import("../../state/store"));
+  ({ useEditor: editor, undo } = await import("../../state/store"));
   persistence = await import("../persistence");
   await persistence.initPersistence();
 });
@@ -81,36 +82,65 @@ afterEach(() => {
 });
 
 describe("file watcher echoes", () => {
-  it("keeps an immediate new-drill rename and saves it after the delayed creation echo", async () => {
+  it("keeps a new drill temporary until an explicit save", async () => {
     await persistence.newDrill();
     editor.getState().setTitle("Pass, move, support");
-    await emit("untitled", "add");
 
     expect(editor.getState().conflict).toBeNull();
     expect(editor.getState().dirty).toBe(true);
+    expect(editor.getState().newDraft).toBe(true);
     expect(editor.getState().drill.title).toBe("Pass, move, support");
+    expect(disk.has("untitled")).toBe(false);
 
     await vi.advanceTimersByTimeAsync(1100);
+    expect(disk.has("untitled")).toBe(false);
+
+    await persistence.saveNow();
     expect(disk.get("untitled")?.title).toBe("Pass, move, support");
-    expect(editor.getState().library?.find((item) => item.id === "untitled")?.title).toBe("Pass, move, support");
     expect(editor.getState().dirty).toBe(false);
+    expect(editor.getState().newDraft).toBe(false);
   });
 
-  it("does not conflict when a duplicate is edited before its creation echo", async () => {
+  it("keeps a duplicate temporary until an explicit save", async () => {
     await persistence.duplicateDrill("source");
     editor.getState().setTitle("A harder variation");
-    await emit("source-copy", "add");
 
     expect(editor.getState().drillId).toBe("source-copy");
     expect(editor.getState().drill.title).toBe("A harder variation");
     expect(editor.getState().dirty).toBe(true);
+    expect(editor.getState().newDraft).toBe(true);
     expect(editor.getState().conflict).toBeNull();
+    expect(disk.has("source-copy")).toBe(false);
+
     await persistence.saveNow();
     expect(disk.get("source-copy")?.title).toBe("A harder variation");
   });
 
+  it("discards edits by restoring the last saved version", async () => {
+    editor.getState().setTitle("Temporary title");
+
+    expect(editor.getState().drill.title).toBe("Temporary title");
+    expect(disk.get("source")?.title).toBe("source");
+
+    await persistence.discardChanges();
+
+    expect(editor.getState().drill.title).toBe("source");
+    expect(editor.getState().dirty).toBe(false);
+  });
+
+  it("returns to a clean state when undo restores the saved content", () => {
+    editor.getState().setTitle("Temporary title");
+    expect(editor.getState().dirty).toBe(true);
+
+    undo();
+
+    expect(editor.getState().drill.title).toBe("source");
+    expect(editor.getState().dirty).toBe(false);
+  });
+
   it.each([false, true])("handles a same-revision external edit after consuming an echo (dirty=%s)", async (dirty) => {
     await persistence.newDrill();
+    await persistence.saveNow();
     await emit("untitled", "add");
     if (dirty) editor.getState().setTitle("My local idea");
     disk.get("untitled")!.title = "An agent's idea";
@@ -127,6 +157,7 @@ describe("file watcher echoes", () => {
 
   it("detects a same-revision agent edit coalesced with the first creation echo", async () => {
     await persistence.newDrill();
+    await persistence.saveNow();
     editor.getState().setTitle("My local idea");
     disk.get("untitled")!.notes = "New instructions written by an agent";
     await emit("untitled", "add");

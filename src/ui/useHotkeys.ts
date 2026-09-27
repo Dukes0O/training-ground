@@ -15,6 +15,12 @@ export function useHotkeys(enabled = true) {
       const state = useEditor.getState();
       // Export progress currently uses a separate overlay instead of Modal.
       if (state.exportJob) return;
+      const key = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && key === "s") {
+        e.preventDefault();
+        void saveNow();
+        return;
+      }
       const t = e.target instanceof Element ? e.target : null;
       if (
         !t ||
@@ -25,11 +31,7 @@ export function useHotkeys(enabled = true) {
       }
       // Space must still activate a focused control without toggling playback too.
       if (e.key === " " && t.closest('button, a[href], [role="button"], [role="link"], summary')) return;
-      const key = e.key.toLowerCase();
-      if ((e.ctrlKey || e.metaKey) && key === "s") {
-        e.preventDefault();
-        void saveNow(true);
-      } else if ((e.ctrlKey || e.metaKey) && key === "z") {
+      if ((e.ctrlKey || e.metaKey) && key === "z") {
         e.preventDefault();
         if (e.shiftKey) redo();
         else undo();

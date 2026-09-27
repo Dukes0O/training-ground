@@ -53,7 +53,7 @@ asks later. Dictation happens in Codex itself, not through a Training Ground spe
 - `src/board/BoardSvg.tsx` — THE renderer. Pure function of a snapshot; the editor mounts it live and exports rasterize the same component. Bundled miniature artwork is embedded in shared SVG definitions; keep the renderer free of external image references, webfonts, and foreignObject. Camera-frame clipping prevents content leaking into letterboxing. Actors draw in projected depth order; size never changes pitch coordinates.
 - `src/board/entities/miniatureAssets.tsx` — shared SVG definitions embed `src/assets/miniature-players.webp` as a data URI. The PNG source at `src/assets/miniature-players.png` was created with the built-in ImageGen tool and is retained alongside the smaller runtime WebP. `PlayerToken.tsx` places the artwork; `BallGlyph.tsx` draws the detailed ball in SVG. There is no runtime image-generation service.
 - `src/state/store.ts` — zustand store (undo via zundo; only `drill` is history-tracked)
-- `src/api/persistence.ts` — autosave, SSE reload, conflict handling (async lives here, not in the store)
+- `src/api/persistence.ts` — explicit draft save/discard, SSE reload, conflict handling (async lives here, not in the store)
 - `server/` — dumb file layer: drills/rosters/settings CRUD, SSE watch, exports writes; no validation server-side
 
 ## Conventions

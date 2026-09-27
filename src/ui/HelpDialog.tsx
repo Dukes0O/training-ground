@@ -8,7 +8,7 @@ const SHORTCUTS: [string, string][] = [
   ["Delete", "Remove selected pieces"],
   ["Esc", "Back to the select tool / clear selection"],
   ["Ctrl+Z / Ctrl+Y", "Undo / redo"],
-  ["Ctrl+S", "Save now (autosave runs anyway)"],
+  ["Ctrl+S", "Save the current draft"],
   ["?", "This help"],
 ];
 
