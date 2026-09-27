@@ -30,10 +30,10 @@ import { EditorOverlay } from "./board/EditorOverlay";
 import { useBoardInteraction } from "./board/useBoardInteraction";
 import {
   getTimeline,
-  sceneAt,
-  snapshotAtStep,
   stepAtTime,
 } from "./model/resolve";
+import { sceneWithDisplay, stepWithDisplay } from "./model/boardDisplay";
+import { useBoardDisplay } from "./state/boardDisplay";
 import { InspectorPanel } from "./inspector/InspectorPanel";
 import { LibraryPanel } from "./library/LibraryPanel";
 import { RosterDialog } from "./roster/RosterDialog";
@@ -48,6 +48,7 @@ import { SettingsDialog } from "./ui/SettingsDialog";
 import { ToastHost } from "./ui/ToastHost";
 import { TrashDialog } from "./ui/TrashDialog";
 import { ToolRail } from "./ui/ToolRail";
+import { BoardDisplayControls } from "./ui/BoardDisplayControls";
 import { TopBar } from "./ui/TopBar";
 import { CoachBriefDialog } from "./ui/CoachBriefDialog";
 import { useHotkeys } from "./ui/useHotkeys";
@@ -73,6 +74,7 @@ export default function App() {
   const drillId = useEditor((s) => s.drillId);
   const currentStep = useEditor((s) => s.currentStep);
   const gridOn = useEditor((s) => s.gridOn);
+  const displayOptions = useBoardDisplay((s) => s.options);
   const selection = useEditor((s) => s.selection);
   const mode = useEditor((s) => s.mode);
   const timeMs = useEditor((s) => s.timeMs);
@@ -83,9 +85,9 @@ export default function App() {
   const snapshot = useMemo(
     () =>
       mode === "playback"
-        ? sceneAt(drill, timeMs, gridOn)
-        : snapshotAtStep(drill, currentStep, gridOn),
-    [drill, currentStep, gridOn, mode, timeMs],
+        ? sceneWithDisplay(drill, timeMs, gridOn, displayOptions)
+        : stepWithDisplay(drill, currentStep, gridOn, displayOptions),
+    [drill, currentStep, gridOn, mode, timeMs, displayOptions],
   );
   const interaction = useBoardInteraction(snapshot);
   const selectionSet = useMemo(() => new Set(selection), [selection]);
@@ -359,6 +361,7 @@ export default function App() {
                     </BoardSvg>
                   </BoardViewport>
                   {editing && <ToolRail />}
+                  <BoardDisplayControls />
                 </div>
                 <div className="board-caption">
                   <span>

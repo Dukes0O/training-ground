@@ -1,5 +1,6 @@
 import type { Annotation, Point } from "../../model/types";
 import { samplePath } from "../../model/tween";
+import { samplePolyline } from "../../model/annotationGeometry";
 
 export const DEFAULT_ARROW_COLOR = "#ffffff";
 
@@ -32,7 +33,7 @@ function smoothPathD(pts: Point[]): string {
 }
 
 /** Sine-offset polyline along the base path — the dribble squiggle. */
-function wavyPathD(base: Point[], amp: number, wavelength: number): string {
+function wavyPathD(base: Point[], amp: number, wavelength: number, straight: boolean): string {
   const samples: Point[] = [];
   // Estimate total length to choose sample count.
   let len = 0;
@@ -41,8 +42,9 @@ function wavyPathD(base: Point[], amp: number, wavelength: number): string {
   const straightTail = Math.min(1.1, len * 0.25); // calm the end so the head reads cleanly
   for (let i = 0; i <= n; i++) {
     const t = i / n;
-    const p = samplePath(base, t);
-    const ahead = samplePath(base, Math.min(t + 0.02, 1));
+    const sample = straight ? samplePolyline : samplePath;
+    const p = sample(base, t);
+    const ahead = sample(base, Math.min(t + 0.02, 1));
     const dx = ahead.x - p.x;
     const dy = ahead.y - p.y;
     const d = Math.hypot(dx, dy) || 1;
@@ -58,16 +60,17 @@ export function ArrowGlyph({ annotation, from, to, scale: s, opacity = 1, select
   const style = annotation.style ?? "plain";
   const color = annotation.color ?? DEFAULT_ARROW_COLOR;
   const pts: Point[] = [from, ...(annotation.via ?? []), to];
+  const straight = annotation.pathMode === "straight";
 
   const thick = style === "shot" ? 0.42 * s : 0.22 * s;
   const headLen = (style === "shot" ? 1.5 : 1.1) * s;
   const headW = (style === "shot" ? 1.2 : 0.9) * s;
 
   const d =
-    style === "dribble" ? wavyPathD(pts, 0.32 * s, 1.7 * s) : smoothPathD(pts);
+    style === "dribble" ? wavyPathD(pts, 0.32 * s, 1.7 * s, straight) : straight ? `M ${pts.map((point) => `${point.x} ${point.y}`).join(" L ")}` : smoothPathD(pts);
 
   // Head alignment from the path's final direction.
-  const nearEnd = samplePath(pts, 0.96);
+  const nearEnd = straight ? [...pts].reverse().find((point) => Math.hypot(point.x - to.x, point.y - to.y) > 0.00001) ?? from : samplePath(pts, 0.96);
   const angle = (Math.atan2(to.y - nearEnd.y, to.x - nearEnd.x) * 180) / Math.PI;
 
   const dash = style === "run" ? `${0.85 * s} ${0.6 * s}` : undefined;

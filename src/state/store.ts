@@ -21,6 +21,9 @@ import { getTimeline, posesAtStep, stepAtTime } from "../model/resolve";
 import type { Formation } from "../model/formations";
 import { buildFormationSlots, matchRosterToSlots } from "../model/formations";
 import { APRON, defaultGridOn, pitchFormatId, resolvePitch } from "../pitch/formats";
+import { isValidPolygon, pointsBounds, resizePolygon } from "../model/annotationGeometry";
+import { duplicateSelection } from "../model/duplicateSelection";
+import { useBoardDisplay } from "./boardDisplay";
 
 export type Tool =
   | "select"
@@ -40,6 +43,9 @@ export type Tool =
   | "draw-dribble"
   | "draw-shot"
   | "draw-zone"
+  | "draw-ellipse"
+  | "draw-polygon"
+  | "draw-polyline"
   | "add-label";
 
 export const EQUIPMENT_TOOLS = [
@@ -168,15 +174,17 @@ interface EditorState {
   addBall: (pt: Point) => void;
   addEquipment: (kind: EquipmentKind, pt: Point) => void;
   addLabel: (pt: Point) => void;
-  addArrow: (style: ArrowStyle, from: AnchorPoint, to: AnchorPoint, via?: Point[]) => void;
-  addZone: (rect: { x: number; y: number; w: number; h: number }) => void;
+  addArrow: (style: ArrowStyle, from: AnchorPoint, to: AnchorPoint, via?: Point[], pathMode?: Annotation["pathMode"]) => void;
+  addZone: (rect: { x: number; y: number; w: number; h: number }, shape?: Annotation["shape"]) => void;
+  addPolygon: (points: Point[]) => void;
+  duplicateSelected: () => void;
   updateAnnotation: (id: string, patch: Partial<Omit<Annotation, "kind" | "id">>) => void;
   moveEntity: (id: string, pt: Point) => void;
   moveEntities: (moves: { id: string; pt: Point }[]) => void;
   setTeamStyle: (team: TeamId, patch: { fill?: string; label?: string }) => void;
   updatePlayer: (id: string, patch: Partial<Omit<Player, "kind" | "id">>) => void;
   setEquipmentColor: (id: string, color: string) => void;
-  setEntityRotation: (id: string, rotation: number) => void;
+  setEntityRotation: (id: string, rotation: number | undefined) => void;
   removeSelected: () => void;
   nudgeSelection: (dx: number, dy: number) => void;
   beginGesture: () => void;
@@ -314,6 +322,17 @@ export const useEditor = create<EditorState>()(
                 if (end && !("ref" in end) && clampPt(end)) moved.add(e.id);
               }
               for (const v of e.via ?? []) clampPt(v);
+              if (e.shape === "polygon" && e.points) {
+                const source = pointsBounds(e.points);
+                if (source) {
+                  const w = Math.min(source.w, spec.length + 2 * APRON), h = Math.min(source.h, spec.width + 2 * APRON);
+                  const target = { x: Math.min(Math.max(source.x, -APRON), spec.length + APRON - w), y: Math.min(Math.max(source.y, -APRON), spec.width + APRON - h), w, h };
+                  if (target.x !== source.x || target.y !== source.y || target.w !== source.w || target.h !== source.h) moved.add(e.id);
+                  e.points = resizePolygon(e.points, target);
+                  e.rect = target;
+                }
+                continue;
+              }
               if (e.rect) {
                 const r = e.rect;
                 r.w = Math.min(r.w, spec.length + 2 * APRON);
@@ -424,7 +443,7 @@ export const useEditor = create<EditorState>()(
             s.selection = [id];
             s.tool = "select";
           }),
-        addArrow: (style, from, to, via) =>
+        addArrow: (style, from, to, via, pathMode) =>
           set((s) => {
             const id = uniqueId(s.drill, style === "plain" ? "arrow" : style);
             s.drill.entities.push({
@@ -434,26 +453,64 @@ export const useEditor = create<EditorState>()(
               from,
               to,
               ...(via && via.length > 0 ? { via } : {}),
+              ...(pathMode === "straight" ? { pathMode } : {}),
               fromStep: s.currentStep,
               toStep: s.currentStep,
             });
             s.selection = [id];
           }),
-        addZone: (rect) =>
+        addZone: (rect, shape) =>
           set((s) => {
             const id = uniqueId(s.drill, "zone");
-            s.drill.entities.push({ kind: "zone", id, rect });
+            s.drill.entities.push({ kind: "zone", id, rect, ...(shape === "ellipse" ? { shape } : {}) });
             s.selection = [id];
             s.tool = "select";
           }),
+        addPolygon: (points) =>
+          set((s) => {
+            if (!isValidPolygon(points)) return;
+            const id = uniqueId(s.drill, "polygon");
+            s.drill.entities.push({ kind: "zone", id, shape: "polygon", points: points.map((point) => ({ ...point })), rect: pointsBounds(points) });
+            s.selection = [id];
+            s.tool = "select";
+          }),
+        duplicateSelected: () => {
+          const current = get();
+          if (current.mode !== "edit") return;
+          const duplicated = duplicateSelection(current.drill, current.selection);
+          if (!duplicated.ids.length) return;
+          const display = useBoardDisplay.getState();
+          const playerOptions = display.options.drillPlayers[current.drill.id] ?? {};
+          set((s) => {
+            s.drill = duplicated.drill;
+            s.selection = duplicated.ids;
+            s.tool = "select";
+          });
+          const copiedPlayerOptions = { ...playerOptions };
+          let hasCopiedPlayers = false;
+          for (const player of current.drill.entities) {
+            const copyId = duplicated.idMap[player.id];
+            if (player.kind === "player" && copyId) {
+              // IDs can be reused after undo/delete. Replace stale overrides,
+              // including when the original now inherits every display setting.
+              copiedPlayerOptions[copyId] = { ...playerOptions[player.id] };
+              hasCopiedPlayers = true;
+            }
+          }
+          if (hasCopiedPlayers) {
+            display.setOptions({ drillPlayers: { ...display.options.drillPlayers, [current.drill.id]: copiedPlayerOptions } });
+          }
+        },
         updateAnnotation: (id, patch) =>
           set((s) => {
             const e = s.drill.entities.find((e) => e.id === id);
             if (!e || (e.kind !== "arrow" && e.kind !== "zone" && e.kind !== "label")) return;
+            if (patch.points && !isValidPolygon(patch.points)) return;
             for (const [key, value] of Object.entries(patch)) {
               if (value === undefined) delete (e as unknown as Record<string, unknown>)[key];
               else (e as unknown as Record<string, unknown>)[key] = value;
             }
+            if (e.shape === "polygon" && e.points) e.rect = pointsBounds(e.points);
           }),
         moveEntity: (id, pt) =>
           set((s) => {
@@ -500,14 +557,15 @@ export const useEditor = create<EditorState>()(
           }),
         setEntityRotation: (id, rotation) =>
           set((s) => {
+            if (rotation != null && !Number.isFinite(rotation)) return;
             const step = s.drill.steps[s.currentStep];
             const existing = step.positions[id];
-            const normalized = ((rotation % 360) + 360) % 360;
+            const normalized = rotation == null ? undefined : ((rotation % 360) + 360) % 360;
             if (existing) {
-              existing.rotation = normalized === 0 ? undefined : normalized;
+              existing.rotation = normalized;
             } else {
               const resolved = posesAtStep(s.drill, s.currentStep).get(id);
-              if (resolved) step.positions[id] = { x: resolved.x, y: resolved.y, rotation: normalized || undefined };
+              if (resolved) step.positions[id] = { x: resolved.x, y: resolved.y, rotation: normalized };
             }
           }),
         removeSelected: () =>

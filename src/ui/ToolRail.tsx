@@ -39,6 +39,12 @@ function BallDot() {
   );
 }
 
+function ZoneIcon({ ellipse = false, polygon = false }: { ellipse?: boolean; polygon?: boolean }) {
+  return <svg width="18" height="18" viewBox="0 0 18 18" fill="rgba(250,204,21,0.25)" stroke="#ca8a04" strokeWidth="1.3" strokeDasharray="2.6 1.8">
+    {polygon ? <polygon points="3,12 5,4 13,3 15,11 9,15" /> : ellipse ? <ellipse cx="9" cy="9" rx="6" ry="5" /> : <rect x="3" y="4" width="12" height="10" rx="1" />}
+  </svg>;
+}
+
 const EQUIPMENT_ICONS: Record<string, React.ReactNode> = {
   "add-cone": (
     <svg width="18" height="18" viewBox="0 0 18 18">
@@ -90,6 +96,10 @@ const EQUIPMENT_ICONS: Record<string, React.ReactNode> = {
 
 function ArrowIcon({ style }: { style: string }) {
   const head = <polygon points="14,9 10.4,6.8 10.4,11.2" fill="currentColor" />;
+  if (style === "draw-polyline") return <svg width="18" height="18" viewBox="0 0 18 18">
+    <path d="M3 14 L6 5 L11 10 L15 4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M11 4 L15 4 L15 8" fill="none" stroke="currentColor" strokeWidth="1.5" />
+  </svg>;
   if (style === "draw-run")
     return (
       <svg width="18" height="18" viewBox="0 0 18 18" className="text-zinc-700">
@@ -124,6 +134,7 @@ const ARROW_OPTIONS: { tool: Tool; label: string }[] = [
   { tool: "draw-run", label: "Run (dashed)" },
   { tool: "draw-dribble", label: "Dribble (wavy)" },
   { tool: "draw-shot", label: "Shot (thick)" },
+  { tool: "draw-polyline", label: "Multi-point arrow" },
 ];
 
 const EQUIPMENT_OPTIONS: Tool[] = [
@@ -218,7 +229,7 @@ function Flyout({
             buttons[next]?.focus();
           }}
         >
-          <div className="tg-tool-menu-title">{label === "Arrows" ? "Show the movement" : "Set up the pitch"}</div>
+          <div className="tg-tool-menu-title">{label === "Arrows" ? "Show the movement" : label === "Zone" ? "Highlight an area" : "Set up the pitch"}</div>
           {options.map((o) => (
             <button
               key={o.tool}
@@ -302,6 +313,7 @@ export function ToolRail() {
       }}
     >
       {compact && <div className="tg-tools-panel-heading"><span>Board tools</span><button ref={closeRef} onClick={() => collapse()} aria-label="Close board tools" title="Close board tools"><X size={15} aria-hidden="true" /></button></div>}
+      <div className="tg-tool-rail-scroll">
       <ToolButton tool="select" title="Select and move (Esc)" label="Select & move" onSelect={chooseTool}>
         <MousePointer2 size={17} />
       </ToolButton>
@@ -348,17 +360,27 @@ export function ToolRail() {
             groupTools={ARROW_OPTIONS.map((o) => o.tool)}
             options={ARROW_OPTIONS.map((o) => ({ ...o, icon: <ArrowIcon style={o.tool} /> }))}
           />
-          <ToolButton tool="draw-zone" title="Zone — drag a rectangle" label="Zone" onSelect={chooseTool}>
-            <svg width="18" height="18" viewBox="0 0 18 18">
-              <rect x="3" y="4" width="12" height="10" rx="1" fill="rgba(250,204,21,0.25)" stroke="#ca8a04" strokeWidth="1.3" strokeDasharray="2.6 1.8" />
-            </svg>
-          </ToolButton>
+          <Flyout
+            title="Choose a zone shape, then drag on the board"
+            label="Zone"
+            onSelect={chooseTool}
+            groupTools={["draw-zone", "draw-ellipse", "draw-polygon"]}
+            options={[
+              { tool: "draw-zone", label: "Rectangle zone", icon: <ZoneIcon /> },
+              { tool: "draw-ellipse", label: "Ellipse / circle zone", icon: <ZoneIcon ellipse /> },
+              { tool: "draw-polygon", label: "Polygon zone", icon: <ZoneIcon polygon /> },
+            ]}
+          />
           <ToolButton tool="add-label" title="Add a text label" label="Text" onSelect={chooseTool}>
             <Type size={16} />
           </ToolButton>
         </div>
       </div>
+      {(tool === "draw-polygon" || tool === "draw-polyline") && <p className="tg-tool-hint">
+        Click corners. Enter or double-click to finish. Backspace removes a point. Esc cancels.
+      </p>}
       <PlaceTeamButton onSelect={() => collapse(false)} />
+      </div>
     </div>}
     </>
   );

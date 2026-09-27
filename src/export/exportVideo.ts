@@ -8,6 +8,7 @@ import {
   getFirstEncodableVideoCodec,
 } from "mediabunny";
 import { api } from "../api/client";
+import { DEFAULT_BOARD_DISPLAY, type BoardDisplayOptions } from "../model/boardDisplay";
 import type { Drill } from "../model/types";
 import { exportBaseName } from "./exportName";
 import { exportDimensions, renderFrames } from "./renderFrames";
@@ -22,6 +23,7 @@ export interface VideoExportOptions {
   widthPx?: number;
   fps?: number;
   signal?: AbortSignal;
+  displayOptions?: BoardDisplayOptions;
   onProgress?: (done: number, total: number, phase: string) => void;
 }
 
@@ -32,9 +34,10 @@ export interface VideoExportOptions {
 export async function exportVideo(
   drill: Drill,
   gridOn: boolean,
-  { widthPx = 1280, fps = 30, signal, onProgress }: VideoExportOptions = {}
+  { widthPx = 1280, fps = 30, signal, onProgress, displayOptions = DEFAULT_BOARD_DISPLAY }: VideoExportOptions = {}
 ): Promise<VideoExportResult> {
-  const { width, height } = exportDimensions(drill, widthPx);
+  const display = { ...displayOptions };
+  const { width, height } = exportDimensions(drill, widthPx, displayOptions);
 
   const mp4 = new Mp4OutputFormat();
   const webm = new WebMOutputFormat();
@@ -66,7 +69,7 @@ export async function exportVideo(
   await output.start();
 
   try {
-    for await (const frame of renderFrames(drill, gridOn, { widthPx, fps, signal, canvas })) {
+    for await (const frame of renderFrames(drill, gridOn, { widthPx, fps, signal, canvas, displayOptions: display })) {
       await source.add(frame.timeMs / 1000, 1 / fps);
       onProgress?.(frame.index + 1, frame.total, "Rendering frames");
     }

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Copy, Trash2 } from "lucide-react";
 import type { Annotation, ArrowStyle, Equipment, Player, TeamId } from "../model/types";
 import { resolveTeamStyles } from "../model/types";
 import { pitchFormatId, resolvePitch } from "../pitch/formats";
 import { EQUIPMENT_DEFAULT_COLORS, EQUIPMENT_LABELS } from "../board/entities/EquipmentGlyph";
 import { posesAtStep } from "../model/resolve";
 import { useEditor } from "../state/store";
+import { resizePolygon, zoneBounds } from "../model/annotationGeometry";
 
 const POSITIONS = [
   "GK", "RB", "RCB", "CB", "LCB", "LB", "RWB", "LWB",
@@ -189,8 +190,47 @@ function PlayerForm({ player }: { player: Player }) {
           ))}
         </datalist>
       </Field>
+      <PlayerGazeField id={player.id} />
       <EntityStepActions id={player.id} />
       <DeleteButton />
+    </div>
+  );
+}
+
+function DuplicateButton() {
+  const duplicate = useEditor((state) => state.duplicateSelected);
+  return <button onClick={duplicate} title="Duplicate selection (Ctrl+D)"
+    className="mb-4 flex w-full items-center justify-center gap-2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">
+    <Copy size={15} />Duplicate selection
+  </button>;
+}
+
+function PlayerGazeField({ id }: { id: string }) {
+  const rotation = useEditor((s) => posesAtStep(s.drill, s.currentStep).get(id)?.rotation);
+  const setEntityRotation = useEditor((s) => s.setEntityRotation);
+  return (
+    <div className="space-y-2 border-t border-zinc-100 pt-3">
+      <Field label="Look direction">
+        <select value={rotation == null ? "auto" : "set"}
+          onChange={(e) => setEntityRotation(id, e.target.value === "auto" ? undefined : 0)}
+          className={inputCls}>
+          <option value="auto">Automatic direction</option>
+          <option value="set">Set a direction for this step</option>
+        </select>
+      </Field>
+      {rotation != null && (
+        <Field label="Look angle (°)">
+          <input type="number" step={15} value={Math.round(rotation)}
+            onChange={(e) => {
+              if (e.target.value !== "" && Number.isFinite(e.target.valueAsNumber)) setEntityRotation(id, e.target.valueAsNumber);
+            }}
+            className={inputCls} />
+        </Field>
+      )}
+      <p className="text-xs leading-relaxed text-zinc-500">
+        Show vision cones in Board display to see where to look. Set an angle to override the
+        automatic direction: 0° right, 90° down, 180° left, 270° up. Coaching direction, not measured eye tracking.
+      </p>
     </div>
   );
 }
@@ -338,10 +378,18 @@ function ArrowForm({ annotation }: { annotation: Annotation }) {
           onPick={(c) => updateAnnotation(annotation.id, { color: c })}
         />
       </Field>
+      <Field label="Path between points">
+        <select value={annotation.pathMode ?? "smooth"} className={inputCls}
+          onChange={(event) => updateAnnotation(annotation.id, { pathMode: event.target.value === "straight" ? "straight" : undefined })}>
+          <option value="smooth">Smooth curve</option>
+          <option value="straight">Straight segments</option>
+        </select>
+      </Field>
       <VisibilityField annotation={annotation} />
       <p className="text-xs leading-relaxed text-zinc-500">
         Drag the round handles to move the ends. Ends dropped on a player or ball anchor to them
-        and follow their runs.
+        and follow their runs. Yellow handles move intermediate points. Choose Multi-point arrow
+        from the arrow tools to draw a route with corners.
       </p>
       <DeleteButton />
     </div>
@@ -350,9 +398,49 @@ function ArrowForm({ annotation }: { annotation: Annotation }) {
 
 function ZoneForm({ annotation }: { annotation: Annotation }) {
   const updateAnnotation = useEditor((s) => s.updateAnnotation);
+  const rect = zoneBounds(annotation);
   return (
     <div className="space-y-3">
       <SectionTitle>Zone</SectionTitle>
+      <Field label="Shape">
+        <select value={annotation.shape ?? "rectangle"}
+          onChange={(e) => {
+            if (!rect) return;
+            if (e.target.value === "polygon") {
+              updateAnnotation(annotation.id, { shape: "polygon", points: [
+                { x: rect.x, y: rect.y }, { x: rect.x + rect.w, y: rect.y },
+                { x: rect.x + rect.w, y: rect.y + rect.h }, { x: rect.x, y: rect.y + rect.h },
+              ], rect });
+            } else updateAnnotation(annotation.id, { shape: e.target.value === "ellipse" ? "ellipse" : undefined, points: undefined, rect });
+          }}
+          className={inputCls}>
+          <option value="rectangle">Rectangle</option>
+          <option value="ellipse">Ellipse / circle</option>
+          <option value="polygon">Polygon</option>
+        </select>
+      </Field>
+      {rect && <>
+        <div className="grid grid-cols-2 gap-2">
+          {(["w", "h"] as const).map((dimension) => (
+            <Field key={dimension} label={dimension === "w" ? "Width (m)" : "Height (m)"}>
+              <input type="number" min={0.1} step={0.5} value={Math.round(rect[dimension] * 100) / 100}
+                onChange={(e) => {
+                  const value = e.target.valueAsNumber;
+                  if (Number.isFinite(value) && value > 0) {
+                    const target = { ...rect, [dimension]: value };
+                    updateAnnotation(annotation.id, annotation.shape === "polygon" && annotation.points ? { points: resizePolygon(annotation.points, target) } : { rect: target });
+                  }
+                }} className={inputCls} />
+            </Field>
+          ))}
+        </div>
+        {annotation.shape === "ellipse" && <button
+          className="w-full rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+          onClick={() => {
+            const diameter = Math.min(rect.w, rect.h);
+            updateAnnotation(annotation.id, { rect: { x: rect.x + (rect.w - diameter) / 2, y: rect.y + (rect.h - diameter) / 2, w: diameter, h: diameter } });
+          }}>Make circle</button>}
+      </>}
       <Field label="Caption">
         <input
           value={annotation.text ?? ""}
@@ -371,7 +459,8 @@ function ZoneForm({ annotation }: { annotation: Annotation }) {
       </Field>
       <VisibilityField annotation={annotation} />
       <p className="text-xs leading-relaxed text-zinc-500">
-        Drag the zone to move it; drag the corner handle to resize.
+        Drag inside the zone to move it. Drag the white corner handle or enter its size to resize.
+        {annotation.shape === "polygon" && " Drag yellow handles to reshape the polygon. Edges cannot cross."}
       </p>
       <DeleteButton />
     </div>
@@ -640,5 +729,5 @@ export function InspectorPanel() {
     );
   }
 
-  return <div className="p-4">{body}</div>;
+  return <div className="p-4">{selection.length > 0 && <DuplicateButton />}{body}</div>;
 }

@@ -1,21 +1,29 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AnchorPoint, Annotation, Point } from "../model/types";
 import type { BoardSnapshot } from "../model/resolve";
 import { posesAtStep } from "../model/resolve";
 import { resolvePitch } from "../pitch/formats";
 import { useEditor } from "../state/store";
+import { svgPoint } from "./svgPoint";
+import { isValidPolygon, resizePolygon, zoneBounds } from "../model/annotationGeometry";
 
 type DragState =
   | { kind: "entity"; id: string; offX: number; offY: number }
   | { kind: "group"; offsets: { id: string; offX: number; offY: number }[] }
-  | { kind: "zone-move"; id: string; grab: Point; rect0: { x: number; y: number; w: number; h: number } }
-  | { kind: "zone-resize"; id: string; rect0: { x: number; y: number; w: number; h: number } }
+  | { kind: "zone-move"; id: string; grab: Point; rect0: { x: number; y: number; w: number; h: number }; points0?: Point[] }
+  | { kind: "zone-resize"; id: string; rect0: { x: number; y: number; w: number; h: number }; points0?: Point[] }
   | { kind: "arrow-body"; id: string; grab: Point; from0: Point; to0: Point; via0?: Point[] }
-  | { kind: "arrow-end"; id: string; which: "from" | "to" };
+  | { kind: "arrow-end"; id: string; which: "from" | "to" }
+  | { kind: "zone-vertex" | "arrow-via"; id: string; index: number };
+
+export type HandleDrag = { kind: "arrow-end"; id: string; which: "from" | "to" } |
+  { kind: "zone-resize"; id: string } | { kind: "zone-vertex" | "arrow-via"; id: string; index: number };
 
 export interface DrawPreview {
-  kind: "arrow" | "zone" | "marquee";
+  kind: "arrow" | "zone" | "marquee" | "polygon" | "polyline";
   style?: "pass" | "run" | "dribble" | "shot";
+  shape?: Annotation["shape"];
+  vertices?: Point[];
   from: Point;
   to: Point;
 }
@@ -33,6 +41,16 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
   const dragRef = useRef<DragState | null>(null);
   const drawRef = useRef<DrawPreview | null>(null);
   const [preview, setPreview] = useState<DrawPreview | null>(null);
+  const boardRef = useRef<SVGSVGElement | null>(null);
+  const tool = useEditor((state) => state.tool);
+  const currentStep = useEditor((state) => state.currentStep);
+  const drillId = useEditor((state) => state.drillId);
+  const mode = useEditor((state) => state.mode);
+
+  useEffect(() => {
+    drawRef.current = null;
+    setPreview(null);
+  }, [tool, currentStep, drillId, mode]);
 
   /** Player/ball under the point — for snapping arrow endpoints to anchors. */
   const hitAnchor = (pt: Point): string | null => {
@@ -56,6 +74,61 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
     return id ? { ref: id } : { x: pt.x, y: pt.y };
   };
 
+  const finishDrawing = () => {
+    const draw = drawRef.current;
+    if (!draw || (draw.kind !== "polygon" && draw.kind !== "polyline")) return;
+    const points = draw.vertices ?? [];
+    const state = useEditor.getState();
+    if (draw.kind === "polygon") {
+      if (!isValidPolygon(points)) {
+        state.addToast("info", "Add at least three corners around an area without crossing edges. Backspace removes the last corner.");
+        return;
+      }
+      state.addPolygon(points);
+    } else {
+      if (points.length < 2) {
+        state.addToast("info", "Add at least two points to finish the arrow.");
+        return;
+      }
+      state.addArrow("pass", anchorOrPoint(points[0]), anchorOrPoint(points[points.length - 1]), points.slice(1, -1), "straight");
+      state.setTool("select");
+    }
+    drawRef.current = null;
+    setPreview(null);
+  };
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const draw = drawRef.current;
+      if (!draw || (draw.kind !== "polygon" && draw.kind !== "polyline")) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (event.defaultPrevented || event.isComposing || document.querySelector('dialog[open], [aria-modal="true"]') ||
+        target?.closest('input, textarea, select, [contenteditable="true"]') || useEditor.getState().exportJob) return;
+      if (!["Enter", "Escape", "Backspace"].includes(event.key)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (event.key === "Enter") finishDrawing();
+      else if (event.key === "Escape") {
+        drawRef.current = null;
+        setPreview(null);
+        useEditor.getState().setTool("select");
+      } else {
+        const vertices = (draw.vertices ?? []).slice(0, -1);
+        drawRef.current = vertices.length ? { ...draw, vertices, from: vertices[0] } : null;
+        setPreview(drawRef.current);
+      }
+    };
+    const onDoubleClick = (event: MouseEvent) => {
+      if (event.target instanceof Node && boardRef.current?.contains(event.target)) finishDrawing();
+    };
+    window.addEventListener("keydown", onKey, true);
+    window.addEventListener("dblclick", onDoubleClick);
+    return () => {
+      window.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("dblclick", onDoubleClick);
+    };
+  }, []);
+
   const capture = (e: React.PointerEvent<Element>) => {
     const el = e.currentTarget as Element & { ownerSVGElement?: SVGSVGElement | null };
     const svg = el.ownerSVGElement ?? (el as unknown as SVGSVGElement);
@@ -69,10 +142,7 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
     e.stopPropagation();
     const svg = e.currentTarget.ownerSVGElement;
     if (!svg) return;
-    const ctm = svg.getScreenCTM();
-    if (!ctm) return;
-    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
-    const pt = { x: p.x, y: p.y };
+    const pt = svgPoint(svg, e.clientX, e.clientY);
 
     // Grabbing a piece that's already part of a multi-selection moves the
     // whole group; anything else selects (shift adds) and drags singly.
@@ -100,8 +170,8 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
     state.select([id], e.shiftKey);
     const entity = state.drill.entities.find((en) => en.id === id);
 
-    if (entity && isAnnotation(entity) && entity.kind === "zone" && entity.rect) {
-      dragRef.current = { kind: "zone-move", id, grab: pt, rect0: { ...entity.rect } };
+    if (entity && isAnnotation(entity) && entity.kind === "zone" && zoneBounds(entity)) {
+      dragRef.current = { kind: "zone-move", id, grab: pt, rect0: { ...zoneBounds(entity)! }, points0: entity.shape === "polygon" ? entity.points?.map((point) => ({ ...point })) : undefined };
       state.beginGesture();
       svg.setPointerCapture(e.pointerId);
       return;
@@ -133,16 +203,17 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
 
   /** Pointer-down on an overlay handle (arrow endpoint / zone corner). */
   const onHandlePointerDown = (
-    drag: { kind: "arrow-end"; id: string; which: "from" | "to" } | { kind: "zone-resize"; id: string },
+    drag: HandleDrag,
     e: React.PointerEvent<SVGElement>
   ) => {
     if (e.button !== 0) return;
-    e.stopPropagation();
     const state = useEditor.getState();
+    if (state.tool !== "select") return;
+    e.stopPropagation();
     if (drag.kind === "zone-resize") {
       const entity = state.drill.entities.find((en) => en.id === drag.id);
-      if (!entity || !isAnnotation(entity) || !entity.rect) return;
-      dragRef.current = { kind: "zone-resize", id: drag.id, rect0: { ...entity.rect } };
+      if (!entity || !isAnnotation(entity) || !zoneBounds(entity)) return;
+      dragRef.current = { kind: "zone-resize", id: drag.id, rect0: { ...zoneBounds(entity)! }, points0: entity.shape === "polygon" ? entity.points?.map((point) => ({ ...point })) : undefined };
     } else {
       dragRef.current = drag;
     }
@@ -155,6 +226,22 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
     const state = useEditor.getState();
     const tool = state.tool;
     switch (tool) {
+      case "draw-polygon":
+      case "draw-polyline": {
+        boardRef.current = e.currentTarget;
+        const kind = tool === "draw-polygon" ? "polygon" : "polyline";
+        const previous = drawRef.current?.kind === kind ? drawRef.current.vertices ?? [] : [];
+        if (!previous.length) state.clearSelection();
+        if (kind === "polygon" && previous.length >= 3 && Math.hypot(pt.x - previous[0].x, pt.y - previous[0].y) < 0.35) {
+          finishDrawing();
+          return;
+        }
+        const last = previous[previous.length - 1];
+        const vertices = last && Math.hypot(last.x - pt.x, last.y - pt.y) < 0.1 ? previous : [...previous, pt];
+        drawRef.current = { kind, from: vertices[0], to: pt, vertices };
+        setPreview(drawRef.current);
+        return;
+      }
       case "select": {
         // Drag on empty pitch = marquee select; a plain click (no movement)
         // clears the selection on pointer-up.
@@ -187,8 +274,9 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
       case "add-label":
         state.addLabel(pt);
         return;
-      case "draw-zone": {
-        drawRef.current = { kind: "zone", from: pt, to: pt };
+      case "draw-zone":
+      case "draw-ellipse": {
+        drawRef.current = { kind: "zone", shape: tool === "draw-ellipse" ? "ellipse" : undefined, from: pt, to: pt };
         setPreview(drawRef.current);
         e.currentTarget.setPointerCapture(e.pointerId);
         return;
@@ -220,6 +308,7 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
           break;
         case "zone-move":
           state.updateAnnotation(drag.id, {
+            ...(drag.points0 ? { points: drag.points0.map((point) => ({ x: point.x + pt.x - drag.grab.x, y: point.y + pt.y - drag.grab.y })) } : {}),
             rect: {
               ...drag.rect0,
               x: drag.rect0.x + (pt.x - drag.grab.x),
@@ -229,6 +318,7 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
           break;
         case "zone-resize":
           state.updateAnnotation(drag.id, {
+            ...(drag.points0 ? { points: resizePolygon(drag.points0, { x: drag.rect0.x, y: drag.rect0.y, w: Math.max(1, pt.x - drag.rect0.x), h: Math.max(1, pt.y - drag.rect0.y) }) } : {}),
             rect: {
               x: drag.rect0.x,
               y: drag.rect0.y,
@@ -237,6 +327,15 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
             },
           });
           break;
+        case "zone-vertex":
+        case "arrow-via": {
+          const entity = state.drill.entities.find((item) => item.id === drag.id);
+          if (!entity || !isAnnotation(entity)) break;
+          const key = drag.kind === "zone-vertex" ? "points" : "via";
+          const points = entity[key]?.map((point, index) => index === drag.index ? { ...pt } : { ...point });
+          if (points) state.updateAnnotation(drag.id, { [key]: points });
+          break;
+        }
         case "arrow-body": {
           const dx = pt.x - drag.grab.x;
           const dy = pt.y - drag.grab.y;
@@ -273,6 +372,7 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
     }
     const draw = drawRef.current;
     if (draw) {
+      if (draw.kind === "polygon" || draw.kind === "polyline") return;
       drawRef.current = null;
       setPreview(null);
       const len = Math.hypot(pt.x - draw.from.x, pt.y - draw.from.y);
@@ -303,7 +403,7 @@ export function useBoardInteraction(snapshot: BoardSnapshot) {
             y: Math.min(draw.from.y, pt.y),
             w: Math.max(1, Math.abs(pt.x - draw.from.x)),
             h: Math.max(1, Math.abs(pt.y - draw.from.y)),
-          });
+          }, draw.shape);
         }
       } else if (draw.style && len > 1.2) {
         state.addArrow(draw.style, anchorOrPoint(draw.from), anchorOrPoint(pt));

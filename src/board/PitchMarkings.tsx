@@ -1,17 +1,17 @@
 import type { PitchSpec } from "../pitch/formats";
+import { PITCH_PALETTES } from "../model/boardCamera";
+import type { PitchPalette } from "../model/boardCamera";
 
-const LINE = "#fafafa";
+const LINE = "currentColor";
 const LW = 0.12;
-const GRASS_A = "#4c9a63";
-const GRASS_B = "#469059";
 
-export function PitchMarkings({ spec, gridOn }: { spec: PitchSpec; gridOn: boolean }) {
+export function PitchMarkings({ spec, gridOn, palette = PITCH_PALETTES.grass }: { spec: PitchSpec; gridOn: boolean; palette?: PitchPalette }) {
   const { length: L, width: W } = spec;
   const stripeCount = spec.ends === "single" ? 6 : 10;
   const stripeW = L / stripeCount;
   const c = W / 2;
   return (
-    <g>
+    <g color={palette.line}>
       {Array.from({ length: stripeCount }, (_, i) => (
         <rect
           key={i}
@@ -19,10 +19,10 @@ export function PitchMarkings({ spec, gridOn }: { spec: PitchSpec; gridOn: boole
           y={0}
           width={stripeW}
           height={W}
-          fill={i % 2 === 0 ? GRASS_A : GRASS_B}
+          fill={i % 2 === 0 ? palette.stripeA : palette.stripeB}
         />
       ))}
-      {spec.grid && gridOn && <GridLines spec={spec} />}
+      {spec.grid && gridOn && <GridLines spec={spec} palette={palette} />}
       <rect x={0} y={0} width={L} height={W} fill="none" stroke={LINE} strokeWidth={LW} />
       {spec.ends === "both" && (
         <g>
@@ -46,10 +46,10 @@ export function PitchMarkings({ spec, gridOn }: { spec: PitchSpec; gridOn: boole
           <circle cx={L} cy={c} r={0.22} fill={LINE} />
         </g>
       )}
-      {spec.ends !== "none" && <EndMarkings spec={spec} />}
+      {spec.ends !== "none" && <EndMarkings spec={spec} palette={palette} />}
       {spec.ends === "both" && (
         <g transform={`translate(${L},0) scale(-1,1)`}>
-          <EndMarkings spec={spec} />
+          <EndMarkings spec={spec} palette={palette} />
         </g>
       )}
       {spec.cornerArcRadius != null && spec.ends === "both" && (
@@ -60,7 +60,7 @@ export function PitchMarkings({ spec, gridOn }: { spec: PitchSpec; gridOn: boole
 }
 
 /** Markings for the left end (x = 0); the right end reuses this mirrored. */
-function EndMarkings({ spec }: { spec: PitchSpec }) {
+function EndMarkings({ spec, palette }: { spec: PitchSpec; palette: PitchPalette }) {
   const c = spec.width / 2;
   const pa = spec.penaltyArea;
   const ga = spec.goalArea;
@@ -84,7 +84,7 @@ function EndMarkings({ spec }: { spec: PitchSpec }) {
             y={c - goal.width / 2}
             width={goal.depth}
             height={goal.width}
-            fill="rgba(255,255,255,0.22)"
+            fill={palette.goalFill}
             stroke={LINE}
             strokeWidth={0.1}
           />
@@ -93,7 +93,7 @@ function EndMarkings({ spec }: { spec: PitchSpec }) {
             y1={c - goal.width / 2}
             x2={-goal.depth / 2}
             y2={c + goal.width / 2}
-            stroke="rgba(255,255,255,0.55)"
+            stroke={palette.goalNet}
             strokeWidth={0.05}
           />
         </g>
@@ -128,14 +128,14 @@ function CornerArcs({ L, W, r }: { L: number; W: number; r: number }) {
   );
 }
 
-function GridLines({ spec }: { spec: PitchSpec }) {
+function GridLines({ spec, palette }: { spec: PitchSpec; palette: PitchPalette }) {
   const s = spec.grid!.spacing;
   const xs: number[] = [];
   const ys: number[] = [];
   for (let x = s; x < spec.length; x += s) xs.push(x);
   for (let y = s; y < spec.width; y += s) ys.push(y);
   return (
-    <g stroke="rgba(255,255,255,0.25)" strokeWidth={0.06}>
+    <g stroke={palette.grid} strokeWidth={0.06}>
       {xs.map((x) => (
         <line key={`v${x}`} x1={x} y1={0} x2={x} y2={spec.width} />
       ))}

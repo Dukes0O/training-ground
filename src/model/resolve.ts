@@ -8,10 +8,17 @@ import {
 import type { PitchSpec } from "../pitch/formats";
 import { resolvePitch } from "../pitch/formats";
 import { DEFAULT_EASE, applyEase, tweenPose } from "./tween";
+import type { BoardDisplayOptions, MotionTrail } from "./boardDisplay";
+import type { ResolvedPlayerDisplay } from "./playerDisplay";
 
 export interface ResolvedItem {
   entity: Entity;
   pose: Pose;
+  /** Optional display hints, derived from the timeline without altering poses. */
+  heading?: number;
+  moving?: boolean;
+  gaitPhase?: number;
+  playerDisplay?: ResolvedPlayerDisplay;
 }
 
 export interface ResolvedAnnotation {
@@ -33,6 +40,19 @@ export interface BoardSnapshot {
   annotations: ResolvedAnnotation[];
   /** Step index this moment belongs to (for annotation visibility windows). */
   stepIndex: number;
+  trails?: MotionTrail[];
+  appearance?: BoardDisplayOptions["appearance"];
+  timeMs?: number;
+  vision?: boolean;
+  scan?: boolean;
+  view?: BoardDisplayOptions["view"];
+  pitchStyle?: BoardDisplayOptions["pitchStyle"];
+  playerSize?: number;
+  playerLabels?: BoardDisplayOptions["playerLabels"];
+  surroundings?: BoardDisplayOptions["surroundings"];
+  stadiumLabel?: string;
+  stadiumAccent?: string;
+  cameraBounds?: { x: number; y: number; width: number; height: number };
 }
 
 /**

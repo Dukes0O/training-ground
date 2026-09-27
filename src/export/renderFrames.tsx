@@ -1,8 +1,10 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { BoardSvg } from "../board/BoardSvg";
-import { getTimeline, sceneAt } from "../model/resolve";
+import { DEFAULT_BOARD_DISPLAY, sceneWithDisplay, type BoardDisplayOptions } from "../model/boardDisplay";
+import { getTimeline } from "../model/resolve";
 import type { Drill } from "../model/types";
-import { APRON, resolvePitch } from "../pitch/formats";
+import { resolvePitch } from "../pitch/formats";
+import { boardExportDimensions } from "../model/boardCamera";
 
 export interface RenderedFrame {
   canvas: HTMLCanvasElement;
@@ -15,18 +17,13 @@ export interface RenderOptions {
   widthPx?: number;
   fps?: number;
   signal?: AbortSignal;
+  displayOptions?: BoardDisplayOptions;
   /** Draw into this canvas (so encoders can wrap it); otherwise one is created. */
   canvas?: HTMLCanvasElement;
 }
 
-export function exportDimensions(drill: Drill, widthPx: number): { width: number; height: number } {
-  const spec = resolvePitch(drill.pitch);
-  const vbW = spec.length + 2 * APRON;
-  const vbH = spec.width + 2 * APRON;
-  // H.264 requires even dimensions.
-  const width = Math.round(widthPx / 2) * 2;
-  const height = Math.round((widthPx * vbH) / vbW / 2) * 2;
-  return { width, height };
+export function exportDimensions(drill: Drill, widthPx: number, displayOptions: BoardDisplayOptions = DEFAULT_BOARD_DISPLAY): { width: number; height: number } {
+  return boardExportDimensions(resolvePitch(drill.pitch), widthPx, displayOptions.view, displayOptions.appearance, displayOptions.surroundings, displayOptions.playerSize);
 }
 
 /**
@@ -37,10 +34,11 @@ export function exportDimensions(drill: Drill, widthPx: number): { width: number
 export async function* renderFrames(
   drill: Drill,
   gridOn: boolean,
-  { widthPx = 1280, fps = 30, signal, canvas }: RenderOptions = {}
+  { widthPx = 1280, fps = 30, signal, canvas, displayOptions = DEFAULT_BOARD_DISPLAY }: RenderOptions = {}
 ): AsyncGenerator<RenderedFrame> {
+  const display = { ...displayOptions };
   const tl = getTimeline(drill);
-  const { width, height } = exportDimensions(drill, widthPx);
+  const { width, height } = exportDimensions(drill, widthPx, displayOptions);
   const target = canvas ?? document.createElement("canvas");
   target.width = width;
   target.height = height;
@@ -54,7 +52,7 @@ export async function* renderFrames(
   for (let i = 0; i < total; i++) {
     if (signal?.aborted) throw new DOMException("Export cancelled", "AbortError");
     const timeMs = Math.min(i * frameMs, tl.totalMs);
-    const snapshot = sceneAt(drill, timeMs, gridOn);
+    const snapshot = sceneWithDisplay(drill, timeMs, gridOn, display);
     const markup = renderToStaticMarkup(<BoardSvg snapshot={snapshot} width={width} height={height} />);
     const blob = new Blob([markup], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);

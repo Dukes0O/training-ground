@@ -78,7 +78,7 @@
       "x": 620, "y": 330,
       "summary": "Autosave (debounced, drag-aware), SSE-driven reloads, own-write echo suppression, and the conflict ladder.",
       "files": ["src/api/persistence.ts"],
-      "details": "Tracks the drill object reference that matches disk (savedRef) to tell edits from loads. On SSE for the open drill: same rev = own write (ignore); not dirty = silent reload; dirty = conflict modal (keep mine = force PUT, use disk = reload). Also boot, open/new/duplicate/delete flows."
+      "details": "Tracks the drill object reference that matches disk (savedRef) to tell edits from loads. Own save/new/duplicate echoes match file ID, revision, and content once; same-revision external edits still reload or conflict. A clean editor reloads silently; a dirty editor opens the conflict modal (keep mine = force PUT, use disk = reload). Also boot, open/new/duplicate/delete flows."
     },
     {
       "id": "model.types",
@@ -87,7 +87,7 @@
       "x": 910, "y": 620,
       "summary": "The drill format: entities, sparse keyframe steps, annotations with anchors and visibility windows. Meters everywhere.",
       "files": ["src/model/types.ts", "src/model/schema.ts"],
-      "details": "types.ts is the TS source of truth; schema.ts is its zod mirror (a compile-time check stops drift). parseDrill is forgiving: unknown position keys are dropped, sparse steps are legal."
+      "details": "types.ts is the TS source of truth; schema.ts is its zod mirror (a compile-time check stops drift). parseDrill is forgiving: unknown position keys are dropped, sparse steps are legal. Zones use shape rectangle/ellipse/polygon, default rectangle. Rectangles/ellipses use rect; polygons use points in pitch meters. Equal ellipse dimensions form a circle. Geometry is global; only visibility varies by step. Arrow pathMode smooth/straight chooses curved or polygonal waypoint connections."
     },
     {
       "id": "model.resolve",
@@ -97,6 +97,15 @@
       "summary": "Compiles steps into hold/move/pause segments and produces the board for any instant: sceneAt(t) tweens poses and fades notation.",
       "files": ["src/model/resolve.ts", "src/model/tween.ts"],
       "details": "Sparse forward-fill (pose at step k = last explicit pose at or before k), Catmull-Rom via-waypoints, shortest-arc rotation, instant ease, anchored arrow endpoints re-resolved every frame so they track runners, 150ms fades for step-scoped annotations."
+    },
+    {
+      "id": "model.display",
+      "label": "Board display & coaching cues",
+      "lane": "model",
+      "x": 910, "y": 950,
+      "summary": "Camera following, appearance, stadium, size, scopes, and player overrides enrich snapshots without changing drill data.",
+      "files": ["src/model/boardDisplay.ts", "src/model/boardCamera.ts", "src/model/cameraTracking.ts", "src/model/playerDisplay.ts", "src/ui/CameraTrackingControls.tsx", "src/ui/camera-tracking.css", "src/ui/PlayerDisplayOptions.tsx", "src/model/vision.ts", "src/board/VisionCones.tsx", "src/state/boardDisplay.ts", "src/ui/BoardDisplayControls.tsx", "src/ui/board-display.css"],
+      "details": "sceneWithDisplay and stepWithDisplay apply browser-local preferences. Defaults are Miniatures at 70%, Landscape, Grass, Full pitch, no stadium; all overlays start off. Views are Landscape/Portrait/Angled; pitch palettes are Grass/Stadium/Light board/Dark board. boardCamera shares an affine projection, inverse pointer mapping, upright actors/labels, and export bounds; this is not a 3D engine. Trails fade over a recent window and break at resets or visibility changes. Cones use coach-set pose.rotation or travel heading; scanning adds a deterministic sweep while cones are on. These are coaching cues, not measured eye tracking. Roles and player overrides are keyed by drill/player in browser storage. All/Involved/Supporting scopes remain subject to global switches. Camera tracking samples the timeline for gentle look-ahead, cuts across resets, and keeps the projected aspect fixed. Missing/hidden targets show the full pitch. Tracking applies in Preview and video/GIF exports; editing and Edit-mode PNG stay full pitch. Preview PNG captures the current tracked playhead. Exports capture the selected options."
     },
     {
       "id": "model.serialize",
@@ -122,8 +131,8 @@
       "lane": "model",
       "x": 910, "y": 300,
       "summary": "All editor state and actions. Only `drill` is history-tracked; a whole drag coalesces into one undo entry.",
-      "files": ["src/state/store.ts"],
-      "details": "Playback (mode/time/speed/loop), selection, tools, step operations with annotation index remapping, dialogs, toasts. The gesture trick: pause history on drag start, rewind to the stashed base, replay the final state as one tracked change."
+      "files": ["src/state/store.ts", "src/model/duplicateSelection.ts"],
+      "details": "Playback, selection, tools, step operations, dialogs, and toasts. duplicateSelection copies sparse choreography, offsets absolute geometry, remaps internal anchors, and preserves external anchors in one undoable edit. Returned ID mappings copy browser-local roles and player overrides. The gesture trick: pause history on drag start, rewind to the stashed base, replay the final state as one tracked change."
     },
     {
       "id": "pitch.formats",
@@ -140,17 +149,17 @@
       "lane": "board",
       "x": 1200, "y": 180,
       "summary": "Pure snapshot → SVG. The live editor and every export draw through this one component.",
-      "files": ["src/board/BoardSvg.tsx", "src/board/PitchMarkings.tsx"],
-      "details": "Constraint that keeps exports working: no foreignObject, no webfonts, no external hrefs. Editor-only chrome (selection handles, draw previews) comes in as children so the renderer itself stays export-safe."
+      "files": ["src/board/BoardSvg.tsx", "src/board/PitchMarkings.tsx", "src/board/StadiumSurroundings.tsx"],
+      "details": "Constraint that keeps exports working: no foreignObject, webfonts, or external image references. Miniature artwork is bundled and embedded in shared SVG definitions, so screen and export rendering use the same assets. Optional original SVG stadium stands, lights, and labeled pitch-side boards share projected bounds and exports. Camera bounds choose the visible crop. Editor-only selection handles and draw previews come in as children."
     },
     {
       "id": "board.glyphs",
       "label": "Tokens & notation glyphs",
       "lane": "board",
       "x": 1200, "y": 20,
-      "summary": "Players, ball, seven equipment kinds, and coaching arrows (pass/run/dribble/shot), zones, labels.",
-      "files": ["src/board/entities/", "src/board/annotations/"],
-      "details": "Arrows use explicit head polygons (not SVG markers) and dark underlays for contrast — both choices keep SVG-to-canvas rasterization faithful."
+      "summary": "Miniature or classic players and ball, seven equipment kinds, and coaching arrows, zones, and labels.",
+      "files": ["src/board/entities/PlayerToken.tsx", "src/board/entities/BallGlyph.tsx", "src/board/entities/miniatureAssets.tsx", "src/assets/miniature-players.webp", "src/assets/miniature-players.png", "src/board/annotations/", "src/model/annotationGeometry.ts"],
+      "details": "PlayerToken uses a transparent WebP player atlas embedded once as a data URI in shared SVG definitions. The PNG source created with built-in ImageGen is retained alongside it. BallGlyph draws the ball with SVG gradients and panels. Classic symbols remain available. Runtime rendering needs no image-generation API. Arrows retain explicit head polygons and dark underlays."
     },
     {
       "id": "board.interaction",
@@ -159,7 +168,7 @@
       "x": 1200, "y": 360,
       "summary": "Pointer state machine (drag, draw arrows/zones, re-anchor endpoints, resize) plus CSS-transform zoom/pan.",
       "files": ["src/board/useBoardInteraction.ts", "src/board/EditorOverlay.tsx", "src/board/BoardViewport.tsx"],
-      "details": "Arrow ends snap to players/ball and follow them. getScreenCTM() folds the zoom transform into pointer math, so zooming changed nothing in the interaction code."
+      "details": "Arrow ends snap to players/ball and follow them. Rectangle/ellipse zones use bounding-box move/resize; polygons have editable corners. Edit details offers Make circle. Arrow waypoints can connect smoothly or as straight segments. getScreenCTM() includes viewport zoom/pan, and the inverse board projection maps pointer positions back to drill meters in every view."
     },
     {
       "id": "ui.timeline",
@@ -177,7 +186,7 @@
       "x": 1490, "y": 540,
       "summary": "Library and saved-drill views lead into a separate board with coach notes, edit details, and grouped tools.",
       "files": ["src/App.tsx", "src/library/LibraryPanel.tsx", "src/inspector/InspectorPanel.tsx", "src/ui/ToolRail.tsx", "src/ui/Modal.tsx", "src/ui/useHotkeys.ts", "src/index.css"],
-      "details": "App owns view and coaching-panel state. Library cards render actual JSON through BoardSvg, search titles/descriptions/tags, filter any tag, and sort by title or update time. Bookmarks use optional browser localStorage. The board exposes coach notes and the existing inspector; selecting a piece opens Edit details. Native dialogs contain and return focus, while board shortcuts pause outside the board and behind dialogs/exports."
+      "details": "App owns view and coaching-panel state. Library cards render actual JSON through BoardSvg, search titles/descriptions/tags, filter any tag, and sort by title or update time. Bookmarks use optional browser localStorage. The board exposes coach notes and Edit details. Display has Board/Players tabs, Simple board/Focus involved presets, label modes, and per-player roles/overrides. Native dialogs contain and return focus, while board shortcuts pause outside the board and behind dialogs/exports."
     },
     {
       "id": "ui.brief",
@@ -193,9 +202,9 @@
       "label": "renderFrames generator",
       "lane": "export",
       "x": 1490, "y": 120,
-      "summary": "The offline frame loop: sceneAt(t) → BoardSvg markup → rasterize to one reused canvas at a fixed timestep.",
+      "summary": "The offline frame loop: sceneWithDisplay(t) → BoardSvg markup → one reused canvas at a fixed timestep.",
       "files": ["src/export/renderFrames.tsx"],
-      "details": "Deterministic (no realtime capture, no dropped frames), abortable, even-numbered dimensions for H.264. Every visual export consumes this generator."
+      "details": "Deterministic, abortable, even-numbered dimensions for H.264. Video and GIF frames capture appearance, view, pitch style, trails, vision cones, and scanning at export start. Shared projected bounds set the aspect ratio. Overlays derive from drill time, so offline frames and live playback agree."
     },
     {
       "id": "export.encoders",
@@ -204,7 +213,7 @@
       "x": 1490, "y": 300,
       "summary": "WebCodecs + mediabunny encode H.264 MP4 (VP9/WebM fallback); gifenc quantizes per-frame palettes; PNG snapshots any instant.",
       "files": ["src/export/exportVideo.ts", "src/export/exportGif.ts", "src/export/exportPng.tsx", "src/export/runExport.ts"],
-      "details": "runExport guards one job at a time with progress modal + cancel (AbortSignal threads through the frame loop). The site bundle orchestrates PNG + GIF + MP4 then asks the server to assemble site-bundle/."
+      "details": "runExport guards one job at a time with progress modal + cancel (AbortSignal threads through the frame loop). Video settings offer 1280/1920/3840 px width and 25/30/60 fps; height follows the selected view. The site bundle orchestrates PNG + GIF + MP4 then asks the server to assemble site-bundle/."
     },
     {
       "id": "export.narrate",
@@ -231,7 +240,9 @@
     { "from": "model.types", "to": "model.resolve", "label": "" },
     { "from": "model.formations", "to": "state.store", "label": "placeTeam slots" },
     { "from": "state.store", "to": "model.resolve", "label": "drill + time" },
-    { "from": "model.resolve", "to": "board.boardsvg", "label": "BoardSnapshot" },
+    { "from": "model.resolve", "to": "model.display", "label": "resolved poses & timeline" },
+    { "from": "model.display", "to": "board.boardsvg", "label": "snapshot + appearance + overlays" },
+    { "from": "ui.panels", "to": "model.display", "label": "browser display preferences" },
     { "from": "pitch.formats", "to": "model.resolve", "label": "pitch spec" },
     { "from": "pitch.formats", "to": "board.boardsvg", "label": "markings geometry" },
     { "from": "board.glyphs", "to": "board.boardsvg", "label": "tokens & notation" },

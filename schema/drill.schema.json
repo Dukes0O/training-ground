@@ -336,6 +336,41 @@
                   "additionalProperties": false
                 }
               },
+              "shape": {
+                "type": "string",
+                "enum": [
+                  "rectangle",
+                  "ellipse",
+                  "polygon"
+                ]
+              },
+              "points": {
+                "minItems": 3,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "pathMode": {
+                "type": "string",
+                "enum": [
+                  "smooth",
+                  "straight"
+                ]
+              },
               "rect": {
                 "type": "object",
                 "properties": {

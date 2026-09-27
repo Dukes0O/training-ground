@@ -1,6 +1,7 @@
 import type { BoardSnapshot } from "../model/resolve";
 import { posesAtStep } from "../model/resolve";
-import type { DrawPreview } from "./useBoardInteraction";
+import type { DrawPreview, HandleDrag } from "./useBoardInteraction";
+import { zoneBounds } from "../model/annotationGeometry";
 import { ArrowGlyph } from "./annotations/ArrowGlyph";
 import { ZoneGlyph } from "./annotations/ZoneGlyph";
 import { useEditor } from "../state/store";
@@ -10,7 +11,7 @@ interface Props {
   selection: ReadonlySet<string>;
   preview: DrawPreview | null;
   onHandlePointerDown: (
-    drag: { kind: "arrow-end"; id: string; which: "from" | "to" } | { kind: "zone-resize"; id: string },
+    drag: HandleDrag,
     e: React.PointerEvent<SVGElement>
   ) => void;
 }
@@ -54,10 +55,20 @@ export function EditorOverlay({ snapshot, selection, preview, onHandlePointerDow
   const selected = selectedId
     ? snapshot.annotations.find((a) => a.entity.id === selectedId)
     : null;
+  const selectedBounds = selected?.entity.kind === "zone" ? zoneBounds(selected.entity) : undefined;
 
   return (
     <g>
       <KeyframeBadges snapshot={snapshot} />
+      {(preview?.kind === "polygon" || preview?.kind === "polyline") && preview.vertices && (
+        <g pointerEvents="none">
+          {preview.kind === "polygon" ? <>
+            <ZoneGlyph annotation={{ kind: "zone", id: "__draft", shape: "polygon", points: [...preview.vertices, preview.to] }} scale={s} preview />
+            <polyline points={[...preview.vertices, preview.to].map((point) => `${point.x},${point.y}`).join(" ")} fill="none" stroke="#facc15" strokeWidth={0.15 * s} />
+          </> : <ArrowGlyph annotation={{ kind: "arrow", id: "__draft", style: "pass", pathMode: "straight", via: preview.vertices.slice(1) }} from={preview.vertices[0]} to={preview.to} scale={s} preview />}
+          {preview.vertices.map((point, index) => <circle key={index} cx={point.x} cy={point.y} r={0.35 * s} fill="#ffffff" stroke="#2563eb" strokeWidth={0.1 * s} />)}
+        </g>
+      )}
       {preview?.kind === "marquee" && (
         <rect
           x={Math.min(preview.from.x, preview.to.x)}
@@ -84,6 +95,7 @@ export function EditorOverlay({ snapshot, selection, preview, onHandlePointerDow
           annotation={{
             kind: "zone",
             id: "__preview",
+            shape: preview.shape,
             rect: {
               x: Math.min(preview.from.x, preview.to.x),
               y: Math.min(preview.from.y, preview.to.y),
@@ -97,6 +109,9 @@ export function EditorOverlay({ snapshot, selection, preview, onHandlePointerDow
       )}
       {selected?.entity.kind === "arrow" && selected.from && selected.to && (
         <g>
+          {selected.entity.via?.map((point, index) => <circle key={`via-${index}`} cx={point.x} cy={point.y} r={0.45 * s}
+            fill="#facc15" stroke="#2563eb" strokeWidth={0.12 * s} style={{ cursor: "move" }}
+            onPointerDown={(event) => onHandlePointerDown({ kind: "arrow-via", id: selected.entity.id, index }, event)} />)}
           {(["from", "to"] as const).map((which) => {
             const p = which === "from" ? selected.from! : selected.to!;
             const anchored = selected.entity[which] && "ref" in (selected.entity[which] as object);
@@ -116,10 +131,14 @@ export function EditorOverlay({ snapshot, selection, preview, onHandlePointerDow
           })}
         </g>
       )}
-      {selected?.entity.kind === "zone" && selected.entity.rect && (
+      {selected?.entity.kind === "zone" && selected.entity.shape === "polygon" && selected.entity.points?.map((point, index) => (
+        <circle key={`vertex-${index}`} cx={point.x} cy={point.y} r={0.45 * s} fill="#facc15" stroke="#2563eb" strokeWidth={0.12 * s}
+          style={{ cursor: "move" }} onPointerDown={(event) => onHandlePointerDown({ kind: "zone-vertex", id: selected.entity.id, index }, event)} />
+      ))}
+      {selected?.entity.kind === "zone" && selectedBounds && (
         <rect
-          x={selected.entity.rect.x + selected.entity.rect.w - 0.45 * s}
-          y={selected.entity.rect.y + selected.entity.rect.h - 0.45 * s}
+          x={selectedBounds.x + selectedBounds.w + (selected.entity.shape === "polygon" ? 0.55 : -0.45) * s}
+          y={selectedBounds.y + selectedBounds.h + (selected.entity.shape === "polygon" ? 0.55 : -0.45) * s}
           width={0.9 * s}
           height={0.9 * s}
           fill="#ffffff"

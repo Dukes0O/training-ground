@@ -30,17 +30,47 @@ Use **Chrome or Edge** — video export and narrated recording rely on Chromium 
   ladders, mannequins, poles, and hurdles from the grouped tool palette. Read **Coach’s notes**
   beside the board, or switch to **Edit details** to change the drill or a selected piece.
 - **Coaching notation** — pass (solid), run (dashed), dribble (wavy) and shot (thick) arrows;
-  endpoints snap to players and follow their runs; shaded zones; text labels; everything can be
-  scoped to specific steps and fades in/out during playback.
+  endpoints snap to players and follow their runs. Use smooth curves or straight segments
+  through arrow waypoints; shaded rectangle, ellipse, circle, or polygon zones; and text labels.
+  Notation can be scoped to specific steps and fades in/out during playback.
 - **Animation** — keyframe steps with per-step move time, coaching-beat pauses, easing and
   curved run paths. The sequence strip groups playback, speed, step order, and timing controls.
   Select a step to explain it, drag to reorder, or use Alt+Left/Right on a focused step.
+- **Board display** — open **Display** and choose **Miniatures** for miniature players and a
+  detailed ball, or **Simple tokens** for the original symbols. Turn **Players** and **Ball**
+  light trails on separately to show recent movement. Player size starts at 70% and is adjustable.
+- **Views and pitch styles** — choose **Landscape**, **Portrait**, or **Angled**, and a **Grass**,
+  **Stadium**, **Light board**, or **Dark board** palette. The angled view is a projected tactics
+  board; players and labels stay upright. View and style choices also apply to exports.
+- **Camera following** — use **Full pitch**, **Follow ball**, or **Follow player** with adjustable
+  follow zoom under **Pitch & camera**. Preview gently anticipates movement and cuts across
+  replay resets; videos and GIFs use the same framing. Editing keeps the full pitch visible.
+  PNG captures the current mode: full pitch in Edit, tracked playhead in Preview. Missing or
+  hidden targets return to the full pitch.
+- **Stadium surroundings** — optionally add original stands, lights, and pitch-side boards,
+  with your own board label and accent color. This is separate from the Stadium pitch palette.
+- **Looking and scanning** — optionally enable **Vision cones**, then **Scanning motion**, to
+  illustrate coaching direction. These are coaching cues, not measured eye tracking. Trails,
+  cones, and scanning start off. Display choices stay in this browser and apply to image and
+  video exports without changing your drill files.
+- **Selective player display** — the **Players** tab in Display assigns Involved or Supporting
+  roles and sets individual appearance, trail, vision, or scanning overrides. **Use selected
+  players** makes the board selection Involved and everyone else Supporting. On the **Board**
+  tab, apply each feature to All, Involved, or Supporting players. Global switches still apply;
+  roles start unassigned and stay with this drill in this browser.
+- **Quick display choices** — **Simple board** clears visual extras; **Focus involved** highlights
+  players assigned Involved. Presets keep roles and reset this drill's individual display
+  overrides. Player labels can show number and role, number only, or stay hidden.
+- **Duplicate a selection** — choose **Duplicate selection** in Edit details or press Ctrl+D to
+  copy selected pieces and their movement across the whole drill. Copied arrows follow copied
+  players when both are selected. Copied players retain their display roles and overrides.
 - **Team roster** — manage players from the sidebar. Fill a token from the roster, or place
   a team using a formation preset.
 - **Exports** (Export menu) — snapshot PNG (1920 px), MP4 video (H.264; WebM fallback), GIF,
   and **Site bundle**: PNG + GIF + MP4 + drill JSON + `manifest-snippet.json` +
   `AGENT-INSTRUCTIONS.md`, assembled under `exports\<drill>\site-bundle\` for handing to the
-  agent that maintains the soccer-quizzes site.
+  agent that maintains the soccer-quizzes site. Settings offers video widths of 1280, 1920,
+  or 3840 px at 25, 30, or 60 fps. Export height follows the chosen board view.
 - **Narrated takes** (Record button) — record the board plus your voice while you play and
   scrub the drill. Saves `narration-<date>.mp4` (or `.webm`) next to the other exports.
 
@@ -69,10 +99,15 @@ remains the place to browse, edit, and play the drills.
 
 Space play/pause · `,` / `.` previous/next step · arrows nudge selection (Shift = bigger) ·
 Delete remove · Esc back to select tool · Ctrl+Z / Ctrl+Y undo/redo · Ctrl+S save now
+· Ctrl+D duplicate selection
 
 Board shortcuts run while the tactics board is open. They pause in forms, modal dialogs, and
 exports. Space still activates a focused button. Dialogs keep keyboard focus inside and
 return it when closed; Escape closes dismissible dialogs.
+
+For **Polygon zone** and **Multi-point arrow**, click each corner. Enter or double-click
+finishes, Backspace removes the last point, and Escape cancels. Drag yellow handles to reshape
+corners or arrow waypoints.
 
 ## Privacy note (public repo)
 

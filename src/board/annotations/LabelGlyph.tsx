@@ -1,4 +1,6 @@
 import type { Annotation, Pose } from "../../model/types";
+import { billboardLabelOffset } from "../../model/boardCamera";
+import type { BoardProjection } from "../../model/boardCamera";
 
 export const DEFAULT_LABEL_COLOR = "#ffffff";
 
@@ -6,17 +8,19 @@ interface Props {
   annotation: Annotation;
   pose: Pose;
   scale: number;
+  projection?: BoardProjection;
   opacity?: number;
   selected?: boolean;
   onPointerDown?: (e: React.PointerEvent<SVGGElement>) => void;
 }
 
-export function LabelGlyph({ annotation, pose, scale: s, opacity = 1, selected, onPointerDown }: Props) {
+export function LabelGlyph({ annotation, pose, scale: s, projection, opacity = 1, selected, onPointerDown }: Props) {
   const text = annotation.text ?? "";
   const approxW = Math.max(text.length * 0.62 * 1.1 * s, 2 * s);
+  const offset = projection ? billboardLabelOffset(projection, pose, approxW + 0.8 * s, 1.7 * s, 0.4 * s) : { x: 0, y: 0 };
   return (
     <g
-      transform={`translate(${pose.x} ${pose.y})`}
+      transform={`translate(${pose.x + offset.x} ${pose.y + offset.y})`}
       opacity={opacity}
       onPointerDown={onPointerDown}
       style={onPointerDown ? { cursor: "grab" } : undefined}

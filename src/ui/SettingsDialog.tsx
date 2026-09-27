@@ -55,6 +55,7 @@ export function SettingsDialog() {
             >
               <option value={1280}>1280 px</option>
               <option value={1920}>1920 px</option>
+              <option value={3840}>3840 px</option>
             </select>
           </Row>
           <Row label="Video fps">
@@ -65,6 +66,7 @@ export function SettingsDialog() {
               }
               className={selectCls}
             >
+              <option value={25}>25</option>
               <option value={30}>30</option>
               <option value={60}>60</option>
             </select>

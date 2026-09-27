@@ -1,6 +1,15 @@
 {
   "decisions": [
     {
+      "id": "board_display_preferences",
+      "title": "Appearance and coaching overlays are display preferences",
+      "status": "accepted",
+      "context": "Coaches need a richer board appearance and optional movement cues while preserving existing drill files and reliable exports.",
+      "decision": "Keep appearance, view/camera, pitch/stadium, player size/roles/overrides, trails, vision cones, and scanning in browser-local display state. Defaults are Miniatures at 70%, Landscape, Grass, Full pitch, no stadium; all overlays start off. Landscape/Portrait/Angled use a shared affine SVG projection and export bounds; coordinates remain meters. Shared resolvers derive camera tracking, trails, and scanning from drill time. Tracking cuts at reset boundaries and falls back to the full pitch for a missing/hidden target. Edit snapshots clear camera bounds; Preview and moving exports retain them. Per-drill player roles are explicitly assigned; feature scopes and overrides remain subject to global switches. Cones use existing pose.rotation for coach-set direction and travel heading otherwise; they do not measure gaze. Export jobs capture the selected preferences at their start.",
+      "consequences": "No drill-schema migration, drill writes, or undo entries are needed for these choices. Scrubbing and offline exports use the same deterministic samples. Raster artwork is bundled and embedded in shared SVG definitions; Training Ground makes no runtime image-generation or paid AI/speech API calls.",
+      "touches": ["model.display", "board.glyphs", "board.boardsvg", "export.renderframes", "ui.panels"]
+    },
+    {
       "id": "manual_coaching_brief",
       "title": "Direct Codex requests and manual editing share drill files",
       "status": "accepted",
@@ -24,8 +33,8 @@
       "status": "accepted",
       "context": "The editor shows a drill on screen; PNG, MP4 and GIF exports must show the same drill. Two drawing implementations (screen + export) inevitably drift.",
       "decision": "BoardSvg is a pure function of a BoardSnapshot. The editor mounts it live; exports call renderToStaticMarkup on the same component and rasterize the SVG string to a canvas. There is no second draw path anywhere.",
-      "consequences": "Exports are pixel-identical to the editor by construction. The cost is a constraint: BoardSvg must stay free of foreignObject, webfonts and external hrefs (they break SVG-to-canvas rasterization), and editor-only chrome (handles, previews) lives in an overlay passed as children.",
-      "touches": ["board.boardsvg", "export.renderframes", "export.png", "export.video", "export.gif"]
+      "consequences": "The editor and exports share board geometry, artwork, and display options. BoardSvg must stay free of foreignObject, webfonts, and external image references. Bundled raster artwork is embedded in shared SVG definitions. Editor-only chrome (handles, previews) lives in an overlay passed as children.",
+      "touches": ["board.boardsvg", "board.glyphs", "model.display", "export.renderframes", "export.encoders"]
     },
     {
       "id": "files_not_sqlite",

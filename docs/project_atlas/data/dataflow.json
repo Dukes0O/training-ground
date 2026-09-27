@@ -21,7 +21,7 @@
         { "actor": "Store", "action": "drill state updates per pointer move", "detail": "moveEntity writes the pose into the current step; endGesture replays the drag as a single tracked change." },
         { "actor": "Persistence", "action": "autosave fires after an 800ms quiet period", "detail": "serializeDense materializes forward-fill, rounds to cm, and PUTs with If-Match: rev." },
         { "actor": "Server", "action": "atomic write, rev+1", "detail": "tmp file + rename so readers never see a half-written drill; rev/updatedAt stamped." },
-        { "actor": "Watcher", "action": "chokidar sees the change → SSE", "detail": "The app recognizes its own write via a consume-once expected-rev token and skips reloading itself." }
+        { "actor": "Watcher", "action": "chokidar sees the change → SSE", "detail": "The app consumes an expected echo once when file ID, revision, and content match its own successful save/new/duplicate write. External edits at the same revision still reload or conflict." }
       ]
     },
     {
@@ -42,7 +42,8 @@
       "title": "The export pipeline",
       "summary": "One deterministic frame loop feeds every visual format; the server lays out a ready-to-post bundle for the team site's agent.",
       "steps": [
-        { "actor": "renderFrames", "action": "sceneAt(t) → BoardSvg markup → canvas, at a fixed timestep", "detail": "The exact component the editor shows, rasterized frame by frame; abortable; even dimensions for H.264." },
+        { "actor": "Coach", "action": "chooses camera, appearance, pitch/stadium, player scopes, and optional trails, vision cones, or scanning", "detail": "Display choices and per-drill player roles/overrides stay in browser storage. Camera following uses deterministic timeline samples and fixed-aspect bounds in Preview/video/GIF. Edit-mode PNG is full pitch; Preview PNG captures the tracked playhead. Cones illustrate coach-set look direction or travel heading, not measured eye tracking. An export captures the selected options at its start." },
+        { "actor": "renderFrames", "action": "sceneWithDisplay(t) → BoardSvg markup → canvas, at a fixed timestep", "detail": "The board and exports share projected bounds, pitch palettes, bundled artwork, and deterministic recent-motion trails, including breaks across instant resets. Embedded SVG image data avoids external image requests; output remains abortable with even dimensions for H.264." },
         { "actor": "Encoders", "action": "WebCodecs H.264 → mediabunny MP4 (VP9/WebM fallback); gifenc GIF; PNG snapshot", "detail": "Hardware encode runs faster than realtime; GIF defaults stay modest (720px/12fps) with a size warning past 20s." },
         { "actor": "Server", "action": "streams blobs to exports/<drill>/", "detail": "Streaming + tmp/rename: no RAM spike on long narrations, no partial files." },
         { "actor": "Site bundle", "action": "poster + GIF + MP4 + drill JSON + manifest-snippet.json + AGENT-INSTRUCTIONS.md", "detail": "The snippet matches the soccer-quizzes manifest shape; the instructions tell the site agent exactly where each file goes." },

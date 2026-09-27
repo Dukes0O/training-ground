@@ -69,6 +69,13 @@ describe("samplePath", () => {
 });
 
 describe("tweenPose", () => {
+  it("preserves an explicit zero gaze during movement without authoring one by default", () => {
+    const from = { x: 0, y: 0, rotation: 0 };
+    const to = { x: 0, y: 10, rotation: 0 };
+    expect(tweenPose(from, to, 0.5).rotation).toBe(0);
+    expect(tweenPose({ x: 0, y: 0 }, { x: 0, y: 10 }, 0.5).rotation).toBeUndefined();
+  });
+
   it("honors via waypoints from the target pose", () => {
     const mid = tweenPose({ x: 0, y: 0 }, { x: 10, y: 0, via: [{ x: 5, y: 6 }] }, 0.5);
     expect(mid.y).toBeGreaterThan(3); // bows toward the waypoint

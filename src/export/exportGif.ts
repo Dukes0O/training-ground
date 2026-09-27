@@ -1,5 +1,6 @@
 import { GIFEncoder, applyPalette, quantize } from "gifenc";
 import { api } from "../api/client";
+import { DEFAULT_BOARD_DISPLAY, type BoardDisplayOptions } from "../model/boardDisplay";
 import type { Drill } from "../model/types";
 import { exportBaseName } from "./exportName";
 import { renderFrames } from "./renderFrames";
@@ -13,6 +14,7 @@ export interface GifExportOptions {
   widthPx?: number;
   fps?: number;
   signal?: AbortSignal;
+  displayOptions?: BoardDisplayOptions;
   onProgress?: (done: number, total: number, phase: string) => void;
 }
 
@@ -24,12 +26,13 @@ export interface GifExportOptions {
 export async function exportGif(
   drill: Drill,
   gridOn: boolean,
-  { widthPx = 720, fps = 12, signal, onProgress }: GifExportOptions = {}
+  { widthPx = 720, fps = 12, signal, onProgress, displayOptions = DEFAULT_BOARD_DISPLAY }: GifExportOptions = {}
 ): Promise<GifExportResult> {
+  const display = { ...displayOptions };
   const gif = GIFEncoder();
   const delay = Math.round(1000 / fps);
 
-  for await (const frame of renderFrames(drill, gridOn, { widthPx, fps, signal })) {
+  for await (const frame of renderFrames(drill, gridOn, { widthPx, fps, signal, displayOptions: display })) {
     const ctx = frame.canvas.getContext("2d");
     if (!ctx) throw new Error("Canvas 2D unavailable");
     const { width, height } = frame.canvas;

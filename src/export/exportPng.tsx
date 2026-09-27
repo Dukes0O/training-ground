@@ -1,9 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { api } from "../api/client";
 import { BoardSvg } from "../board/BoardSvg";
-import { snapshotAtStep } from "../model/resolve";
+import { DEFAULT_BOARD_DISPLAY, sceneWithDisplay, stepWithDisplay, type BoardDisplayOptions } from "../model/boardDisplay";
 import type { Drill } from "../model/types";
-import { APRON } from "../pitch/formats";
+import { boardExportDimensions } from "../model/boardCamera";
 import { exportBaseName } from "./exportName";
 
 /**
@@ -15,15 +15,17 @@ export async function exportPng(
   stepIndex: number,
   gridOn: boolean,
   widthPx = 1920,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  displayOptions: BoardDisplayOptions = DEFAULT_BOARD_DISPLAY,
+  timeMs?: number
 ): Promise<{ path: string }> {
-  const snapshot = snapshotAtStep(drill, stepIndex, gridOn);
-  const vbW = snapshot.spec.length + 2 * APRON;
-  const vbH = snapshot.spec.width + 2 * APRON;
-  const heightPx = Math.round((widthPx * vbH) / vbW / 2) * 2;
+  const snapshot = timeMs === undefined
+    ? stepWithDisplay(drill, stepIndex, gridOn, displayOptions)
+    : sceneWithDisplay(drill, timeMs, gridOn, displayOptions);
+  const { width: renderedWidth, height: heightPx } = boardExportDimensions(snapshot.spec, widthPx, displayOptions.view, displayOptions.appearance, displayOptions.surroundings, displayOptions.playerSize);
 
   const markup = renderToStaticMarkup(
-    <BoardSvg snapshot={snapshot} width={widthPx} height={heightPx} />
+    <BoardSvg snapshot={snapshot} width={renderedWidth} height={heightPx} />
   );
   const svgBlob = new Blob([markup], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(svgBlob);
@@ -32,11 +34,11 @@ export async function exportPng(
     img.src = url;
     await img.decode();
     const canvas = document.createElement("canvas");
-    canvas.width = widthPx;
+    canvas.width = renderedWidth;
     canvas.height = heightPx;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Canvas 2D unavailable");
-    ctx.drawImage(img, 0, 0, widthPx, heightPx);
+    ctx.drawImage(img, 0, 0, renderedWidth, heightPx);
     const png = await new Promise<Blob>((resolve, reject) =>
       canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("PNG encoding failed"))), "image/png")
     );

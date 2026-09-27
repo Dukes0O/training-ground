@@ -98,6 +98,6 @@ export function tweenPose(from: Pose, to: Pose, p: number): Pose {
   const out: Pose = { x: pt.x, y: pt.y };
   const fromRot = from.rotation ?? 0;
   const toRot = to.rotation ?? 0;
-  if (fromRot !== 0 || toRot !== 0) out.rotation = lerpAngle(fromRot, toRot, p);
+  if (from.rotation != null || to.rotation != null) out.rotation = lerpAngle(fromRot, toRot, p);
   return out;
 }

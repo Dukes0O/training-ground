@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Drill, Point } from "./types";
 import { densifySteps } from "./serialize";
 import { APRON, resolvePitch } from "../pitch/formats";
+import { isValidPolygon } from "./annotationGeometry";
 
 // zod mirror of the types in types.ts — the runtime/source-of-truth schema.
 // `npm run schema` generates schema/drill.schema.json from DrillSchema, and
@@ -57,6 +58,9 @@ export const AnnotationSchema = z.object({
   from: AnchorSchema.optional(),
   to: AnchorSchema.optional(),
   via: z.array(PointSchema).optional(),
+  shape: z.enum(["rectangle", "ellipse", "polygon"]).optional(),
+  points: z.array(PointSchema).min(3).optional(),
+  pathMode: z.enum(["smooth", "straight"]).optional(),
   rect: z
     .object({ x: z.number(), y: z.number(), w: z.number().positive(), h: z.number().positive() })
     .optional(),
@@ -178,7 +182,9 @@ export function semanticIssues(drill: Drill): DrillIssue[] {
       if (e.kind === "arrow" && (!e.from || !e.to)) {
         issues.push({ level: "error", message: `arrow "${e.id}" needs both "from" and "to"` });
       }
-      if (e.kind === "zone" && !e.rect) {
+      if (e.kind === "zone" && e.shape === "polygon" && !isValidPolygon(e.points ?? [])) {
+        issues.push({ level: "error", message: `polygon "${e.id}" needs at least three corners enclosing an area without crossed edges` });
+      } else if (e.kind === "zone" && e.shape !== "polygon" && !e.rect) {
         issues.push({ level: "error", message: `zone "${e.id}" needs a "rect"` });
       }
       if (e.kind === "label") {
@@ -235,6 +241,7 @@ function coordinateIssues(drill: Drill): DrillIssue[] {
       if (end && !("ref" in end) && !inBounds(end)) flag(e.id, "in an endpoint");
     }
     for (const v of e.via ?? []) if (!inBounds(v)) flag(e.id, "in a via waypoint");
+    for (const point of e.points ?? []) if (!inBounds(point)) flag(e.id, "in a polygon vertex");
     if (e.rect) {
       const corners = [
         { x: e.rect.x, y: e.rect.y },

@@ -36,6 +36,9 @@ export function useHotkeys(enabled = true) {
       } else if ((e.ctrlKey || e.metaKey) && key === "y") {
         e.preventDefault();
         redo();
+      } else if ((e.ctrlKey || e.metaKey) && key === "d") {
+        e.preventDefault();
+        if (state.mode === "edit") state.duplicateSelected();
       } else if (e.key === " ") {
         e.preventDefault();
         state.togglePlay();

@@ -62,7 +62,13 @@ export interface Annotation {
   from?: AnchorPoint;
   to?: AnchorPoint;
   via?: Point[];
+  /** Arrow waypoint connections; omitted preserves the smooth path. */
+  pathMode?: "smooth" | "straight";
   rect?: { x: number; y: number; w: number; h: number };
+  /** Zone shape inside rect's bounds; omitted means rectangle. */
+  shape?: "rectangle" | "ellipse" | "polygon";
+  /** Polygon zone vertices in pitch coordinates. */
+  points?: Point[];
   text?: string;
   color?: string;
   /** Visible from this step index (inclusive). Default: every step. */

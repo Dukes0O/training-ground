@@ -1,0 +1,1636 @@
+{
+  "$schema": "../schema/drill.schema.json",
+  "schemaVersion": 1,
+  "id": "preview-kickoff-left",
+  "title": "PREVIEW — Left kickoff: watch, then learn",
+  "description": "Watch the kickoff once, then replay with field thirds, three coaching pauses and fading support runs. RM starts toward goal after LM reaches the ball.",
+  "tags": [
+    "preview",
+    "kickoff",
+    "8v8",
+    "left",
+    "teaching replay"
+  ],
+  "notes": "WORKING PREVIEW ONLY. This copy is separate from the saved drill library. No Git commit or push.\n\nFIRST PASS: Watch the whole play once without field highlights or coaching stops. Primary CAM, pass and wide-run arrows remain.\n\nSECOND PASS: The field is divided lengthwise into defensive, possession and attacking thirds, and across its width into left, centre and right lanes. The left lane activates when the CAM moves. The possession third activates when the CAM receives; pause for 1.5 seconds. The attacking third replaces it as the forward pass arrives; pause for 1.7 seconds when LM reaches the ball. RM then starts a diagonal run toward goal; pause for 2 seconds to review support.\n\nPALE CURVED ARROWS: Supporting runs appear briefly before the teaching replay and fade as the kickoff begins, leaving the primary actions clear. The far midfielder's later run has its own brief arrow.\n\nASSUMPTION: The final run shows what to do IF our wide midfielder secures the ball. Opposition and the contested outcome are still to be added. The far midfielder only begins the run here; no finish is scripted.\n\nVOICE: The app's Record button can record the coach's voice over playback. This preview contains no audio.\n\nFIRST VERSION: Our eight players only; the sequence stops at the expected challenge. Opposition positions and the result of that challenge are deliberately left for the next version.\n\nSETUP: Attack left to right on the 60 × 40 m 8v8 pitch. Left is the top touchline, matching your formation diagram. GK; LD and RD; CDM slightly ahead of them; LM and RM; CAM; ST. For this kickoff variation, BOTH wide mids begin just inside their own half at the halfway line, rather than in their normal deeper positions. The ball begins on the centre spot. Numbers identify roles, not a named roster.\n\nTRIGGER: As the striker takes the kickoff back, the CAM moves left to receive. The LM reads that movement and accelerates beyond halfway once the ball moves. These actions happen together. The CAM releases the next pass early into space ahead of the LM, without waiting for the LM to stop or check back.\n\nTEAM MOVEMENT: ST runs forward and toward the chosen side to support inside the ball. CAM follows the pass as an inside/backward option. The far RM moves forward and narrows while remaining on the far side. LD, RD and CDM all step up and shift left; CDM stays slightly ahead of the two defenders, available to drop into their line if needed. GK moves up modestly behind the defence.\n\nSTOP AND REVIEW: The shaded area is where an opponent is expected to challenge the LM. It does not show a guaranteed successful reception. Review the timing of the run, the weight of the early pass and the supporting distances before adding defenders.\n\nASSUMPTIONS: Distances and timing are a first coaching sketch, not measurements supplied by you. The animation uses continuous movement, with a hold at setup and at the challenge. Pair with the mirrored right-side kickoff.\n\nFORMATION REFERENCE: https://dukes0o.github.io/soccer-quizzes/resources/formation.html?id=formation-21211",
+  "themeColor": "#2563eb",
+  "pitch": "8v8",
+  "teams": {
+    "home": {
+      "label": "Our team",
+      "fill": "#2563eb",
+      "text": "#ffffff"
+    }
+  },
+  "entities": [
+    {
+      "kind": "player",
+      "id": "gk",
+      "team": "home",
+      "number": 1,
+      "position": "GK"
+    },
+    {
+      "kind": "player",
+      "id": "ld",
+      "team": "home",
+      "number": 4,
+      "position": "LD"
+    },
+    {
+      "kind": "player",
+      "id": "rd",
+      "team": "home",
+      "number": 2,
+      "position": "RD"
+    },
+    {
+      "kind": "player",
+      "id": "cdm",
+      "team": "home",
+      "number": 6,
+      "position": "CDM"
+    },
+    {
+      "kind": "player",
+      "id": "lm",
+      "team": "home",
+      "number": 11,
+      "position": "LM"
+    },
+    {
+      "kind": "player",
+      "id": "rm",
+      "team": "home",
+      "number": 7,
+      "position": "RM"
+    },
+    {
+      "kind": "player",
+      "id": "cam",
+      "team": "home",
+      "number": 10,
+      "position": "CAM"
+    },
+    {
+      "kind": "player",
+      "id": "st",
+      "team": "home",
+      "number": 9,
+      "position": "ST"
+    },
+    {
+      "kind": "ball",
+      "id": "ball"
+    },
+    {
+      "kind": "arrow",
+      "id": "watch-cam-cue",
+      "style": "run",
+      "from": {
+        "x": 25,
+        "y": 20
+      },
+      "to": {
+        "x": 25,
+        "y": 16
+      },
+      "color": "#fde68a",
+      "fromStep": 0,
+      "toStep": 1
+    },
+    {
+      "kind": "arrow",
+      "id": "replay-cam-cue",
+      "style": "run",
+      "from": {
+        "x": 25,
+        "y": 20
+      },
+      "to": {
+        "x": 25,
+        "y": 16
+      },
+      "color": "#fde68a",
+      "fromStep": 6,
+      "toStep": 8
+    },
+    {
+      "kind": "arrow",
+      "id": "watch-kickoff-pass",
+      "style": "pass",
+      "from": {
+        "x": 30,
+        "y": 20
+      },
+      "to": {
+        "x": 25.8,
+        "y": 17
+      },
+      "color": "#ffffff",
+      "fromStep": 0,
+      "toStep": 1
+    },
+    {
+      "kind": "arrow",
+      "id": "replay-kickoff-pass",
+      "style": "pass",
+      "from": {
+        "x": 30,
+        "y": 20
+      },
+      "to": {
+        "x": 25.8,
+        "y": 17
+      },
+      "color": "#ffffff",
+      "fromStep": 6,
+      "toStep": 8
+    },
+    {
+      "kind": "arrow",
+      "id": "watch-wide-run",
+      "style": "run",
+      "from": {
+        "x": 29,
+        "y": 4
+      },
+      "to": {
+        "x": 40.7,
+        "y": 6.5
+      },
+      "color": "#fde68a",
+      "fromStep": 1,
+      "toStep": 3
+    },
+    {
+      "kind": "arrow",
+      "id": "replay-wide-run",
+      "style": "run",
+      "from": {
+        "x": 29,
+        "y": 4
+      },
+      "to": {
+        "x": 40.7,
+        "y": 6.5
+      },
+      "color": "#fde68a",
+      "fromStep": 7,
+      "toStep": 10
+    },
+    {
+      "kind": "arrow",
+      "id": "watch-early-pass",
+      "style": "pass",
+      "from": {
+        "x": 25.8,
+        "y": 17
+      },
+      "to": {
+        "x": 40.2,
+        "y": 5.8
+      },
+      "color": "#ffffff",
+      "fromStep": 2,
+      "toStep": 3
+    },
+    {
+      "kind": "arrow",
+      "id": "replay-early-pass",
+      "style": "pass",
+      "from": {
+        "x": 25.8,
+        "y": 17
+      },
+      "to": {
+        "x": 40.2,
+        "y": 5.8
+      },
+      "color": "#ffffff",
+      "fromStep": 9,
+      "toStep": 10
+    },
+    {
+      "kind": "zone",
+      "id": "length-third-0",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 20,
+        "h": 40
+      },
+      "color": "#dbe8db35",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "zone",
+      "id": "width-third-0",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 60,
+        "h": 13.333333333333334
+      },
+      "color": "#dbe8db35",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "zone",
+      "id": "length-third-1",
+      "rect": {
+        "x": 20,
+        "y": 0,
+        "w": 20,
+        "h": 40
+      },
+      "color": "#dbe8db35",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "zone",
+      "id": "width-third-1",
+      "rect": {
+        "x": 0,
+        "y": 13.333333333333334,
+        "w": 60,
+        "h": 13.333333333333334
+      },
+      "color": "#dbe8db35",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "zone",
+      "id": "length-third-2",
+      "rect": {
+        "x": 40,
+        "y": 0,
+        "w": 20,
+        "h": 40
+      },
+      "color": "#dbe8db35",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "zone",
+      "id": "width-third-2",
+      "rect": {
+        "x": 0,
+        "y": 26.666666666666668,
+        "w": 60,
+        "h": 13.333333333333334
+      },
+      "color": "#dbe8db35",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "zone",
+      "id": "active-wide-lane",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 60,
+        "h": 13.333333333333334
+      },
+      "color": "#86cde8a0",
+      "fromStep": 7,
+      "toStep": 12
+    },
+    {
+      "kind": "zone",
+      "id": "active-possession",
+      "rect": {
+        "x": 20,
+        "y": 0,
+        "w": 20,
+        "h": 40
+      },
+      "color": "#e6d17aa0",
+      "fromStep": 8,
+      "toStep": 9
+    },
+    {
+      "kind": "zone",
+      "id": "active-attack",
+      "rect": {
+        "x": 40,
+        "y": 0,
+        "w": 20,
+        "h": 40
+      },
+      "color": "#f2d176a0",
+      "fromStep": 10,
+      "toStep": 12
+    },
+    {
+      "kind": "label",
+      "id": "watch-title",
+      "text": "1 / WATCH THE PLAY",
+      "color": "#e4eddf",
+      "fromStep": 0,
+      "toStep": 5
+    },
+    {
+      "kind": "label",
+      "id": "defensive-title",
+      "text": "DEFENSIVE",
+      "color": "#e4eddf",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "label",
+      "id": "possession-title",
+      "text": "POSSESSION",
+      "color": "#e4eddf",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "label",
+      "id": "attacking-title",
+      "text": "ATTACKING",
+      "color": "#e4eddf",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "label",
+      "id": "left-title",
+      "text": "LEFT",
+      "color": "#d3e6e5",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "label",
+      "id": "centre-title",
+      "text": "CENTRE",
+      "color": "#d3e6e5",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "label",
+      "id": "right-title",
+      "text": "RIGHT",
+      "color": "#d3e6e5",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "label",
+      "id": "teach-title",
+      "text": "2 / FOLLOW THE CUES",
+      "color": "#e4eddf",
+      "fromStep": 6,
+      "toStep": 12
+    },
+    {
+      "kind": "arrow",
+      "id": "support-ld",
+      "style": "run",
+      "from": {
+        "x": 12,
+        "y": 11
+      },
+      "to": {
+        "x": 15.5,
+        "y": 10
+      },
+      "via": [
+        {
+          "x": 13.75,
+          "y": 11.5
+        }
+      ],
+      "color": "#a9c6b580",
+      "fromStep": 6,
+      "toStep": 6
+    },
+    {
+      "kind": "arrow",
+      "id": "support-rd",
+      "style": "run",
+      "from": {
+        "x": 12,
+        "y": 29
+      },
+      "to": {
+        "x": 15.5,
+        "y": 27
+      },
+      "via": [
+        {
+          "x": 13.75,
+          "y": 29
+        }
+      ],
+      "color": "#a9c6b580",
+      "fromStep": 6,
+      "toStep": 6
+    },
+    {
+      "kind": "arrow",
+      "id": "support-cdm",
+      "style": "run",
+      "from": {
+        "x": 17,
+        "y": 20
+      },
+      "to": {
+        "x": 20.5,
+        "y": 18.5
+      },
+      "via": [
+        {
+          "x": 18.75,
+          "y": 20.25
+        }
+      ],
+      "color": "#a9c6b580",
+      "fromStep": 6,
+      "toStep": 6
+    },
+    {
+      "kind": "arrow",
+      "id": "support-rm",
+      "style": "run",
+      "from": {
+        "x": 29,
+        "y": 36
+      },
+      "to": {
+        "x": 32.5,
+        "y": 31.5
+      },
+      "via": [
+        {
+          "x": 30.75,
+          "y": 34.75
+        }
+      ],
+      "color": "#a9c6b580",
+      "fromStep": 6,
+      "toStep": 6
+    },
+    {
+      "kind": "arrow",
+      "id": "support-st",
+      "style": "run",
+      "from": {
+        "x": 29,
+        "y": 20
+      },
+      "to": {
+        "x": 34,
+        "y": 17
+      },
+      "via": [
+        {
+          "x": 31.5,
+          "y": 19.5
+        }
+      ],
+      "color": "#a9c6b580",
+      "fromStep": 6,
+      "toStep": 6
+    },
+    {
+      "kind": "arrow",
+      "id": "far-mid-drive",
+      "style": "run",
+      "from": {
+        "x": 35,
+        "y": 26
+      },
+      "to": {
+        "x": 40.5,
+        "y": 23
+      },
+      "via": [
+        {
+          "x": 37.6,
+          "y": 24.8
+        }
+      ],
+      "color": "#c5dac6a0",
+      "fromStep": 12,
+      "toStep": 12
+    }
+  ],
+  "steps": [
+    {
+      "name": "WATCH · Kickoff setup — both wide mids at halfway",
+      "durationMs": 1500,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 3,
+          "y": 20,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 12,
+          "y": 11,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 12,
+          "y": 29,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 17,
+          "y": 20,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 29,
+          "y": 4,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 29,
+          "y": 36,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 25,
+          "y": 20,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 29,
+          "y": 20,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 30,
+          "y": 20,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "WATCH · ST passes back; CAM goes left and LM sprints",
+      "durationMs": 1000,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 3.5,
+          "y": 19.8,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 13,
+          "y": 10.8,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 13,
+          "y": 28.3,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 18,
+          "y": 19.5,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 32.5,
+          "y": 4.2,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 30.5,
+          "y": 34.5,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 25,
+          "y": 16,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 30.7,
+          "y": 19.5,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 25.8,
+          "y": 17,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "WATCH · CAM releases early into the LM’s running lane",
+      "durationMs": 1050,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 4.5,
+          "y": 19,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 15.5,
+          "y": 10,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 15.5,
+          "y": 27,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 20.5,
+          "y": 18.5,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 36.8,
+          "y": 4.5,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 32.5,
+          "y": 31.5,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 26.5,
+          "y": 15,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 34,
+          "y": 17,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 34,
+          "y": 10.75,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "WATCH · Pass reaches the space; the whole team shifts left",
+      "durationMs": 1000,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 5.5,
+          "y": 18,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 19,
+          "y": 9.3,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 19,
+          "y": 25.3,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 23,
+          "y": 17.5,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 39.1,
+          "y": 5.2,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 34,
+          "y": 28,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 29,
+          "y": 13.5,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 37.5,
+          "y": 14.5,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 40.2,
+          "y": 5.8,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "WATCH · Expected challenge — support inside and behind",
+      "durationMs": 700,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 6,
+          "y": 17.5,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 21,
+          "y": 9,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 21,
+          "y": 24,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 25,
+          "y": 16,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 40.7,
+          "y": 6.5,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 35,
+          "y": 26,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 31,
+          "y": 12,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 40,
+          "y": 13,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 41.3,
+          "y": 5.8,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "WATCH · RM starts toward goal after LM receives",
+      "durationMs": 1400,
+      "pauseAfterMs": 700,
+      "positions": {
+        "gk": {
+          "x": 6,
+          "y": 17.5,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 21,
+          "y": 9,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 21,
+          "y": 24,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 26,
+          "y": 16,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 40.7,
+          "y": 6.5,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 40.5,
+          "y": 23,
+          "via": [
+            {
+              "x": 37.6,
+              "y": 24.8
+            }
+          ],
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 33,
+          "y": 11.8,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 42,
+          "y": 13.5,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 41.3,
+          "y": 5.8,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "REPLAY · See the thirds and supporting runs",
+      "durationMs": 1,
+      "pauseAfterMs": 1800,
+      "positions": {
+        "gk": {
+          "x": 3,
+          "y": 20,
+          "ease": "instant"
+        },
+        "ld": {
+          "x": 12,
+          "y": 11,
+          "ease": "instant"
+        },
+        "rd": {
+          "x": 12,
+          "y": 29,
+          "ease": "instant"
+        },
+        "cdm": {
+          "x": 17,
+          "y": 20,
+          "ease": "instant"
+        },
+        "lm": {
+          "x": 29,
+          "y": 4,
+          "ease": "instant"
+        },
+        "rm": {
+          "x": 29,
+          "y": 36,
+          "ease": "instant"
+        },
+        "cam": {
+          "x": 25,
+          "y": 20,
+          "ease": "instant"
+        },
+        "st": {
+          "x": 29,
+          "y": 20,
+          "ease": "instant"
+        },
+        "ball": {
+          "x": 30,
+          "y": 20,
+          "ease": "instant"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "REPLAY · CAM moves left: activate the left lane",
+      "durationMs": 400,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 3.2,
+          "y": 19.92,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 12.4,
+          "y": 10.92,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 12.4,
+          "y": 28.72,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 17.4,
+          "y": 19.8,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 30.4,
+          "y": 4.08,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 29.6,
+          "y": 35.4,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 25,
+          "y": 18.4,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 29.68,
+          "y": 19.8,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 28.32,
+          "y": 18.8,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "PAUSE · CAM receives in the possession third",
+      "durationMs": 600,
+      "pauseAfterMs": 1500,
+      "positions": {
+        "gk": {
+          "x": 3.5,
+          "y": 19.8,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 13,
+          "y": 10.8,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 13,
+          "y": 28.3,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 18,
+          "y": 19.5,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 32.5,
+          "y": 4.2,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 30.5,
+          "y": 34.5,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 25,
+          "y": 16,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 30.7,
+          "y": 19.5,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 25.8,
+          "y": 17,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "REPLAY · Pass early into the LM run",
+      "durationMs": 1050,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 4.5,
+          "y": 19,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 15.5,
+          "y": 10,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 15.5,
+          "y": 27,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 20.5,
+          "y": 18.5,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 36.8,
+          "y": 4.5,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 32.5,
+          "y": 31.5,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 26.5,
+          "y": 15,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 34,
+          "y": 17,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 34,
+          "y": 10.75,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "REPLAY · The pass enters the attacking third",
+      "durationMs": 1000,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 5.5,
+          "y": 18,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 19,
+          "y": 9.3,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 19,
+          "y": 25.3,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 23,
+          "y": 17.5,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 39.1,
+          "y": 5.2,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 34,
+          "y": 28,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 29,
+          "y": 13.5,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 37.5,
+          "y": 14.5,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 40.2,
+          "y": 5.8,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "PAUSE · LM reaches the ball: support the challenge",
+      "durationMs": 700,
+      "pauseAfterMs": 1700,
+      "positions": {
+        "gk": {
+          "x": 6,
+          "y": 17.5,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 21,
+          "y": 9,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 21,
+          "y": 24,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 25,
+          "y": 16,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 40.7,
+          "y": 6.5,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 35,
+          "y": 26,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 31,
+          "y": 12,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 40,
+          "y": 13,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 41.3,
+          "y": 5.8,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "PAUSE · If LM secures it, RM starts toward goal",
+      "durationMs": 1400,
+      "pauseAfterMs": 2000,
+      "positions": {
+        "gk": {
+          "x": 6,
+          "y": 17.5,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 21,
+          "y": 9,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 21,
+          "y": 24,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 26,
+          "y": 16,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 40.7,
+          "y": 6.5,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 40.5,
+          "y": 23,
+          "via": [
+            {
+              "x": 37.6,
+              "y": 24.8
+            }
+          ],
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 33,
+          "y": 11.8,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 42,
+          "y": 13.5,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 41.3,
+          "y": 5.8,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    }
+  ],
+  "rev": 12,
+  "createdAt": "2026-09-20T21:43:25.133Z",
+  "updatedAt": "2026-09-20T22:34:51.108Z"
+}

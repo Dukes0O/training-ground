@@ -131,7 +131,7 @@ window.ATLAS_DATA = {
         "files": [
           "src/api/persistence.ts"
         ],
-        "details": "Tracks the drill object reference that matches disk (savedRef) to tell edits from loads. On SSE for the open drill: same rev = own write (ignore); not dirty = silent reload; dirty = conflict modal (keep mine = force PUT, use disk = reload). Also boot, open/new/duplicate/delete flows."
+        "details": "Tracks the drill object reference that matches disk (savedRef) to tell edits from loads. Own save/new/duplicate echoes match file ID, revision, and content once; same-revision external edits still reload or conflict. A clean editor reloads silently; a dirty editor opens the conflict modal (keep mine = force PUT, use disk = reload). Also boot, open/new/duplicate/delete flows."
       },
       {
         "id": "model.types",
@@ -144,7 +144,7 @@ window.ATLAS_DATA = {
           "src/model/types.ts",
           "src/model/schema.ts"
         ],
-        "details": "types.ts is the TS source of truth; schema.ts is its zod mirror (a compile-time check stops drift). parseDrill is forgiving: unknown position keys are dropped, sparse steps are legal."
+        "details": "types.ts is the TS source of truth; schema.ts is its zod mirror (a compile-time check stops drift). parseDrill is forgiving: unknown position keys are dropped, sparse steps are legal. Zones use shape rectangle/ellipse/polygon, default rectangle. Rectangles/ellipses use rect; polygons use points in pitch meters. Equal ellipse dimensions form a circle. Geometry is global; only visibility varies by step. Arrow pathMode smooth/straight chooses curved or polygonal waypoint connections."
       },
       {
         "id": "model.resolve",
@@ -158,6 +158,29 @@ window.ATLAS_DATA = {
           "src/model/tween.ts"
         ],
         "details": "Sparse forward-fill (pose at step k = last explicit pose at or before k), Catmull-Rom via-waypoints, shortest-arc rotation, instant ease, anchored arrow endpoints re-resolved every frame so they track runners, 150ms fades for step-scoped annotations."
+      },
+      {
+        "id": "model.display",
+        "label": "Board display & coaching cues",
+        "lane": "model",
+        "x": 910,
+        "y": 950,
+        "summary": "Camera following, appearance, stadium, size, scopes, and player overrides enrich snapshots without changing drill data.",
+        "files": [
+          "src/model/boardDisplay.ts",
+          "src/model/boardCamera.ts",
+          "src/model/cameraTracking.ts",
+          "src/model/playerDisplay.ts",
+          "src/ui/CameraTrackingControls.tsx",
+          "src/ui/camera-tracking.css",
+          "src/ui/PlayerDisplayOptions.tsx",
+          "src/model/vision.ts",
+          "src/board/VisionCones.tsx",
+          "src/state/boardDisplay.ts",
+          "src/ui/BoardDisplayControls.tsx",
+          "src/ui/board-display.css"
+        ],
+        "details": "sceneWithDisplay and stepWithDisplay apply browser-local preferences. Defaults are Miniatures at 70%, Landscape, Grass, Full pitch, no stadium; all overlays start off. Views are Landscape/Portrait/Angled; pitch palettes are Grass/Stadium/Light board/Dark board. boardCamera shares an affine projection, inverse pointer mapping, upright actors/labels, and export bounds; this is not a 3D engine. Trails fade over a recent window and break at resets or visibility changes. Cones use coach-set pose.rotation or travel heading; scanning adds a deterministic sweep while cones are on. These are coaching cues, not measured eye tracking. Roles and player overrides are keyed by drill/player in browser storage. All/Involved/Supporting scopes remain subject to global switches. Camera tracking samples the timeline for gentle look-ahead, cuts across resets, and keeps the projected aspect fixed. Missing/hidden targets show the full pitch. Tracking applies in Preview and video/GIF exports; editing and Edit-mode PNG stay full pitch. Preview PNG captures the current tracked playhead. Exports capture the selected options."
       },
       {
         "id": "model.serialize",
@@ -191,9 +214,10 @@ window.ATLAS_DATA = {
         "y": 300,
         "summary": "All editor state and actions. Only `drill` is history-tracked; a whole drag coalesces into one undo entry.",
         "files": [
-          "src/state/store.ts"
+          "src/state/store.ts",
+          "src/model/duplicateSelection.ts"
         ],
-        "details": "Playback (mode/time/speed/loop), selection, tools, step operations with annotation index remapping, dialogs, toasts. The gesture trick: pause history on drag start, rewind to the stashed base, replay the final state as one tracked change."
+        "details": "Playback, selection, tools, step operations, dialogs, and toasts. duplicateSelection copies sparse choreography, offsets absolute geometry, remaps internal anchors, and preserves external anchors in one undoable edit. Returned ID mappings copy browser-local roles and player overrides. The gesture trick: pause history on drag start, rewind to the stashed base, replay the final state as one tracked change."
       },
       {
         "id": "pitch.formats",
@@ -216,9 +240,10 @@ window.ATLAS_DATA = {
         "summary": "Pure snapshot → SVG. The live editor and every export draw through this one component.",
         "files": [
           "src/board/BoardSvg.tsx",
-          "src/board/PitchMarkings.tsx"
+          "src/board/PitchMarkings.tsx",
+          "src/board/StadiumSurroundings.tsx"
         ],
-        "details": "Constraint that keeps exports working: no foreignObject, no webfonts, no external hrefs. Editor-only chrome (selection handles, draw previews) comes in as children so the renderer itself stays export-safe."
+        "details": "Constraint that keeps exports working: no foreignObject, webfonts, or external image references. Miniature artwork is bundled and embedded in shared SVG definitions, so screen and export rendering use the same assets. Optional original SVG stadium stands, lights, and labeled pitch-side boards share projected bounds and exports. Camera bounds choose the visible crop. Editor-only selection handles and draw previews come in as children."
       },
       {
         "id": "board.glyphs",
@@ -226,12 +251,17 @@ window.ATLAS_DATA = {
         "lane": "board",
         "x": 1200,
         "y": 20,
-        "summary": "Players, ball, seven equipment kinds, and coaching arrows (pass/run/dribble/shot), zones, labels.",
+        "summary": "Miniature or classic players and ball, seven equipment kinds, and coaching arrows, zones, and labels.",
         "files": [
-          "src/board/entities/",
-          "src/board/annotations/"
+          "src/board/entities/PlayerToken.tsx",
+          "src/board/entities/BallGlyph.tsx",
+          "src/board/entities/miniatureAssets.tsx",
+          "src/assets/miniature-players.webp",
+          "src/assets/miniature-players.png",
+          "src/board/annotations/",
+          "src/model/annotationGeometry.ts"
         ],
-        "details": "Arrows use explicit head polygons (not SVG markers) and dark underlays for contrast — both choices keep SVG-to-canvas rasterization faithful."
+        "details": "PlayerToken uses a transparent WebP player atlas embedded once as a data URI in shared SVG definitions. The PNG source created with built-in ImageGen is retained alongside it. BallGlyph draws the ball with SVG gradients and panels. Classic symbols remain available. Runtime rendering needs no image-generation API. Arrows retain explicit head polygons and dark underlays."
       },
       {
         "id": "board.interaction",
@@ -245,7 +275,7 @@ window.ATLAS_DATA = {
           "src/board/EditorOverlay.tsx",
           "src/board/BoardViewport.tsx"
         ],
-        "details": "Arrow ends snap to players/ball and follow them. getScreenCTM() folds the zoom transform into pointer math, so zooming changed nothing in the interaction code."
+        "details": "Arrow ends snap to players/ball and follow them. Rectangle/ellipse zones use bounding-box move/resize; polygons have editable corners. Edit details offers Make circle. Arrow waypoints can connect smoothly or as straight segments. getScreenCTM() includes viewport zoom/pan, and the inverse board projection maps pointer positions back to drill meters in every view."
       },
       {
         "id": "ui.timeline",
@@ -277,7 +307,7 @@ window.ATLAS_DATA = {
           "src/ui/useHotkeys.ts",
           "src/index.css"
         ],
-        "details": "App owns view and coaching-panel state. Library cards render actual JSON through BoardSvg, search titles/descriptions/tags, filter any tag, and sort by title or update time. Bookmarks use optional browser localStorage. The board exposes coach notes and the existing inspector; selecting a piece opens Edit details. Native dialogs contain and return focus, while board shortcuts pause outside the board and behind dialogs/exports."
+        "details": "App owns view and coaching-panel state. Library cards render actual JSON through BoardSvg, search titles/descriptions/tags, filter any tag, and sort by title or update time. Bookmarks use optional browser localStorage. The board exposes coach notes and Edit details. Display has Board/Players tabs, Simple board/Focus involved presets, label modes, and per-player roles/overrides. Native dialogs contain and return focus, while board shortcuts pause outside the board and behind dialogs/exports."
       },
       {
         "id": "ui.brief",
@@ -298,11 +328,11 @@ window.ATLAS_DATA = {
         "lane": "export",
         "x": 1490,
         "y": 120,
-        "summary": "The offline frame loop: sceneAt(t) → BoardSvg markup → rasterize to one reused canvas at a fixed timestep.",
+        "summary": "The offline frame loop: sceneWithDisplay(t) → BoardSvg markup → one reused canvas at a fixed timestep.",
         "files": [
           "src/export/renderFrames.tsx"
         ],
-        "details": "Deterministic (no realtime capture, no dropped frames), abortable, even-numbered dimensions for H.264. Every visual export consumes this generator."
+        "details": "Deterministic, abortable, even-numbered dimensions for H.264. Video and GIF frames capture appearance, view, pitch style, trails, vision cones, and scanning at export start. Shared projected bounds set the aspect ratio. Overlays derive from drill time, so offline frames and live playback agree."
       },
       {
         "id": "export.encoders",
@@ -317,7 +347,7 @@ window.ATLAS_DATA = {
           "src/export/exportPng.tsx",
           "src/export/runExport.ts"
         ],
-        "details": "runExport guards one job at a time with progress modal + cancel (AbortSignal threads through the frame loop). The site bundle orchestrates PNG + GIF + MP4 then asks the server to assemble site-bundle/."
+        "details": "runExport guards one job at a time with progress modal + cancel (AbortSignal threads through the frame loop). Video settings offer 1280/1920/3840 px width and 25/30/60 fps; height follows the selected view. The site bundle orchestrates PNG + GIF + MP4 then asks the server to assemble site-bundle/."
       },
       {
         "id": "export.narrate",
@@ -406,8 +436,18 @@ window.ATLAS_DATA = {
       },
       {
         "from": "model.resolve",
+        "to": "model.display",
+        "label": "resolved poses & timeline"
+      },
+      {
+        "from": "model.display",
         "to": "board.boardsvg",
-        "label": "BoardSnapshot"
+        "label": "snapshot + appearance + overlays"
+      },
+      {
+        "from": "ui.panels",
+        "to": "model.display",
+        "label": "browser display preferences"
       },
       {
         "from": "pitch.formats",
@@ -548,7 +588,7 @@ window.ATLAS_DATA = {
           {
             "actor": "Watcher",
             "action": "chokidar sees the change → SSE",
-            "detail": "The app recognizes its own write via a consume-once expected-rev token and skips reloading itself."
+            "detail": "The app consumes an expected echo once when file ID, revision, and content match its own successful save/new/duplicate write. External edits at the same revision still reload or conflict."
           }
         ]
       },
@@ -595,9 +635,14 @@ window.ATLAS_DATA = {
         "summary": "One deterministic frame loop feeds every visual format; the server lays out a ready-to-post bundle for the team site's agent.",
         "steps": [
           {
+            "actor": "Coach",
+            "action": "chooses camera, appearance, pitch/stadium, player scopes, and optional trails, vision cones, or scanning",
+            "detail": "Display choices and per-drill player roles/overrides stay in browser storage. Camera following uses deterministic timeline samples and fixed-aspect bounds in Preview/video/GIF. Edit-mode PNG is full pitch; Preview PNG captures the tracked playhead. Cones illustrate coach-set look direction or travel heading, not measured eye tracking. An export captures the selected options at its start."
+          },
+          {
             "actor": "renderFrames",
-            "action": "sceneAt(t) → BoardSvg markup → canvas, at a fixed timestep",
-            "detail": "The exact component the editor shows, rasterized frame by frame; abortable; even dimensions for H.264."
+            "action": "sceneWithDisplay(t) → BoardSvg markup → canvas, at a fixed timestep",
+            "detail": "The board and exports share projected bounds, pitch palettes, bundled artwork, and deterministic recent-motion trails, including breaks across instant resets. Embedded SVG image data avoids external image requests; output remains abortable with even dimensions for H.264."
           },
           {
             "actor": "Encoders",
@@ -625,6 +670,21 @@ window.ATLAS_DATA = {
   },
   "decisions": {
     "decisions": [
+      {
+        "id": "board_display_preferences",
+        "title": "Appearance and coaching overlays are display preferences",
+        "status": "accepted",
+        "context": "Coaches need a richer board appearance and optional movement cues while preserving existing drill files and reliable exports.",
+        "decision": "Keep appearance, view/camera, pitch/stadium, player size/roles/overrides, trails, vision cones, and scanning in browser-local display state. Defaults are Miniatures at 70%, Landscape, Grass, Full pitch, no stadium; all overlays start off. Landscape/Portrait/Angled use a shared affine SVG projection and export bounds; coordinates remain meters. Shared resolvers derive camera tracking, trails, and scanning from drill time. Tracking cuts at reset boundaries and falls back to the full pitch for a missing/hidden target. Edit snapshots clear camera bounds; Preview and moving exports retain them. Per-drill player roles are explicitly assigned; feature scopes and overrides remain subject to global switches. Cones use existing pose.rotation for coach-set direction and travel heading otherwise; they do not measure gaze. Export jobs capture the selected preferences at their start.",
+        "consequences": "No drill-schema migration, drill writes, or undo entries are needed for these choices. Scrubbing and offline exports use the same deterministic samples. Raster artwork is bundled and embedded in shared SVG definitions; Training Ground makes no runtime image-generation or paid AI/speech API calls.",
+        "touches": [
+          "model.display",
+          "board.glyphs",
+          "board.boardsvg",
+          "export.renderframes",
+          "ui.panels"
+        ]
+      },
       {
         "id": "manual_coaching_brief",
         "title": "Direct Codex requests and manual editing share drill files",
@@ -659,13 +719,13 @@ window.ATLAS_DATA = {
         "status": "accepted",
         "context": "The editor shows a drill on screen; PNG, MP4 and GIF exports must show the same drill. Two drawing implementations (screen + export) inevitably drift.",
         "decision": "BoardSvg is a pure function of a BoardSnapshot. The editor mounts it live; exports call renderToStaticMarkup on the same component and rasterize the SVG string to a canvas. There is no second draw path anywhere.",
-        "consequences": "Exports are pixel-identical to the editor by construction. The cost is a constraint: BoardSvg must stay free of foreignObject, webfonts and external hrefs (they break SVG-to-canvas rasterization), and editor-only chrome (handles, previews) lives in an overlay passed as children.",
+        "consequences": "The editor and exports share board geometry, artwork, and display options. BoardSvg must stay free of foreignObject, webfonts, and external image references. Bundled raster artwork is embedded in shared SVG definitions. Editor-only chrome (handles, previews) lives in an overlay passed as children.",
         "touches": [
           "board.boardsvg",
+          "board.glyphs",
+          "model.display",
           "export.renderframes",
-          "export.png",
-          "export.video",
-          "export.gif"
+          "export.encoders"
         ]
       },
       {
@@ -800,16 +860,18 @@ window.ATLAS_DATA = {
       {
         "id": "single_render_path",
         "title": "Why every pixel comes from BoardSvg",
-        "question": "How do the editor, PNG, MP4 and GIF stay pixel-identical forever?",
-        "narrative": "BoardSvg is a pure function: BoardSnapshot in, SVG out. The editor mounts it as live React; exporters call renderToStaticMarkup on the very same component, turn the string into an SVG blob, draw it onto a canvas, and feed encoders. There is no second drawing implementation to drift out of sync — a new glyph or color shows up in exports the moment it ships in the editor.\n\nThe price is a set of standing constraints on BoardSvg: no <foreignObject> (taints/blanks canvas rasterization), no webfonts or external hrefs (silently not loaded inside SVG-as-image; the system Segoe UI stack renders fine), explicit width/height on the export root (or rasterization collapses to 300×150). Editor-only chrome — selection rings around handles, marquee rectangles, drag previews, mover badges — enters through a children slot (EditorOverlay) so it never contaminates the export path.\n\nZoom/pan honors the same boundary from outside: BoardViewport wraps the board in a CSS transform, which getScreenCTM() folds into pointer math automatically, so neither BoardSvg nor any interaction code knows zoom exists.",
+        "question": "How do the editor, PNG, MP4, and GIF share the same board appearance?",
+        "narrative": "BoardSvg is a pure function: a board snapshot in, SVG out. The editor mounts it as React; exporters render the same component to an SVG image, draw it onto a canvas, and feed the encoders. Player and ball glyphs can use miniature artwork or classic symbols. The player atlas is bundled as WebP data embedded in shared SVG definitions, with the ImageGen PNG source retained alongside it. The detailed ball remains SVG. These assets remain available when an export renders offline.\n\nsceneWithDisplay and stepWithDisplay apply browser-local appearance, view, pitch style, and overlay settings around the existing resolver. boardCamera supplies Landscape/Portrait/Angled affine projections and four pitch palettes. Players and labels stay upright; the same projected bounds set export dimensions. This is an SVG tactics board, not a full 3D scene. Optional original stadium surroundings add stands, lights, and an editable label/accent. Player size defaults to 70%. Involved/Supporting roles and individual display overrides are browser-local, scoped by drill/player; global switches still win. cameraTracking samples a short weighted timeline window to follow the ball or a player at fixed-aspect zoom, with no previous-frame state. Instant resets cut cleanly; missing/hidden targets show the full pitch. Editing and Edit-mode PNG show the full pitch; Preview PNG captures the tracked playhead, and video/GIF use tracking throughout. Simple board/Focus involved presets keep roles while resetting individual display overrides for the current drill. Player and ball trails have separate switches and start off. They sample a bounded recent window, fade with age, and break across instant resets or visibility changes. Samples depend on drill time rather than the path taken through playback, so scrubbing and fixed-timestep exports agree. Exports capture the selected display options when the job starts. Vision cones and scanning also start off. Cones use existing pose.rotation for coach-set look direction, or travel heading when none is authored. Scanning adds a deterministic sweep while cones are on. These illustrate coaching direction, not measured eye tracking. None of the display switches changes the drill JSON.\n\nKeep BoardSvg free of foreignObject, webfonts, and external image references. Inline bundled image data is allowed. Export roots need explicit width and height. Editor-only selection handles and drawing previews enter through EditorOverlay and stay out of exported media.\n\nBoardViewport wraps the board in a CSS transform for zoom and pan. getScreenCTM() includes that transform in pointer calculations, followed by the inverse board projection to recover drill meters. Exports preserve the chosen view and pitch style but omit temporary editor zoom/pan.",
         "highlights": [
           "board.boardsvg",
           "board.glyphs",
+          "model.display",
           "export.renderframes",
           "board.interaction"
         ],
         "decisions": [
           "single_render_path",
+          "board_display_preferences",
           "svg_over_canvas",
           "css_transform_zoom"
         ]
@@ -839,7 +901,7 @@ window.ATLAS_DATA = {
         "id": "animation_resolve",
         "title": "From steps to motion",
         "question": "How do sparse keyframes become smooth, scrub-correct playback?",
-        "narrative": "A drill's steps are keyframes: steps[0] is the starting picture; each later step's positions say where entities ARRIVE; durationMs is the time of the move INTO that step and pauseAfterMs freezes the arrival as a coaching beat. compileTimeline lays these out as segments — hold, move, pause — and sceneAt(t) finds the segment for any instant.\n\nSparse files forward-fill: an entity's pose at step k is its last explicit pose at or before k, and an entity with no pose yet simply isn't on the board (that's how a late runner enters). During a move, each entity tweens from its resolved previous pose to its explicit target — straight lerp by default, Catmull-Rom through via waypoints for curved runs, shortest-arc rotation, per-entity easing (passes read best linear; runs ease in-out). 'instant' holds until arrival then snaps.\n\nNotation participates: arrows whose endpoints anchor to entities re-resolve against the TWEENED poses every frame, so a pass arrow stays glued to a moving receiver; step-scoped annotations fade over 150ms instead of popping. One boundary subtlety is covered by tests: a move's exact end instant belongs to the arriving step, so zero-pause steps don't hand the boundary to the next move and jump the step indicator ahead.",
+        "narrative": "A drill's steps are keyframes: steps[0] is the starting picture; each later step's positions say where entities ARRIVE; durationMs is the time of the move INTO that step and pauseAfterMs freezes the arrival as a coaching beat. compileTimeline lays these out as segments — hold, move, pause — and sceneAt(t) finds the segment for any instant.\n\nSparse files forward-fill: an entity's pose at step k is its last explicit pose at or before k, and an entity with no pose yet simply isn't on the board (that's how a late runner enters). During a move, each entity tweens from its resolved previous pose to its explicit target — straight lerp by default, Catmull-Rom through via waypoints for curved runs, shortest-arc rotation, per-entity easing (passes read best linear; runs ease in-out). 'instant' holds until arrival then snaps.\n\nNotation participates: arrows whose endpoints anchor to entities re-resolve against the TWEENED poses every frame, so a pass arrow stays glued to a moving receiver; step-scoped annotations fade over 150ms instead of popping. Arrows can connect waypoints smoothly or with straight segments. Rectangle, ellipse, and polygon zone geometry is shared across the drill; zone bounds do not animate between steps. Selection duplication copies choreography and remaps anchors between copied entities; copied players also retain browser-local display roles and overrides. One boundary subtlety is covered by tests: a move's exact end instant belongs to the arriving step, so zero-pause steps don't hand the boundary to the next move and jump the step indicator ahead.",
         "highlights": [
           "model.resolve",
           "state.store",
@@ -854,7 +916,7 @@ window.ATLAS_DATA = {
         "id": "export_pipeline",
         "title": "One frame loop, four outputs",
         "question": "Why don't exports need ffmpeg, screen capture, or luck?",
-        "narrative": "renderFrames is an async generator: for each fixed-timestep instant it calls sceneAt(t), renders BoardSvg to markup, rasterizes onto ONE reused canvas, and yields. Deterministic by construction — every frame exists, timed exactly, no realtime capture to drop frames — and abortable mid-loop via AbortSignal.\n\nMP4 comes from WebCodecs hardware H.264 muxed by mediabunny (the maintained successor to the deprecated mp4-muxer/webm-muxer); when the OS lacks H.264 (Windows N editions) it degrades to VP9/WebM automatically. GIF comes from gifenc with per-frame rgb444 palettes — the flat-color board quantizes cleanly — at deliberately modest defaults. PNG snapshots any scrubbed instant at 1920px. All three POST to the server, which streams to disk with tmp+rename.\n\nNarrated takes are the deliberate exception: they capture the LIVE tab (cropped to the board via Region Capture) mixed with the mic, because the product is the coach's voice over real playback, cursor included. The recorder arms while the share dialog is up but starts only after the 3-2-1 countdown, the browser's own Stop-sharing pill ends takes cleanly, exports are blocked during a take (a progress modal would be filmed), and a failed upload falls back to a browser download so a spoken take is never lost.",
+        "narrative": "renderFrames is an async generator: it captures the selected display options, then calls sceneWithDisplay(t), renders BoardSvg to markup, rasterizes onto one reused canvas, and yields at each fixed-timestep instant. Deterministic by construction — every frame exists, timed exactly, no realtime capture to drop frames — and abortable mid-loop via AbortSignal.\n\nMP4 comes from WebCodecs hardware H.264 muxed by mediabunny (the maintained successor to the deprecated mp4-muxer/webm-muxer); when the OS lacks H.264 (Windows N editions) it degrades to VP9/WebM automatically. GIF comes from gifenc with per-frame rgb444 palettes — the flat-color board quantizes cleanly — at deliberately modest defaults. PNG snapshots any scrubbed instant at 1920px. All three POST to the server, which streams to disk with tmp+rename.\n\nNarrated takes are the deliberate exception: they capture the LIVE tab (cropped to the board via Region Capture) mixed with the mic, because the product is the coach's voice over real playback, cursor included. The recorder arms while the share dialog is up but starts only after the 3-2-1 countdown, the browser's own Stop-sharing pill ends takes cleanly, exports are blocked during a take (a progress modal would be filmed), and a failed upload falls back to a browser download so a spoken take is never lost.",
         "highlights": [
           "export.renderframes",
           "export.encoders",
@@ -908,7 +970,7 @@ window.ATLAS_DATA = {
     "principles": [
       {
         "name": "One render path",
-        "text": "BoardSvg is a pure snapshot→SVG function. The editor mounts it live; PNG, MP4 and GIF exports rasterize the same component. The screen and the exports cannot disagree."
+        "text": "BoardSvg is a pure snapshot→SVG function. The editor and PNG, MP4, and GIF exports share miniature/classic artwork, three views, four pitch palettes, optional stadium surroundings, deterministic camera following, and selective player overlays. Export jobs capture the selected display preferences. The player WebP atlas is embedded in the SVG; the generated PNG source is retained in the repository."
       },
       {
         "name": "Files are the database",
@@ -920,7 +982,7 @@ window.ATLAS_DATA = {
       },
       {
         "name": "Browse first, focus on the board",
-        "text": "Library and saved-drill views help the coach find a practice idea before editing. Coach notes stay visible beside the tactics board. View state, bookmarks, and brief drafts do not alter the drill format; bookmarks and drafts can use browser storage when available."
+        "text": "Library and saved-drill views help the coach find a practice idea before editing. Coach notes stay visible beside the tactics board. View state, bookmarks, brief drafts, and display choices do not alter the drill format. Bookmarks, drafts, and display choices use browser storage when available. Player roles and overrides are keyed by drill and player; global feature switches still apply. Vision and scanning overlays illustrate coaching direction, not measured eye tracking."
       },
       {
         "name": "Meters everywhere",

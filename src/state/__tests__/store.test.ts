@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { Drill } from "../../model/types";
+import type { Annotation, Drill } from "../../model/types";
 import { redo, undo, useEditor } from "../store";
+import { useBoardDisplay } from "../boardDisplay";
 
 function fixture(): Drill {
   return {
@@ -27,7 +28,96 @@ function load(drill = fixture()) {
   useEditor.temporal.getState().clear();
 }
 
-beforeEach(() => load());
+beforeEach(() => {
+  load();
+  useBoardDisplay.getState().setOptions({ drillPlayers: {} });
+});
+
+describe("selected object duplication", () => {
+  it.each(["undo", "delete"] as const)("replaces stale display overrides when a copy id is reused after %s", (removal) => {
+    useBoardDisplay.getState().setPlayerOptions("test", ["p1"], { role: "involved", vision: "on", trail: "off" });
+    useEditor.getState().select(["p1", "p2"]);
+    useEditor.getState().duplicateSelected();
+    useBoardDisplay.getState().setPlayerOptions("test", ["p2-copy"], { appearance: "classic" });
+    if (removal === "undo") undo();
+    else useEditor.getState().removeSelected();
+    useBoardDisplay.getState().setPlayerOptions("test", ["p1"], { vision: "inherit", trail: "inherit" });
+    useEditor.getState().select(["p1", "p2"]);
+    useEditor.getState().duplicateSelected();
+    const players = useBoardDisplay.getState().options.drillPlayers.test;
+    expect(players["p1-copy"]).toEqual({ role: "involved" });
+    expect(players["p2-copy"]).toEqual({});
+    expect(players.p1).toEqual({ role: "involved" });
+  });
+
+  it("retains copied players' coaching roles and individual visual options", () => {
+    const options = { role: "involved" as const, vision: "on" as const, trail: "off" as const, appearance: "classic" as const };
+    useBoardDisplay.getState().setPlayerOptions("test", ["p1"], options);
+    useEditor.getState().select(["p1"]);
+    useEditor.getState().duplicateSelected();
+    expect(useBoardDisplay.getState().options.drillPlayers.test["p1-copy"]).toEqual(options);
+    expect(useBoardDisplay.getState().options.drillPlayers.test.p1).toEqual(options);
+    expect(useEditor.getState().drill.entities.find((entity) => entity.id === "p1-copy")).not.toHaveProperty("role");
+    undo();
+    redo();
+    expect(useBoardDisplay.getState().options.drillPlayers.test["p1-copy"]).toEqual(options);
+  });
+
+  it("duplicates selected players and linked arrows in one undo action", () => {
+    useEditor.getState().select(["p1", "p2", "a1"]);
+    useEditor.getState().duplicateSelected();
+    const state = useEditor.getState();
+    expect(state.selection).toEqual(["p1-copy", "p2-copy", "a1-copy"]);
+    expect((state.drill.entities.find((entity) => entity.id === "a1-copy") as Annotation).from).toEqual({ ref: "p1-copy" });
+    undo();
+    expect(useEditor.getState().drill.entities).toHaveLength(4);
+    expect(useEditor.getState().selection).toEqual([]);
+    redo();
+    expect(useEditor.getState().drill.entities).toHaveLength(7);
+  });
+});
+
+describe("ellipse zone editing", () => {
+  it("creates a selected ellipse, keeps its shape when resized, and supports undo", () => {
+    const bounds = { x: 2, y: 3, w: 8, h: 5 };
+    useEditor.getState().addZone(bounds, "ellipse");
+    const id = useEditor.getState().selection[0];
+    expect(useEditor.getState().tool).toBe("select");
+    const added = useEditor.getState().drill.entities.find((entity) => entity.id === id) as Annotation;
+    expect(added.shape).toBe("ellipse");
+    useEditor.getState().updateAnnotation(id, { rect: { ...bounds, w: 5, h: 5 } });
+    const resized = useEditor.getState().drill.entities.find((entity) => entity.id === id) as Annotation;
+    expect(resized.shape).toBe("ellipse");
+    expect(resized.rect?.w).toBe(5);
+    undo();
+    expect((useEditor.getState().drill.entities.find((entity) => entity.id === id) as Annotation).rect).toEqual(bounds);
+    undo();
+    expect(useEditor.getState().drill.entities.some((entity) => entity.id === id)).toBe(false);
+  });
+});
+
+describe("setEntityRotation for coaching gaze", () => {
+  it("keeps explicit zero and clears only the direction when returning to automatic", () => {
+    useEditor.getState().jumpToStep(1);
+    useEditor.getState().setEntityRotation("p1", 360);
+    expect(useEditor.getState().drill.steps[1].positions.p1.rotation).toBe(0);
+    useEditor.getState().setEntityRotation("p1", undefined);
+    const pose = useEditor.getState().drill.steps[1].positions.p1;
+    expect(pose.rotation).toBeUndefined();
+    expect(pose.via).toEqual([{ x: 7, y: 3 }]);
+    expect(pose.ease).toBe("linear");
+    expect(pose.x).toBe(10);
+  });
+
+  it("creates an authored direction on a sparse step and supports undo", () => {
+    useEditor.getState().jumpToStep(2);
+    useEditor.getState().resetPoseAtCurrentStep("p1");
+    useEditor.getState().setEntityRotation("p1", 0);
+    expect(useEditor.getState().drill.steps[2].positions.p1).toEqual({ x: 10, y: 5, rotation: 0 });
+    undo();
+    expect(useEditor.getState().drill.steps[2].positions.p1).toBeUndefined();
+  });
+});
 
 describe("deleteStep cursor arithmetic", () => {
   it("keeps the cursor on the same content when deleting an earlier step", () => {

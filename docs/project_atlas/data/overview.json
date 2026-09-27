@@ -6,7 +6,7 @@
   "principles": [
     {
       "name": "One render path",
-      "text": "BoardSvg is a pure snapshot→SVG function. The editor mounts it live; PNG, MP4 and GIF exports rasterize the same component. The screen and the exports cannot disagree."
+      "text": "BoardSvg is a pure snapshot→SVG function. The editor and PNG, MP4, and GIF exports share miniature/classic artwork, three views, four pitch palettes, optional stadium surroundings, deterministic camera following, and selective player overlays. Export jobs capture the selected display preferences. The player WebP atlas is embedded in the SVG; the generated PNG source is retained in the repository."
     },
     {
       "name": "Files are the database",
@@ -18,7 +18,7 @@
     },
     {
       "name": "Browse first, focus on the board",
-      "text": "Library and saved-drill views help the coach find a practice idea before editing. Coach notes stay visible beside the tactics board. View state, bookmarks, and brief drafts do not alter the drill format; bookmarks and drafts can use browser storage when available."
+      "text": "Library and saved-drill views help the coach find a practice idea before editing. Coach notes stay visible beside the tactics board. View state, bookmarks, brief drafts, and display choices do not alter the drill format. Bookmarks, drafts, and display choices use browser storage when available. Player roles and overrides are keyed by drill and player; global feature switches still apply. Vision and scanning overlays illustrate coaching direction, not measured eye tracking."
     },
     {
       "name": "Meters everywhere",

@@ -14,7 +14,7 @@ npm run validate -- drills/my-drill.json
 
 The JSON Schema lives at `schema/drill.schema.json`; start every file with
 `"$schema": "../schema/drill.schema.json"` so editors validate as you type.
-The four shipped drills in `drills/` are the style reference — read one before writing.
+The shipped drills in `drills/` are the style reference — read one before writing.
 
 ## Coordinate system
 
@@ -46,14 +46,28 @@ Declared once in `entities`, positioned per step in `steps[k].positions` keyed b
 | `player` | `id`, `team` (`home`/`away`/`neutral`) | `number` (0–99), `name`, `position` (`"GK"`, `"CM"`, …) | label renders under the token |
 | `ball` | `id` | | usually id `"ball"` |
 | `cone`, `flat`, `minigoal`, `ladder`, `mannequin`, `pole`, `hurdle` | `id` | `color` (hex) | training equipment |
-| `arrow` | `id`, `from`, `to` | `style`, `via`, `color`, `fromStep`, `toStep` | coaching notation, see below |
-| `zone` | `id`, `rect` (`{x,y,w,h}`) | `color`, `text`, `fromStep`, `toStep` | shaded area |
+| `arrow` | `id`, `from`, `to` | `style`, `via`, `pathMode`, `color`, `fromStep`, `toStep` | coaching notation, see below |
+| `zone` | `id`; `rect` (`{x,y,w,h}`) for rectangles/ellipses or `points` for polygons | `shape` (`rectangle`/`ellipse`/`polygon`), `color`, `text`, `fromStep`, `toStep` | shaded area; rectangle by default |
 | `label` | `id`, `text` | `color`, `fromStep`, `toStep` | free text; position it via `positions` |
 
 **Arrows** use coaching notation via `style`: `pass` (solid), `run` (dashed), `dribble` (wavy),
 `shot` (thick), or `plain` (thin solid, the default). Endpoints `from`/`to` are either a point
 `{ "x": 10, "y": 5 }` or an anchor `{ "ref": "entity-id" }` that **tracks the entity while it
-moves**. `via` adds curve waypoints.
+moves**. `via` adds waypoints. The default `pathMode: "smooth"` connects them with a curve;
+`"pathMode": "straight"` connects them as straight segments for a polygonal arrow.
+
+**Zones** use `rect` as their bounding box in meters. Omit `shape` for a rectangle, or set
+`"shape": "ellipse"`. A circle is an ellipse with equal `w` and `h`. The board offers a
+**Make circle** action in Edit details. For a polygon, set `"shape": "polygon"` and `points`
+to at least three corners in pitch coordinates, such as `[{"x":10,"y":10},{"x":20,"y":10},
+{"x":15,"y":18}]`. The corners must enclose an area without crossing edges; do not repeat
+the first point to close the shape. Zone geometry is shared across the drill; visibility
+can be step-specific, but the zone does not move or morph between steps.
+
+On the board, **Polygon zone** and **Multi-point arrow** add one corner per click. Finish
+with Enter or double-click; Backspace removes the last corner and Escape cancels. Yellow
+handles edit polygon corners or intermediate arrow waypoints. Simple concave polygons are
+supported; crossed edges and collapsed shapes are rejected.
 
 **Team styling**: an optional top-level `teams` block restyles the three teams for this drill,
 e.g. `"teams": { "home": { "label": "Dukes", "fill": "#16a34a" }, "away": { "label": "Visitors" } }`.
@@ -76,6 +90,11 @@ Per-entity pose fields: `x`, `y` plus optional `rotation` (degrees), `via` (wayp
 on the way into this step, smoothed through a curve), `ease` (`linear` | `easeIn` | `easeOut` |
 `easeInOut` | `instant`), `hidden`. Passes read best with `"ease": "linear"`; runs default to
 easeInOut.
+
+`rotation` also supplies a coach-set player look direction when vision cones are enabled:
+0° points along +x and 90° along +y. Omit it to use travel heading. Vision/scanning overlays,
+camera following, player roles and display overrides are browser preferences, not drill JSON
+fields. They illustrate coaching intent rather than measured eye tracking.
 
 **Sparse steps are legal and encouraged for hand-written files**: list only the entities that
 move; everything else forward-fills from the last step that placed it. An entity with no pose

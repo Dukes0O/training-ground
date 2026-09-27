@@ -1,5 +1,6 @@
 import { api } from "../api/client";
 import { getTimeline } from "../model/resolve";
+import { useBoardDisplay } from "../state/boardDisplay";
 import { useEditor } from "../state/store";
 
 // Load renderers and encoders only when an export starts. Imports stay inside
@@ -52,11 +53,12 @@ function revealToast(text: string, path: string) {
 }
 
 export async function runPngExport(): Promise<void> {
-  const { drill, currentStep, gridOn } = useEditor.getState();
+  const { drill, currentStep, gridOn, mode, timeMs } = useEditor.getState();
+  const displayOptions = { ...useBoardDisplay.getState().options };
   await guarded("Snapshot PNG", async (signal) => {
     const { exportPng } = await import("./exportPng");
     signal.throwIfAborted();
-    const r = await exportPng(drill, currentStep, gridOn, 1920, signal);
+    const r = await exportPng(drill, currentStep, gridOn, 1920, signal, displayOptions, mode === "playback" ? timeMs : undefined);
     revealToast(`Snapshot saved: ${r.path}`, r.path);
     return r;
   });
@@ -64,6 +66,7 @@ export async function runPngExport(): Promise<void> {
 
 export async function runVideoExport(): Promise<void> {
   const { drill, gridOn, appSettings } = useEditor.getState();
+  const displayOptions = { ...useBoardDisplay.getState().options };
   await guarded("Video", async (signal) => {
     const { exportVideo } = await import("./exportVideo");
     signal.throwIfAborted();
@@ -71,6 +74,7 @@ export async function runVideoExport(): Promise<void> {
       widthPx: appSettings.video?.width ?? 1280,
       fps: appSettings.video?.fps ?? 30,
       signal,
+      displayOptions,
       onProgress: progressFor("Video"),
     });
     revealToast(`Video saved (${r.container.toUpperCase()}): ${r.path}`, r.path);
@@ -80,6 +84,7 @@ export async function runVideoExport(): Promise<void> {
 
 export async function runGifExport(): Promise<void> {
   const { drill, gridOn, appSettings } = useEditor.getState();
+  const displayOptions = { ...useBoardDisplay.getState().options };
   await guarded("GIF", async (signal) => {
     const { estimateGifIsHeavy, exportGif } = await import("./exportGif");
     signal.throwIfAborted();
@@ -92,6 +97,7 @@ export async function runGifExport(): Promise<void> {
       widthPx: appSettings.gif?.width ?? 720,
       fps: appSettings.gif?.fps ?? 12,
       signal,
+      displayOptions,
       onProgress: progressFor("GIF"),
     });
     revealToast(`GIF saved: ${r.path}`, r.path);
@@ -106,18 +112,20 @@ export async function runGifExport(): Promise<void> {
  */
 export async function runBundleExport(): Promise<void> {
   const { drill, gridOn } = useEditor.getState();
+  const displayOptions = { ...useBoardDisplay.getState().options };
   await guarded("Site bundle", async (signal) => {
     const assets: string[] = [];
     setJob({ kind: "Site bundle", phase: "Poster PNG", done: 0, total: 1 });
     const { exportPng } = await import("./exportPng");
     signal.throwIfAborted();
-    const png = await exportPng(drill, 0, gridOn, 1920, signal);
+    const png = await exportPng(drill, 0, gridOn, 1920, signal, displayOptions);
     assets.push(png.path.split(/[\\/]/).pop()!);
 
     const { exportGif } = await import("./exportGif");
     signal.throwIfAborted();
     const gif = await exportGif(drill, gridOn, {
       signal,
+      displayOptions,
       onProgress: (d, t, p) => setJob({ kind: "Site bundle", phase: `GIF — ${p}`, done: d, total: t }),
     });
     assets.push(gif.path.split(/[\\/]/).pop()!);
@@ -126,6 +134,7 @@ export async function runBundleExport(): Promise<void> {
     signal.throwIfAborted();
     const video = await exportVideo(drill, gridOn, {
       signal,
+      displayOptions,
       onProgress: (d, t, p) => setJob({ kind: "Site bundle", phase: `Video — ${p}`, done: d, total: t }),
     });
     assets.push(video.path.split(/[\\/]/).pop()!);

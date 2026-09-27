@@ -49,6 +49,7 @@ function SaveStatus() {
 
 function ExportMenu() {
   const [open, setOpen] = useState(false);
+  const settings = useEditor((s) => s.appSettings);
   const trigger = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -92,19 +93,19 @@ function ExportMenu() {
             <button onClick={() => run(runPngExport)} className={item}>
               Snapshot PNG
               <span className="block text-xs text-zinc-500">
-                Current step at 1920 px
+                Current frame at 1920 px
               </span>
             </button>
             <button onClick={() => run(runVideoExport)} className={item}>
               Video (MP4)
               <span className="block text-xs text-zinc-500">
-                Full animation, 1280 px / 30 fps
+                Full animation, {settings.video?.width ?? 1280} px / {settings.video?.fps ?? 30} fps
               </span>
             </button>
             <button onClick={() => run(runGifExport)} className={item}>
               GIF
               <span className="block text-xs text-zinc-500">
-                Loopable, 720 px / 12 fps
+                Loopable, {settings.gif?.width ?? 720} px / {settings.gif?.fps ?? 12} fps
               </span>
             </button>
             <div className="my-1 h-px bg-zinc-100" />
