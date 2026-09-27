@@ -15,7 +15,7 @@ describe("board camera", () => {
     const spec = resolvePitch("9v9");
     for (const view of views) for (const size of [0.45, 0.7, 1.1]) {
       const projection = getBoardProjection(spec, view, "miniatures", "none", size);
-      const captionScale = spec.tokenScale * Math.max(size, 0.85);
+      const captionScale = spec.tokenScale * Math.max(size, 0.55);
       const halfCaption = (9 / 2 + 0.035) * captionScale;
       for (const point of [{ x: -APRON, y: -APRON }, { x: spec.length + APRON, y: spec.width + APRON }]) {
         const anchor = projectPoint(projection.matrix, point);
@@ -27,7 +27,7 @@ describe("board camera", () => {
 
   it("pads simple players and mixed-board captions, including selected outlines", () => {
     const spec = resolvePitch("9v9");
-    const size = 0.7, actor = spec.tokenScale * size, caption = spec.tokenScale * 0.85;
+    const size = 0.7, actor = spec.tokenScale * size, caption = spec.tokenScale * size;
     for (const appearance of ["miniatures", "classic"] as const) {
       const extent = playerVisualBounds(spec.tokenScale, size, appearance);
       // The simple selected circle is radius 1.62 with a 0.12-wide stroke.

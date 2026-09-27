@@ -17,7 +17,8 @@ function pentagonPoints(r: number): string {
   return pts.join(" ");
 }
 
-export function BallGlyph({ pose, scale: s, selected, onPointerDown, appearance = "miniatures" }: Props) {
+export function BallGlyph({ pose, scale, selected, onPointerDown, appearance = "miniatures" }: Props) {
+  const s = scale * (appearance === "classic" ? 1 : 0.55);
   const r = 0.55 * s;
   if (appearance !== "classic") return (
     <g transform={`translate(${pose.x} ${pose.y})`} onPointerDown={onPointerDown}
@@ -35,7 +36,7 @@ export function BallGlyph({ pose, scale: s, selected, onPointerDown, appearance 
       </g>
       <circle r={r*1.05} fill="url(#tg-ball-light)"/>
       <ellipse cx={-r*0.28} cy={-r*0.34} rx={r*0.21} ry={r*0.13} fill="#ffffff" opacity={0.7}/>
-      <circle r={r*1.85} fill="transparent"/>
+      <circle r={0.9*scale} fill="transparent"/>
     </g>
   );
   return (

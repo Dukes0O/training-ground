@@ -5,7 +5,7 @@ import { applyEase, DEFAULT_EASE, tweenPose } from "./tween";
 import type { BoardView, PitchStyle } from "./boardCamera";
 import { DEFAULT_PLAYER_SIZE, normalizePlayerSize, resolvePlayerDisplay } from "./playerDisplay";
 import type { DisplayScope, PlayerDisplayOverrides } from "./playerDisplay";
-import { cameraViewportAt, DEFAULT_CAMERA_TRACKING } from "./cameraTracking";
+import { cameraViewportAt, DEFAULT_CAMERA_TRACKING, fixedPitchFraming } from "./cameraTracking";
 import type { CameraTrackingOptions } from "./cameraTracking";
 
 /** Presentation preferences live in the browser, never in a drill file. */
@@ -41,7 +41,7 @@ export const DEFAULT_BOARD_DISPLAY: BoardDisplayOptions = {
   stadiumLabel: "TRAINING GROUND",
   stadiumAccent: "#406a84",
   playerSize: DEFAULT_PLAYER_SIZE,
-  playerLabels: "number-role",
+  playerLabels: "number",
   appearanceScope: "all",
   trailScope: "all",
   visionScope: "all",
@@ -252,5 +252,5 @@ export function stepWithDisplay(drill: Drill, stepIndex: number, gridOn: boolean
   const time = getTimeline(drill).stepArrivalMs[index] ?? 0;
   const snapshot = displaySnapshot(snapshotAtStep(drill, index, gridOn), drill, time, options);
   // A selected edit step is a still pose, even when the next move has no pause.
-  return { ...snapshot, cameraBounds: undefined, items: snapshot.items.map((item) => ({ ...item, moving: false, gaitPhase: 0 })) };
+  return { ...snapshot, cameraBounds: fixedPitchFraming(options.cameraMode) === "full" ? undefined : snapshot.cameraBounds, items: snapshot.items.map((item) => ({ ...item, moving: false, gaitPhase: 0 })) };
 }

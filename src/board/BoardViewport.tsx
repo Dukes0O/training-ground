@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useEditor } from "../state/store";
+import { useBoardDisplay } from "../state/boardDisplay";
 
 const MIN_SCALE = 0.6;
 const MAX_SCALE = 6;
@@ -24,10 +25,13 @@ export function BoardViewport({ children }: { children: React.ReactNode }) {
   const [view, setView] = useState<View>(HOME);
   const panRef = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
   const drillId = useEditor((s) => s.drillId);
+  const cameraMode = useBoardDisplay((s) => s.options.cameraMode);
+  const boardView = useBoardDisplay((s) => s.options.view);
+  const mode = useEditor((s) => s.mode);
 
   useEffect(() => {
     setView(HOME); // fresh drill, fresh framing
-  }, [drillId]);
+  }, [drillId, cameraMode, boardView, mode]);
 
   useEffect(() => {
     const el = containerRef.current;

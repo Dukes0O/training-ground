@@ -20,8 +20,8 @@ export interface ResolvedPlayerDisplay {
   scan: boolean;
 }
 
-export const DEFAULT_PLAYER_SIZE = 0.7;
-export const MIN_PLAYER_SIZE = 0.45;
+export const DEFAULT_PLAYER_SIZE = 0.5;
+export const MIN_PLAYER_SIZE = 0.3;
 export const MAX_PLAYER_SIZE = 1.1;
 
 export function normalizePlayerSize(value: unknown): number {

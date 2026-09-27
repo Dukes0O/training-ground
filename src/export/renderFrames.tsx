@@ -5,6 +5,7 @@ import { getTimeline } from "../model/resolve";
 import type { Drill } from "../model/types";
 import { resolvePitch } from "../pitch/formats";
 import { boardExportDimensions } from "../model/boardCamera";
+import { fixedPitchFraming } from "../model/cameraTracking";
 
 export interface RenderedFrame {
   canvas: HTMLCanvasElement;
@@ -23,7 +24,7 @@ export interface RenderOptions {
 }
 
 export function exportDimensions(drill: Drill, widthPx: number, displayOptions: BoardDisplayOptions = DEFAULT_BOARD_DISPLAY): { width: number; height: number } {
-  return boardExportDimensions(resolvePitch(drill.pitch), widthPx, displayOptions.view, displayOptions.appearance, displayOptions.surroundings, displayOptions.playerSize);
+  return boardExportDimensions(resolvePitch(drill.pitch), widthPx, displayOptions.view, displayOptions.appearance, displayOptions.surroundings, displayOptions.playerSize, fixedPitchFraming(displayOptions.cameraMode));
 }
 
 /**

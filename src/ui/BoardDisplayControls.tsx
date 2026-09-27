@@ -108,7 +108,7 @@ export function BoardDisplayControls() {
               <label>Seat color<input type="color" value={options.stadiumAccent} onChange={(event) => setOptions({ stadiumAccent: event.target.value })} /></label>
             </div>}
             <CameraTrackingControls drill={drill} options={options} onChange={setOptions} />
-            <p>Camera tracking runs in Preview and video exports. Editing keeps the full pitch visible.</p>
+            <p>Use a fixed half or attacking third for set pieces. Tracking runs in Preview and exports; editing a tracked view shows the full pitch.</p>
           </details>
         </>}
       </div>}

@@ -29,7 +29,7 @@ export function normalizeBoardDisplayOptions(saved: unknown): BoardDisplayOption
     stadiumLabel: typeof value.stadiumLabel === "string" ? value.stadiumLabel.slice(0, 40) : DEFAULT_BOARD_DISPLAY.stadiumLabel,
     stadiumAccent: typeof value.stadiumAccent === "string" && /^#[\da-f]{6}$/i.test(value.stadiumAccent) ? value.stadiumAccent : DEFAULT_BOARD_DISPLAY.stadiumAccent,
     playerSize: normalizePlayerSize(value.playerSize),
-    playerLabels: value.playerLabels === "number" || value.playerLabels === "hidden" ? value.playerLabels : "number-role",
+    playerLabels: value.playerLabels === "number-role" || value.playerLabels === "hidden" ? value.playerLabels : "number",
     appearanceScope: normalizeDisplayScope(value.appearanceScope),
     trailScope: normalizeDisplayScope(value.trailScope),
     visionScope: normalizeDisplayScope(value.visionScope),

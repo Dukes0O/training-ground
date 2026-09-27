@@ -1,11 +1,12 @@
 import { APRON } from "../pitch/formats";
 import type { PitchSpec } from "../pitch/formats";
 import type { Point } from "./types";
-import { normalizePlayerSize } from "./playerDisplay";
+import { DEFAULT_PLAYER_SIZE, normalizePlayerSize } from "./playerDisplay";
 
 export type BoardView = "landscape" | "portrait" | "angled";
 export type PitchStyle = "grass" | "stadium" | "light" | "dark";
 export type StadiumSurroundings = "none" | "stadium";
+export type PitchFraming = "full" | "half-left" | "half-right" | "third-left" | "third-right";
 export const STADIUM_MARGIN = 9;
 export const PLAYER_CAPTION_MAX_WIDTH = 9;
 export interface AffineMatrix { a: number; b: number; c: number; d: number; e: number; f: number }
@@ -13,10 +14,10 @@ export interface AffineMatrix { a: number; b: number; c: number; d: number; e: n
 export interface PlayerVisualBounds { left: number; right: number; above: number; below: number }
 
 /** Conservative visible extents around an upright player's feet, in SVG units. */
-export function playerVisualBounds(tokenScale: number, playerSize = 0.7, appearance: "miniatures" | "classic" = "miniatures"): PlayerVisualBounds {
+export function playerVisualBounds(tokenScale: number, playerSize = DEFAULT_PLAYER_SIZE, appearance: "miniatures" | "classic" = "miniatures"): PlayerVisualBounds {
   const size = normalizePlayerSize(playerSize);
   const actor = tokenScale * size;
-  const caption = tokenScale * Math.max(size, 0.85);
+  const caption = tokenScale * Math.max(size, 0.55);
   // Includes selected outlines and bounded captions with their strokes. A
   // miniature board can mix in simple players through scopes/overrides, so its
   // envelope also contains the lower simple-player caption.
@@ -57,17 +58,24 @@ export function invertMatrix(matrix: AffineMatrix): AffineMatrix {
 }
 
 /** An affine coaching-board view. World positions always remain in metres. */
-export function getBoardProjection(spec: PitchSpec, view: BoardView = "landscape", appearance: "miniatures" | "classic" = "miniatures", surroundings: StadiumSurroundings = "none", playerSize = 0.7): BoardProjection {
+export function getBoardProjection(spec: PitchSpec, view: BoardView = "landscape", appearance: "miniatures" | "classic" = "miniatures", surroundings: StadiumSurroundings = "none", playerSize = DEFAULT_PLAYER_SIZE, framing: PitchFraming = "full"): BoardProjection {
   const matrix: AffineMatrix = view === "portrait"
     ? { a: 0, b: 1, c: -1, d: 0, e: spec.width, f: 0 }
     : view === "angled"
       ? { a: 1, b: -0.12, c: 0.34, d: 0.62, e: 0, f: 0 }
       : { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
   const inverse = invertMatrix(matrix);
-  const margin = surroundings === "stadium" ? STADIUM_MARGIN : APRON;
+  // Crop the camera, never resize the pitch or its markings. A half-pitch
+  // already contains one half; its attacking third is two thirds of its length.
+  const fraction = framing.startsWith("third") ? (spec.ends === "single" ? 2 / 3 : 1 / 3)
+    : framing.startsWith("half") && spec.ends !== "single" ? 1 / 2 : 1;
+  const right = spec.ends !== "single" && framing.endsWith("right");
+  const start = right ? spec.length * (1 - fraction) : 0;
+  const end = start + spec.length * fraction;
+  const margin = surroundings === "stadium" && framing === "full" ? STADIUM_MARGIN : APRON;
   const corners = [
-    { x: -margin, y: -margin }, { x: spec.length + margin, y: -margin },
-    { x: -margin, y: spec.width + margin }, { x: spec.length + margin, y: spec.width + margin },
+    { x: start - margin, y: -margin }, { x: end + margin, y: -margin },
+    { x: start - margin, y: spec.width + margin }, { x: end + margin, y: spec.width + margin },
   ].map((point) => projectPoint(matrix, point));
   const minX = Math.min(...corners.map((point) => point.x));
   const maxX = Math.max(...corners.map((point) => point.x));
@@ -108,8 +116,8 @@ export function projectedHeading(projection: BoardProjection, degrees: number): 
 }
 
 /** Export frames and PNGs share the SVG's exact projected aspect ratio. */
-export function boardExportDimensions(spec: PitchSpec, widthPx: number, view: BoardView = "landscape", appearance: "miniatures" | "classic" = "miniatures", surroundings: StadiumSurroundings = "none", playerSize = 0.7): { width: number; height: number } {
-  const { bounds } = getBoardProjection(spec, view, appearance, surroundings, playerSize);
+export function boardExportDimensions(spec: PitchSpec, widthPx: number, view: BoardView = "landscape", appearance: "miniatures" | "classic" = "miniatures", surroundings: StadiumSurroundings = "none", playerSize = DEFAULT_PLAYER_SIZE, framing: PitchFraming = "full"): { width: number; height: number } {
+  const { bounds } = getBoardProjection(spec, view, appearance, surroundings, playerSize, framing);
   const width = Math.max(2, Math.round(widthPx / 2) * 2);
   return { width, height: Math.max(2, Math.round((width * bounds.height) / bounds.width / 2) * 2) };
 }

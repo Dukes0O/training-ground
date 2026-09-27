@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Drill } from "../types";
 import { cameraViewportAt, DEFAULT_CAMERA_TRACKING, normalizeCameraTracking } from "../cameraTracking";
 import type { CameraBounds, CameraTrackingOptions } from "../cameraTracking";
-import { getBoardProjection, projectPoint } from "../boardCamera";
+import { getBoardProjection, playerVisualBounds, projectPoint } from "../boardCamera";
 import type { BoardView } from "../boardCamera";
 import { getTimeline, sceneAt } from "../resolve";
 import { resolvePitch } from "../../pitch/formats";
@@ -30,6 +30,45 @@ const followPlayer: CameraTrackingOptions = { ...DEFAULT_CAMERA_TRACKING, camera
 const center = (bounds: CameraBounds) => ({ x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 });
 
 describe("deterministic camera tracking", () => {
+  for (const view of ["landscape", "portrait", "angled"] as BoardView[]) {
+    it(`${view}: fixed half/third crops preserve world spacing, corner players and export framing`, () => {
+      const drill = fixture();
+      const original = structuredClone(drill);
+      const spec = resolvePitch(drill.pitch);
+      const full = getBoardProjection(spec, view);
+      for (const cameraMode of ["half-left", "half-right", "third-left", "third-right"] as const) {
+        const options = { ...DEFAULT_BOARD_DISPLAY, cameraMode, view };
+        expect(normalizeCameraTracking(options).cameraMode).toBe(cameraMode);
+        const crop = getBoardProjection(spec, view, options.appearance, options.surroundings, options.playerSize, cameraMode);
+        expect(crop.matrix).toEqual(full.matrix);
+        const x = cameraMode.endsWith("right") ? spec.length : 0;
+        const extent = playerVisualBounds(spec.tokenScale, options.playerSize);
+        for (const y of [0, spec.width]) {
+          const corner = projectPoint(crop.matrix, { x, y });
+          expect(corner.x - extent.left).toBeGreaterThanOrEqual(crop.bounds.x);
+          expect(corner.x + extent.right).toBeLessThanOrEqual(crop.bounds.x + crop.bounds.width);
+          expect(corner.y - extent.above).toBeGreaterThanOrEqual(crop.bounds.y);
+          expect(corner.y + extent.below).toBeLessThanOrEqual(crop.bounds.y + crop.bounds.height);
+        }
+        const still = stepWithDisplay(drill, 0, false, options).cameraBounds!;
+        expect(still).toEqual(crop.bounds);
+        expect(sceneWithDisplay(drill, 3300, false, options).cameraBounds).toEqual(still);
+        const size = exportDimensions(drill, 1280, options);
+        expect(Math.abs(size.height - size.width * still.height / still.width)).toBeLessThanOrEqual(1);
+      }
+      expect(drill).toEqual(original);
+    });
+  }
+
+  it("does not halve an existing half-pitch again or crop away its only goal", () => {
+    const spec = resolvePitch("half-11v11");
+    const full = getBoardProjection(spec);
+    expect(getBoardProjection(spec, "landscape", "miniatures", "none", 0.5, "half-right").bounds).toEqual(full.bounds);
+    const left = getBoardProjection(spec, "landscape", "miniatures", "none", 0.5, "third-left");
+    const right = getBoardProjection(spec, "landscape", "miniatures", "none", 0.5, "third-right");
+    expect(left.bounds).toEqual(right.bounds);
+    expect(left.bounds.width).toBeCloseTo(full.bounds.width - spec.length / 3);
+  });
   it("loads old/malformed preferences safely and bounds zoom", () => {
     for (const value of [null, undefined, [], "ball", 3, { cameraMode: "unknown", cameraTargetId: 23, cameraZoom: Infinity }]) {
       expect(normalizeCameraTracking(value)).toEqual(DEFAULT_CAMERA_TRACKING);

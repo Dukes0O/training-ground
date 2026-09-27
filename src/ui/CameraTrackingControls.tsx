@@ -1,6 +1,7 @@
 import { useId } from "react";
 import type { Drill, Player } from "../model/types";
 import { resolveTeamStyles } from "../model/types";
+import { resolvePitch } from "../pitch/formats";
 import { MAX_CAMERA_ZOOM, MIN_CAMERA_ZOOM, normalizeCameraTracking } from "../model/cameraTracking";
 import type { CameraTrackingOptions } from "../model/cameraTracking";
 import "./camera-tracking.css";
@@ -19,17 +20,23 @@ export function CameraTrackingControls({ drill, options, onChange }: CameraTrack
   const balls = drill.entities.filter((entity) => entity.kind === "ball");
   const teams = resolveTeamStyles(drill);
   const selectedPlayer = players.find((player) => player.id === value.cameraTargetId);
-  const following = value.cameraMode !== "full";
+  const following = value.cameraMode === "ball" || value.cameraMode === "player";
+  const singleEnd = resolvePitch(drill.pitch).ends === "single";
   const targetMissing = value.cameraMode === "player" ? !selectedPlayer : value.cameraMode === "ball" && balls.length === 0;
   return (
     <fieldset className="camera-tracking-controls">
       <legend>Camera</legend>
       <label className="camera-tracking-row">Framing
         <select value={value.cameraMode} onChange={(event) => {
-          const cameraMode = event.target.value === "ball" ? "ball" : event.target.value === "player" ? "player" : "full";
+          const cameraMode = normalizeCameraTracking({ cameraMode: event.target.value }).cameraMode;
           onChange({ cameraMode });
         }}>
           <option value="full">Full pitch</option>
+          <option value="half-left">{singleEnd ? "Half pitch · goal end" : "Half pitch · left end"}</option>
+          {!singleEnd && <option value="half-right">Half pitch · right end</option>}
+          <option value="third-left">{singleEnd ? "Attacking third · goal end" : "Attacking third · left end"}</option>
+          {!singleEnd && <option value="third-right">Attacking third · right end</option>}
+          {singleEnd && (value.cameraMode === "half-right" || value.cameraMode === "third-right") && <option value={value.cameraMode}>Goal end (saved view)</option>}
           <option value="ball" disabled={!balls.length}>Follow ball</option>
           <option value="player" disabled={!players.length}>Follow player</option>
         </select>
@@ -52,7 +59,7 @@ export function CameraTrackingControls({ drill, options, onChange }: CameraTrack
         ? "Choose an available target to follow. The full pitch stays visible until then."
         : following
           ? "Gently follows the action during playback and exports. A hidden target returns to the full pitch."
-          : "Show the whole pitch, or follow the ball or a player."}
+          : "Fixed framing applies while editing, playing and exporting. Player spacing stays true to the pitch. Left/right refers to the landscape view."}
         {value.cameraMode === "ball" && balls.length > 1 && ` This drill has ${balls.length} balls; the camera follows ${balls[0].id}.`}
       </p>
     </fieldset>

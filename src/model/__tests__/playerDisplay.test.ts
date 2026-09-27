@@ -41,13 +41,13 @@ afterEach(() => { useBoardDisplay.setState(originalState); vi.unstubAllGlobals()
 describe("selective player display", () => {
   it("defaults to smaller figures with no role guesses or coaching aids", () => {
     const snapshot = sceneWithDisplay(drill, 1700, false);
-    expect(snapshot.playerSize).toBe(0.7);
-    expect(snapshot.playerLabels).toBe("number-role");
+    expect(snapshot.playerSize).toBe(0.5);
+    expect(snapshot.playerLabels).toBe("number");
     for (const item of snapshot.items.filter((item) => item.entity.kind === "player")) {
       expect(item.playerDisplay).toEqual({ role: undefined, appearance: "miniatures", trail: false, vision: false, scan: false });
     }
-    expect(normalizePlayerSize(NaN)).toBe(0.7);
-    expect(normalizePlayerSize(0.1)).toBe(0.45);
+    expect(normalizePlayerSize(NaN)).toBe(0.5);
+    expect(normalizePlayerSize(0.1)).toBe(0.3);
     expect(normalizePlayerSize(5)).toBe(1.1);
   });
 
@@ -112,19 +112,19 @@ describe("selective player display", () => {
     expect(stepWithDisplay(drill, 1, false, options).cameraBounds).toBeUndefined();
   });
 
-  it("shrinks the body to 70% while retaining legible captions and optional labels", () => {
+  it("shrinks the body and captions together while retaining optional labels", () => {
     const player = { id: "p", kind: "player" as const, team: "home" as const, number: 9, position: "STRIKER WITH A LONG ROLE NAME" };
     const props = { player, pose: { x: 10, y: 12 }, scale: 1, style: { label: "Home", fill: "#3080e0", text: "#fff" } };
     const svg = renderToStaticMarkup(createElement(PlayerToken, props));
-    expect(Number(svg.match(/<use[^>]+width="([^"]+)"/)?.[1])).toBeCloseTo(3.6 * 0.7);
-    expect(Number(svg.match(/<text[^>]+font-size="([^"]+)"/)?.[1])).toBeCloseTo(0.78 * 0.85);
+    expect(Number(svg.match(/<use[^>]+width="([^"]+)"/)?.[1])).toBeCloseTo(3.6 * 0.5);
+    expect(Number(svg.match(/<text[^>]+font-size="([^"]+)"/)?.[1])).toBeCloseTo(0.78 * 0.55);
     expect(svg).toContain("STRIKER WITH A LONG ROLE NAME"); // accessible title remains complete
     expect(svg).toContain("…</text>");
-    expect(Number(svg.match(/textLength="([^"]+)"/)?.[1])).toBeLessThanOrEqual(8.05 * 0.85);
+    expect(Number(svg.match(/textLength="([^"]+)"/)?.[1])).toBeLessThanOrEqual(8.05 * 0.55);
     const simple = renderToStaticMarkup(createElement(PlayerToken, { ...props, appearance: "classic" }));
     expect(simple).toContain("STRIKER WITH A LONG ROLE NAME"); // complete accessible title
     expect(simple).toContain("…</text>");
-    expect(Number(simple.match(/textLength="([^"]+)"/)?.[1])).toBeCloseTo(8.05 * 0.85);
+    expect(Number(simple.match(/textLength="([^"]+)"/)?.[1])).toBeCloseTo(8.05 * 0.55);
     const numberOnly = renderToStaticMarkup(createElement(PlayerToken, { ...props, labels: "number" }));
     expect(numberOnly).toContain(">9</text>");
     expect(numberOnly).not.toContain("…</text>");
@@ -150,12 +150,12 @@ describe("selective player display", () => {
 describe("browser-local player preferences", () => {
   it("migrates old preferences and rejects malformed sizes/scopes/overrides", () => {
     const old = normalizeBoardDisplayOptions({ playerTrails: true, appearance: "classic" });
-    expect(old.playerSize).toBe(0.7);
-    expect(old.playerLabels).toBe("number-role");
+    expect(old.playerSize).toBe(0.5);
+    expect(old.playerLabels).toBe("number");
     expect(old.trailScope).toBe("all");
     expect(old.drillPlayers).toEqual({});
     const normalized = normalizeBoardDisplayOptions({ playerSize: "huge", trailScope: "nobody", stadiumAccent: "red", drillPlayers: { selective: { p: { role: "guess", vision: "yes", scan: "off", appearance: "classic" }, q: null }, invalid: [] } });
-    expect(normalized.playerSize).toBe(0.7);
+    expect(normalized.playerSize).toBe(0.5);
     expect(normalized.trailScope).toBe("all");
     expect(normalized.stadiumAccent).toBe("#406a84");
     expect(normalized.drillPlayers.selective).toEqual({ p: { scan: "off", appearance: "classic" }, q: {} });

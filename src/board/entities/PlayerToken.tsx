@@ -20,7 +20,7 @@ interface Props {
 export function PlayerToken({ player, pose, style, scale, size, labels = "number-role", selected, onPointerDown, appearance = "miniatures", heading = 0, moving = false, gaitPhase = 0 }: Props) {
   const bodySize = normalizePlayerSize(size);
   const s = scale * bodySize;
-  const captionScale = scale * Math.max(bodySize, 0.85);
+  const captionScale = scale * Math.max(bodySize, 0.55);
   const r = 1.2 * s;
   const label = [player.name, player.position].filter(Boolean).join(" · ");
   const title = [player.position, player.number != null ? `number ${player.number}` : "", player.name].filter(Boolean).join(", ");

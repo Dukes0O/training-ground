@@ -2,12 +2,12 @@ import type { Drill, Point, Pose } from "./types";
 import type { BoardSnapshot } from "./resolve";
 import { getTimeline, posesAtStep, sceneAt } from "./resolve";
 import { getBoardProjection, playerVisualBounds, projectPoint } from "./boardCamera";
-import type { BoardView, StadiumSurroundings } from "./boardCamera";
+import type { BoardView, PitchFraming, StadiumSurroundings } from "./boardCamera";
 import { resolvePitch } from "../pitch/formats";
 import { DEFAULT_EASE } from "./tween";
 
 export interface CameraTrackingOptions {
-  cameraMode: "full" | "ball" | "player";
+  cameraMode: PitchFraming | "ball" | "player";
   cameraTargetId: string;
   cameraZoom: number;
 }
@@ -26,11 +26,15 @@ export const DEFAULT_CAMERA_TRACKING: CameraTrackingOptions = {
 export const MIN_CAMERA_ZOOM = 1;
 export const MAX_CAMERA_ZOOM = 3;
 
+export function fixedPitchFraming(mode: unknown): PitchFraming {
+  return mode === "half-left" || mode === "half-right" || mode === "third-left" || mode === "third-right" ? mode : "full";
+}
+
 /** Old browser preferences and stale target IDs must remain safe to load. */
 export function normalizeCameraTracking(value: unknown): CameraTrackingOptions {
   const saved = value && typeof value === "object" ? value as Partial<CameraTrackingOptions> : {};
   return {
-    cameraMode: saved.cameraMode === "ball" || saved.cameraMode === "player" ? saved.cameraMode : "full",
+    cameraMode: saved.cameraMode === "ball" || saved.cameraMode === "player" ? saved.cameraMode : fixedPitchFraming(saved.cameraMode),
     cameraTargetId: typeof saved.cameraTargetId === "string" ? saved.cameraTargetId : "",
     cameraZoom: typeof saved.cameraZoom === "number" && Number.isFinite(saved.cameraZoom)
       ? Math.max(MIN_CAMERA_ZOOM, Math.min(MAX_CAMERA_ZOOM, saved.cameraZoom))
@@ -97,9 +101,9 @@ export function cameraViewportAt(
   currentSnapshot?: BoardSnapshot,
 ): CameraBounds {
   const options = normalizeCameraTracking(preferences);
-  const projection = getBoardProjection(currentSnapshot?.spec ?? resolvePitch(drill.pitch), view, appearance, preferences.surroundings, preferences.playerSize);
+  const projection = getBoardProjection(currentSnapshot?.spec ?? resolvePitch(drill.pitch), view, appearance, preferences.surroundings, preferences.playerSize, fixedPitchFraming(options.cameraMode));
   const full = projection.bounds;
-  if (options.cameraMode === "full" || options.cameraZoom === 1) return { ...full };
+  if ((options.cameraMode !== "ball" && options.cameraMode !== "player") || options.cameraZoom === 1) return { ...full };
   // Use the first declared ball consistently, rather than jumping between balls
   // as one appears/disappears. A missing or hidden target uses the full pitch.
   const target = options.cameraMode === "ball"

@@ -4,6 +4,7 @@ import { BoardSvg } from "../board/BoardSvg";
 import { DEFAULT_BOARD_DISPLAY, sceneWithDisplay, stepWithDisplay, type BoardDisplayOptions } from "../model/boardDisplay";
 import type { Drill } from "../model/types";
 import { boardExportDimensions } from "../model/boardCamera";
+import { fixedPitchFraming } from "../model/cameraTracking";
 import { exportBaseName } from "./exportName";
 
 /**
@@ -22,7 +23,7 @@ export async function exportPng(
   const snapshot = timeMs === undefined
     ? stepWithDisplay(drill, stepIndex, gridOn, displayOptions)
     : sceneWithDisplay(drill, timeMs, gridOn, displayOptions);
-  const { width: renderedWidth, height: heightPx } = boardExportDimensions(snapshot.spec, widthPx, displayOptions.view, displayOptions.appearance, displayOptions.surroundings, displayOptions.playerSize);
+  const { width: renderedWidth, height: heightPx } = boardExportDimensions(snapshot.spec, widthPx, displayOptions.view, displayOptions.appearance, displayOptions.surroundings, displayOptions.playerSize, fixedPitchFraming(displayOptions.cameraMode));
 
   const markup = renderToStaticMarkup(
     <BoardSvg snapshot={snapshot} width={renderedWidth} height={heightPx} />

@@ -38,14 +38,14 @@ Use **Chrome or Edge** — video export and narrated recording rely on Chromium 
   Select a step to explain it, drag to reorder, or use Alt+Left/Right on a focused step.
 - **Board display** — open **Display** and choose **Miniatures** for miniature players and a
   detailed ball, or **Simple tokens** for the original symbols. Turn **Players** and **Ball**
-  light trails on separately to show recent movement. Player size starts at 70% and is adjustable.
+  light trails on separately to show recent movement. Player size starts at 50% and is adjustable.
 - **Views and pitch styles** — choose **Landscape**, **Portrait**, or **Angled**, and a **Grass**,
   **Stadium**, **Light board**, or **Dark board** palette. The angled view is a projected tactics
   board; players and labels stay upright. View and style choices also apply to exports.
-- **Camera following** — use **Full pitch**, **Follow ball**, or **Follow player** with adjustable
+- **Camera following** — use **Full pitch**, a fixed **Half pitch** or **Attacking third**, **Follow ball**, or **Follow player** with adjustable
   follow zoom under **Pitch & camera**. Preview gently anticipates movement and cuts across
-  replay resets; videos and GIFs use the same framing. Editing keeps the full pitch visible.
-  PNG captures the current mode: full pitch in Edit, tracked playhead in Preview. Missing or
+  replay resets; videos and GIFs use the same framing. Fixed crops also apply while editing.
+  PNG captures the current mode: fixed crops in either mode, following cameras only in Preview. Missing or
   hidden targets return to the full pitch.
 - **Stadium surroundings** — optionally add original stands, lights, and pitch-side boards,
   with your own board label and accent color. This is separate from the Stadium pitch palette.

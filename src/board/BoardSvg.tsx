@@ -1,4 +1,4 @@
-import type { ReactNode, Ref } from "react";
+import { useId, type ReactNode, type Ref } from "react";
 import type { Point } from "../model/types";
 import type { BoardSnapshot } from "../model/resolve";
 import { billboardTransform, getBoardProjection, PITCH_PALETTES, projectedHeading, projectPoint } from "../model/boardCamera";
@@ -49,6 +49,7 @@ export function BoardSvg({
   className,
   children,
 }: BoardSvgProps) {
+  const clipId = `board-frame-${useId().replace(/:/g, "")}`;
   const { spec, gridOn, teams, items, annotations } = snapshot;
   const vbW = spec.length + 2 * APRON;
   const vbH = spec.width + 2 * APRON;
@@ -102,7 +103,9 @@ export function BoardSvg({
       }
     >
       <MiniatureAssetDefs />
+      <defs><clipPath id={clipId} clipPathUnits="userSpaceOnUse"><rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} /></clipPath></defs>
       <rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill={snapshot.surroundings === "stadium" ? (snapshot.pitchStyle === "light" ? "#cbd4cf" : "#172a32") : palette.apron} />
+      <g clipPath={`url(#${clipId})`}>
       <g data-board-world="true" transform={projection.transform}>
       {snapshot.surroundings === "stadium" && <StadiumSurroundings spec={spec} accent={snapshot.stadiumAccent} label={snapshot.stadiumLabel} light={snapshot.pitchStyle === "light"} />}
       <rect x={-APRON} y={-APRON} width={vbW} height={vbH} fill={palette.apron} />
@@ -148,7 +151,7 @@ export function BoardSvg({
             />
           )
       )}
-      {items.map(({ entity, pose, heading, moving, gaitPhase, playerDisplay }) => {
+      {[...items].sort((a, b) => projectPoint(projection.matrix, a.pose).y - projectPoint(projection.matrix, b.pose).y).map(({ entity, pose, heading, moving, gaitPhase, playerDisplay }) => {
         const selected = selection?.has(entity.id);
         switch (entity.kind) {
           case "player":
@@ -219,6 +222,7 @@ export function BoardSvg({
           )
       )}
       {children}
+      </g>
       </g>
     </svg>
   );

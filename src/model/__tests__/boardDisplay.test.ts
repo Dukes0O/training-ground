@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { BoardSvg } from "../../board/BoardSvg";
 import kickoffLeft from "../../../drills/preview-kickoff-left.json?raw";
 import kickoffRight from "../../../drills/preview-kickoff-right.json?raw";
 import { DEFAULT_BOARD_DISPLAY, sampleMotionTrails, sceneWithDisplay, stepWithDisplay, TRAIL_WINDOW_MS } from "../boardDisplay";
@@ -25,6 +28,15 @@ function fixture(): Drill {
 }
 
 describe("deterministic board display", () => {
+  it("clips the rendered world to the camera frame, including letterboxed views", () => {
+    const snapshot = stepWithDisplay(fixture(), 0, false, { ...DEFAULT_BOARD_DISPLAY, cameraMode: "third-right", view: "angled" });
+    const bounds = snapshot.cameraBounds!;
+    const markup = renderToStaticMarkup(createElement(BoardSvg, { snapshot }));
+    expect(markup).toContain(`viewBox="${bounds.x} ${bounds.y} ${bounds.width} ${bounds.height}"`);
+    expect(markup).toContain('clipPathUnits="userSpaceOnUse"');
+    expect(markup).toMatch(/<g clip-path="url\(#[^)]+\)"><g data-board-world="true"/);
+    expect(markup).toContain(`<rect x="${bounds.x}" y="${bounds.y}" width="${bounds.width}" height="${bounds.height}"></rect></clipPath>`);
+  });
   it("defaults to miniatures with overlays off, without changing resolved positions", () => {
     const drill = fixture();
     const before = structuredClone(drill);
