@@ -11,7 +11,7 @@
     "defending",
     "warmup"
   ],
-  "notes": "The animation is about 20 seconds; run the live drill for 60–90 seconds before rotating defenders. Outside players slide toward the ball, restore width, and build new triangles after every pass. The closest defender presses; the partner protects the split or far-side lane. At the interception, freeze briefly to show the win, then let the defender pass out so the four can reset and circulate again.",
+  "notes": "Use one continuous tempo. The outside four glide to new support angles while the ball travels. On every pass, the defender closest to the receiver presses; the partner protects the split or central lane, so the two exchange roles naturally. When both defenders close the lane, reward the read with an interception, a brief hold, and a controlled pass back to an outside player. Run the live drill for 60–90 seconds before rotating defenders.",
   "themeColor": "#0f766e",
   "pitch": {
     "format": "grid",
@@ -76,14 +76,14 @@
       "id": "d-press",
       "team": "away",
       "number": 5,
-      "name": "Press"
+      "name": "Defender 1"
     },
     {
       "kind": "player",
       "id": "d-cover",
       "team": "away",
       "number": 6,
-      "name": "Cover"
+      "name": "Defender 2"
     },
     {
       "kind": "ball",
@@ -221,27 +221,29 @@
     },
     {
       "kind": "arrow",
-      "id": "pass-11",
+      "id": "intercept-11",
       "style": "pass",
       "from": {
         "ref": "p-left"
       },
       "to": {
-        "ref": "p-right"
+        "ref": "d-cover"
       },
+      "color": "#e11d48",
       "fromStep": 11,
       "toStep": 11
     },
     {
       "kind": "arrow",
-      "id": "pass-12",
+      "id": "release-12",
       "style": "pass",
       "from": {
-        "ref": "p-right"
+        "ref": "d-cover"
       },
       "to": {
-        "ref": "p-top"
+        "ref": "p-right"
       },
+      "color": "#e11d48",
       "fromStep": 12,
       "toStep": 12
     },
@@ -250,10 +252,10 @@
       "id": "pass-13",
       "style": "pass",
       "from": {
-        "ref": "p-top"
+        "ref": "p-right"
       },
       "to": {
-        "ref": "p-right"
+        "ref": "p-top"
       },
       "fromStep": 13,
       "toStep": 13
@@ -263,10 +265,10 @@
       "id": "pass-14",
       "style": "pass",
       "from": {
-        "ref": "p-right"
+        "ref": "p-top"
       },
       "to": {
-        "ref": "p-bottom"
+        "ref": "p-right"
       },
       "fromStep": 14,
       "toStep": 14
@@ -276,10 +278,10 @@
       "id": "pass-15",
       "style": "pass",
       "from": {
-        "ref": "p-bottom"
+        "ref": "p-right"
       },
       "to": {
-        "ref": "p-left"
+        "ref": "p-bottom"
       },
       "fromStep": 15,
       "toStep": 15
@@ -289,10 +291,10 @@
       "id": "pass-16",
       "style": "pass",
       "from": {
-        "ref": "p-left"
+        "ref": "p-bottom"
       },
       "to": {
-        "ref": "p-top"
+        "ref": "p-left"
       },
       "fromStep": 16,
       "toStep": 16
@@ -302,36 +304,37 @@
       "id": "pass-17",
       "style": "pass",
       "from": {
-        "ref": "p-top"
+        "ref": "p-left"
       },
       "to": {
-        "ref": "p-bottom"
+        "ref": "p-top"
       },
       "fromStep": 17,
       "toStep": 17
     },
     {
       "kind": "arrow",
-      "id": "pass-18",
+      "id": "intercept-18",
       "style": "pass",
       "from": {
-        "ref": "p-bottom"
+        "ref": "p-top"
       },
       "to": {
-        "ref": "p-right"
+        "ref": "d-press"
       },
+      "color": "#e11d48",
       "fromStep": 18,
       "toStep": 18
     },
     {
       "kind": "arrow",
-      "id": "intercept-19",
+      "id": "release-19",
       "style": "pass",
       "from": {
-        "ref": "p-right"
+        "ref": "d-press"
       },
       "to": {
-        "ref": "p-left"
+        "ref": "p-bottom"
       },
       "color": "#e11d48",
       "fromStep": 19,
@@ -339,7 +342,34 @@
     },
     {
       "kind": "arrow",
-      "id": "reset-21",
+      "id": "pass-20",
+      "style": "pass",
+      "from": {
+        "ref": "p-bottom"
+      },
+      "to": {
+        "ref": "p-right"
+      },
+      "fromStep": 20,
+      "toStep": 20
+    },
+    {
+      "kind": "arrow",
+      "id": "intercept-21",
+      "style": "pass",
+      "from": {
+        "ref": "p-right"
+      },
+      "to": {
+        "ref": "d-press"
+      },
+      "color": "#e11d48",
+      "fromStep": 21,
+      "toStep": 21
+    },
+    {
+      "kind": "arrow",
+      "id": "release-23",
       "style": "pass",
       "from": {
         "ref": "d-press"
@@ -348,32 +378,6 @@
         "ref": "p-right"
       },
       "color": "#e11d48",
-      "fromStep": 21,
-      "toStep": 21
-    },
-    {
-      "kind": "arrow",
-      "id": "pass-22",
-      "style": "pass",
-      "from": {
-        "ref": "p-right"
-      },
-      "to": {
-        "ref": "p-top"
-      },
-      "fromStep": 22,
-      "toStep": 22
-    },
-    {
-      "kind": "arrow",
-      "id": "pass-23",
-      "style": "pass",
-      "from": {
-        "ref": "p-top"
-      },
-      "to": {
-        "ref": "p-left"
-      },
       "fromStep": 23,
       "toStep": 23
     },
@@ -382,10 +386,10 @@
       "id": "pass-24",
       "style": "pass",
       "from": {
-        "ref": "p-left"
+        "ref": "p-right"
       },
       "to": {
-        "ref": "p-bottom"
+        "ref": "p-top"
       },
       "fromStep": 24,
       "toStep": 24
@@ -395,10 +399,10 @@
       "id": "pass-25",
       "style": "pass",
       "from": {
-        "ref": "p-bottom"
+        "ref": "p-top"
       },
       "to": {
-        "ref": "p-right"
+        "ref": "p-left"
       },
       "fromStep": 25,
       "toStep": 25
@@ -408,19 +412,45 @@
       "id": "pass-26",
       "style": "pass",
       "from": {
+        "ref": "p-left"
+      },
+      "to": {
+        "ref": "p-bottom"
+      },
+      "fromStep": 26,
+      "toStep": 26
+    },
+    {
+      "kind": "arrow",
+      "id": "pass-27",
+      "style": "pass",
+      "from": {
+        "ref": "p-bottom"
+      },
+      "to": {
+        "ref": "p-right"
+      },
+      "fromStep": 27,
+      "toStep": 27
+    },
+    {
+      "kind": "arrow",
+      "id": "pass-28",
+      "style": "pass",
+      "from": {
         "ref": "p-right"
       },
       "to": {
         "ref": "p-top"
       },
-      "fromStep": 26,
-      "toStep": 26
+      "fromStep": 28,
+      "toStep": 28
     }
   ],
   "steps": [
     {
-      "name": "Setup — four moving outlets",
-      "durationMs": 500,
+      "name": "Setup — four outlets, nearest defender presses",
+      "durationMs": 800,
       "positions": {
         "p-top": {
           "x": 7.5,
@@ -454,7 +484,7 @@
     },
     {
       "name": "1. Top finds right; press travels, cover blocks the diagonal",
-      "durationMs": 400,
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 8.2,
@@ -473,23 +503,25 @@
           "y": 6.9
         },
         "d-press": {
-          "x": 10.7,
-          "y": 6.9
-        },
-        "d-cover": {
           "x": 7.8,
           "y": 8.4
+        },
+        "d-cover": {
+          "x": 10.7,
+          "y": 6.9
         },
         "ball": {
           "x": 11.9,
           "y": 6.8,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
       "name": "2. Right bounces back; outside line shifts toward the ball",
-      "durationMs": 400,
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 8.8,
@@ -508,23 +540,25 @@
           "y": 6.3
         },
         "d-press": {
-          "x": 9.1,
-          "y": 4.4
-        },
-        "d-cover": {
           "x": 7.2,
           "y": 7.7
+        },
+        "d-cover": {
+          "x": 9.1,
+          "y": 4.4
         },
         "ball": {
           "x": 8.8,
           "y": 3.1,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
       "name": "3. Top switches left; cover arrives under the press",
-      "durationMs": 400,
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 7.8,
@@ -555,11 +589,13 @@
           "y": 6,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
       "name": "4. Left plays down the side; bottom shortens to support",
-      "durationMs": 400,
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 6.9,
@@ -578,23 +614,25 @@
           "y": 7
         },
         "d-press": {
-          "x": 6.3,
-          "y": 10.8
-        },
-        "d-cover": {
           "x": 7.9,
           "y": 7.7
+        },
+        "d-cover": {
+          "x": 6.3,
+          "y": 10.8
         },
         "ball": {
           "x": 6.6,
           "y": 11.9,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
       "name": "5. Bottom returns the wall pass; far players restore width",
-      "durationMs": 400,
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 6.2,
@@ -613,23 +651,25 @@
           "y": 7.8
         },
         "d-press": {
-          "x": 4.3,
-          "y": 8.2
-        },
-        "d-cover": {
           "x": 7.2,
           "y": 8.6
+        },
+        "d-cover": {
+          "x": 4.3,
+          "y": 8.2
         },
         "ball": {
           "x": 3.1,
           "y": 7.8,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
       "name": "6. Left finds top; defenders rotate press-cover",
-      "durationMs": 400,
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 6.5,
@@ -660,11 +700,13 @@
           "y": 3.1,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
       "name": "7. Top to right; bottom slides across to make a triangle",
-      "durationMs": 400,
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 7.3,
@@ -683,23 +725,25 @@
           "y": 6.6
         },
         "d-press": {
-          "x": 10.6,
-          "y": 7.2
-        },
-        "d-cover": {
           "x": 7.7,
           "y": 8.2
+        },
+        "d-cover": {
+          "x": 10.6,
+          "y": 7.2
         },
         "ball": {
           "x": 11.9,
           "y": 7.3,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
       "name": "8. Right down to bottom; cover protects the cross-box pass",
-      "durationMs": 400,
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 8.1,
@@ -730,12 +774,14 @@
           "y": 11.9,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
       "name": "9. Bottom splits the pair into top",
-      "durationMs": 400,
-      "pauseAfterMs": 500,
+      "durationMs": 900,
+      "pauseAfterMs": 250,
       "positions": {
         "p-top": {
           "x": 8.3,
@@ -754,23 +800,24 @@
           "y": 8.1
         },
         "d-press": {
-          "x": 7.3,
-          "y": 6.2
-        },
-        "d-cover": {
           "x": 8.5,
           "y": 8.7
+        },
+        "d-cover": {
+          "x": 7.3,
+          "y": 6.2
         },
         "ball": {
           "x": 8.3,
           "y": 3.1,
           "ease": "linear"
         }
-      }
+      },
+      "ease": "linear"
     },
     {
       "name": "10. Top moves it left before pressure arrives",
-      "durationMs": 400,
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 7.5,
@@ -789,23 +836,25 @@
           "y": 7.5
         },
         "d-press": {
-          "x": 4.4,
-          "y": 7.4
-        },
-        "d-cover": {
           "x": 7.4,
           "y": 6.8
+        },
+        "d-cover": {
+          "x": 4.4,
+          "y": 7.4
         },
         "ball": {
           "x": 3.1,
           "y": 7.5,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "11. Left fires across; cover races into the dangerous lane",
-      "durationMs": 400,
+      "name": "11. Defender 2 cuts out Blue 4's pass",
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 6.8,
@@ -832,15 +881,54 @@
           "y": 7.7
         },
         "ball": {
+          "x": 7.4,
+          "y": 7.7,
+          "ease": "linear"
+        }
+      },
+      "pauseAfterMs": 350,
+      "ease": "linear"
+    },
+    {
+      "name": "12. Defender 2 holds, then passes out to Blue 2",
+      "durationMs": 700,
+      "positions": {
+        "p-top": {
+          "x": 6.8,
+          "y": 2
+        },
+        "p-right": {
+          "x": 13,
+          "y": 7.1
+        },
+        "p-bottom": {
+          "x": 7.7,
+          "y": 13
+        },
+        "p-left": {
+          "x": 2,
+          "y": 8.2
+        },
+        "d-press": {
+          "x": 9.4,
+          "y": 7.3
+        },
+        "d-cover": {
+          "x": 7.4,
+          "y": 7.7
+        },
+        "ball": {
           "x": 11.9,
           "y": 7.1,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "12. Right bounces to top; left creeps up as the third player",
-      "durationMs": 400,
+      "name": "13. Right bounces to top; left creeps up as the third player",
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 7.2,
@@ -859,23 +947,25 @@
           "y": 7.3
         },
         "d-press": {
-          "x": 7.6,
-          "y": 4.4
-        },
-        "d-cover": {
           "x": 8.1,
           "y": 7.4
+        },
+        "d-cover": {
+          "x": 7.6,
+          "y": 4.4
         },
         "ball": {
           "x": 7.2,
           "y": 3.1,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "13. Top completes the wall pass into right",
-      "durationMs": 400,
+      "name": "14. Top completes the wall pass into right",
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 7.9,
@@ -906,11 +996,13 @@
           "y": 6.7,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "14. Right plays bottom; the square tilts toward the ball",
-      "durationMs": 400,
+      "name": "15. Right plays bottom; the square tilts toward the ball",
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 8.6,
@@ -929,23 +1021,25 @@
           "y": 7.5
         },
         "d-press": {
-          "x": 8.6,
-          "y": 10.7
-        },
-        "d-cover": {
           "x": 7.2,
           "y": 7.7
+        },
+        "d-cover": {
+          "x": 8.6,
+          "y": 10.7
         },
         "ball": {
           "x": 8.5,
           "y": 11.9,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "15. Bottom finds left; right stays available behind pressure",
-      "durationMs": 400,
+      "name": "16. Bottom finds left; right stays available behind pressure",
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 7.8,
@@ -976,11 +1070,13 @@
           "y": 8.4,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "16. Left returns top; cover drops off the split",
-      "durationMs": 400,
+      "name": "17. Left returns top; cover drops off the split",
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 7.1,
@@ -999,24 +1095,62 @@
           "y": 7.6
         },
         "d-press": {
-          "x": 7,
-          "y": 4.4
-        },
-        "d-cover": {
           "x": 7.8,
           "y": 7.3
+        },
+        "d-cover": {
+          "x": 7,
+          "y": 4.4
         },
         "ball": {
           "x": 7.1,
           "y": 3.1,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "17. Top punches through to bottom for a second split",
-      "durationMs": 400,
-      "pauseAfterMs": 500,
+      "name": "18. Defender 1 cuts off Blue 1's pass to Blue 3",
+      "durationMs": 900,
+      "positions": {
+        "p-top": {
+          "x": 7.4,
+          "y": 2
+        },
+        "p-right": {
+          "x": 13,
+          "y": 8.1
+        },
+        "p-bottom": {
+          "x": 7.5,
+          "y": 13
+        },
+        "p-left": {
+          "x": 2,
+          "y": 7
+        },
+        "d-press": {
+          "x": 7,
+          "y": 7.1
+        },
+        "d-cover": {
+          "x": 8.4,
+          "y": 8.1
+        },
+        "ball": {
+          "x": 7,
+          "y": 7.1,
+          "ease": "linear"
+        }
+      },
+      "pauseAfterMs": 350,
+      "ease": "linear"
+    },
+    {
+      "name": "19. Defender 1 holds, then passes out to Blue 3",
+      "durationMs": 700,
       "positions": {
         "p-top": {
           "x": 7.4,
@@ -1047,11 +1181,13 @@
           "y": 11.9,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "18. Bottom releases right; press sprints, cover holds center",
-      "durationMs": 400,
+      "name": "20. Bottom releases right; press sprints, cover holds center",
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 8.2,
@@ -1070,24 +1206,26 @@
           "y": 7.8
         },
         "d-press": {
-          "x": 10.6,
-          "y": 8.5
-        },
-        "d-cover": {
           "x": 7.7,
           "y": 7.4
+        },
+        "d-cover": {
+          "x": 10.6,
+          "y": 8.5
         },
         "ball": {
           "x": 11.9,
           "y": 8.5,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "19. Pressing defender reads the cross and intercepts",
-      "durationMs": 400,
-      "pauseAfterMs": 600,
+      "name": "21. Pressing defender reads the cross and intercepts",
+      "durationMs": 900,
+      "pauseAfterMs": 550,
       "positions": {
         "p-top": {
           "x": 8.8,
@@ -1118,12 +1256,13 @@
           "y": 8,
           "ease": "linear"
         }
-      }
+      },
+      "ease": "linear"
     },
     {
-      "name": "20. Freeze — defender secures the ball and scans",
-      "durationMs": 400,
-      "pauseAfterMs": 1000,
+      "name": "22. Freeze — defender secures the ball and scans",
+      "durationMs": 900,
+      "pauseAfterMs": 800,
       "positions": {
         "p-top": {
           "x": 8.3,
@@ -1153,12 +1292,13 @@
           "x": 7.1,
           "y": 8
         }
-      }
+      },
+      "ease": "linear"
     },
     {
-      "name": "21. Defender deliberately passes out to reset",
-      "durationMs": 400,
-      "pauseAfterMs": 400,
+      "name": "23. Ball winner passes out; partner becomes first defender",
+      "durationMs": 900,
+      "pauseAfterMs": 150,
       "positions": {
         "p-top": {
           "x": 7.6,
@@ -1177,23 +1317,24 @@
           "y": 7.1
         },
         "d-press": {
-          "x": 8.8,
-          "y": 7.4
-        },
-        "d-cover": {
           "x": 7.2,
           "y": 8.3
+        },
+        "d-cover": {
+          "x": 8.8,
+          "y": 7.4
         },
         "ball": {
           "x": 11.9,
           "y": 7.4,
           "ease": "linear"
         }
-      }
+      },
+      "ease": "linear"
     },
     {
-      "name": "22. Reset circulation: right to top",
-      "durationMs": 400,
+      "name": "24. Reset circulation: right to top",
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 7.9,
@@ -1212,23 +1353,25 @@
           "y": 6.5
         },
         "d-press": {
-          "x": 8,
-          "y": 4.4
-        },
-        "d-cover": {
           "x": 7.4,
           "y": 7.5
+        },
+        "d-cover": {
+          "x": 8,
+          "y": 4.4
         },
         "ball": {
           "x": 7.9,
           "y": 3.1,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "23. Top switches left; support triangle opens again",
-      "durationMs": 400,
+      "name": "25. Top switches left; support triangle opens again",
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 7.1,
@@ -1259,11 +1402,13 @@
           "y": 6.8,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "24. Left to bottom; both defenders rotate together",
-      "durationMs": 400,
+      "name": "26. Left to bottom; both defenders rotate together",
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 6.4,
@@ -1282,23 +1427,25 @@
           "y": 7.6
         },
         "d-press": {
-          "x": 6.7,
-          "y": 10.7
-        },
-        "d-cover": {
           "x": 8,
           "y": 7.8
+        },
+        "d-cover": {
+          "x": 6.7,
+          "y": 10.7
         },
         "ball": {
           "x": 6.8,
           "y": 11.9,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "25. Bottom across to right; far-side cover reacts early",
-      "durationMs": 400,
+      "name": "27. Bottom across to right; far-side cover reacts early",
+      "durationMs": 900,
       "positions": {
         "p-top": {
           "x": 7.2,
@@ -1329,12 +1476,14 @@
           "y": 7.8,
           "ease": "linear"
         }
-      }
+      },
+      "pauseAfterMs": 0,
+      "ease": "linear"
     },
     {
-      "name": "26. Right returns top; finish in a balanced moving shape",
-      "durationMs": 400,
-      "pauseAfterMs": 100,
+      "name": "28. Right returns top; finish in a balanced moving shape",
+      "durationMs": 900,
+      "pauseAfterMs": 300,
       "positions": {
         "p-top": {
           "x": 7.8,
@@ -1353,19 +1502,20 @@
           "y": 7.5
         },
         "d-press": {
-          "x": 7.9,
-          "y": 4.4
-        },
-        "d-cover": {
           "x": 7.3,
           "y": 7.5
+        },
+        "d-cover": {
+          "x": 7.9,
+          "y": 4.4
         },
         "ball": {
           "x": 7.8,
           "y": 3.1,
           "ease": "linear"
         }
-      }
+      },
+      "ease": "linear"
     }
   ],
   "rev": 2,
