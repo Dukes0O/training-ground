@@ -155,8 +155,8 @@
         "y": 4
       },
       "to": {
-        "x": 40.7,
-        "y": 6.5
+        "x": 44.5,
+        "y": 5.799999999999997
       },
       "color": "#fde68a",
       "fromStep": 1,
@@ -171,8 +171,8 @@
         "y": 4
       },
       "to": {
-        "x": 40.7,
-        "y": 6.5
+        "x": 44.5,
+        "y": 5.799999999999997
       },
       "color": "#fde68a",
       "fromStep": 7,
@@ -187,8 +187,7 @@
         "y": 17
       },
       "to": {
-        "x": 40.2,
-        "y": 5.8
+        "ref": "ball"
       },
       "color": "#ffffff",
       "fromStep": 2,
@@ -203,8 +202,8 @@
         "y": 17
       },
       "to": {
-        "x": 40.2,
-        "y": 5.8
+        "x": 43.5,
+        "y": 6.200000000000003
       },
       "color": "#ffffff",
       "fromStep": 9,
@@ -228,7 +227,7 @@
       "id": "width-third-0",
       "rect": {
         "x": 0,
-        "y": 0,
+        "y": 26.666666666666664,
         "w": 60,
         "h": 13.333333333333334
       },
@@ -254,7 +253,7 @@
       "id": "width-third-1",
       "rect": {
         "x": 0,
-        "y": 13.333333333333334,
+        "y": 13.33333333333333,
         "w": 60,
         "h": 13.333333333333334
       },
@@ -280,7 +279,7 @@
       "id": "width-third-2",
       "rect": {
         "x": 0,
-        "y": 26.666666666666668,
+        "y": -1.7763568394002505e-15,
         "w": 60,
         "h": 13.333333333333334
       },
@@ -293,7 +292,7 @@
       "id": "active-wide-lane",
       "rect": {
         "x": 0,
-        "y": 0,
+        "y": -1.7763568394002505e-15,
         "w": 60,
         "h": 13.333333333333334
       },
@@ -400,13 +399,13 @@
         "y": 11
       },
       "to": {
-        "x": 15.5,
-        "y": 10
+        "x": 20.5,
+        "y": 10.399999999999999
       },
       "via": [
         {
-          "x": 13.75,
-          "y": 11.5
+          "x": 16.5,
+          "y": 10.7
         }
       ],
       "color": "#a9c6b580",
@@ -423,12 +422,12 @@
       },
       "to": {
         "x": 15.5,
-        "y": 27
+        "y": 28
       },
       "via": [
         {
           "x": 13.75,
-          "y": 29
+          "y": 28.5
         }
       ],
       "color": "#a9c6b580",
@@ -444,13 +443,13 @@
         "y": 20
       },
       "to": {
-        "x": 20.5,
-        "y": 18.5
+        "x": 21,
+        "y": 19.3
       },
       "via": [
         {
-          "x": 18.75,
-          "y": 20.25
+          "x": 19,
+          "y": 19.7
         }
       ],
       "color": "#a9c6b580",
@@ -466,13 +465,13 @@
         "y": 36
       },
       "to": {
-        "x": 32.5,
-        "y": 31.5
+        "x": 36.5,
+        "y": 35.2
       },
       "via": [
         {
-          "x": 30.75,
-          "y": 34.75
+          "x": 33.5,
+          "y": 35.6
         }
       ],
       "color": "#a9c6b580",
@@ -488,13 +487,13 @@
         "y": 20
       },
       "to": {
-        "x": 34,
-        "y": 17
+        "x": 36,
+        "y": 19.9
       },
       "via": [
         {
-          "x": 31.5,
-          "y": 19.5
+          "x": 33.5,
+          "y": 19.9
         }
       ],
       "color": "#a9c6b580",
@@ -506,19 +505,12 @@
       "id": "far-mid-drive",
       "style": "run",
       "from": {
-        "x": 35,
-        "y": 26
+        "x": 41.5,
+        "y": 34.5
       },
       "to": {
-        "x": 51,
-        "y": 22.7
+        "ref": "rm"
       },
-      "via": [
-        {
-          "x": 43,
-          "y": 24.5
-        }
-      ],
       "color": "#c5dac6a0",
       "fromStep": 12,
       "toStep": 12
@@ -528,8 +520,8 @@
       "id": "option-cam-circle",
       "shape": "ellipse",
       "rect": {
-        "x": 40.5,
-        "y": 12,
+        "x": 44.06,
+        "y": 14.91,
         "w": 5,
         "h": 5
       },
@@ -542,8 +534,8 @@
       "id": "option-ld-circle",
       "shape": "ellipse",
       "rect": {
-        "x": 39.5,
-        "y": 5.7,
+        "x": 38.35,
+        "y": 5.370000000000001,
         "w": 5,
         "h": 5
       },
@@ -556,10 +548,10 @@
       "id": "option-cross-circle",
       "shape": "ellipse",
       "rect": {
-        "x": 52.7,
-        "y": 18.5,
-        "w": 5,
-        "h": 5
+        "x": 51.37,
+        "y": 17.83,
+        "w": 5.5,
+        "h": 9
       },
       "color": "#fca5a580",
       "fromStep": 12,
@@ -601,17 +593,40 @@
         "ref": "lm"
       },
       "to": {
-        "x": 55.2,
-        "y": 21
+        "ref": "st"
       },
       "via": [
         {
-          "x": 53,
-          "y": 10.5
+          "x": 54,
+          "y": 11.5
         },
         {
-          "x": 54.5,
+          "x": 55,
           "y": 16
+        }
+      ],
+      "color": "#fca5a5",
+      "fromStep": 12,
+      "toStep": 12
+    },
+    {
+      "kind": "arrow",
+      "id": "option-wide-cross-far",
+      "style": "run",
+      "from": {
+        "ref": "lm"
+      },
+      "to": {
+        "ref": "rm"
+      },
+      "via": [
+        {
+          "x": 55,
+          "y": 12
+        },
+        {
+          "x": 56,
+          "y": 17.5
         }
       ],
       "color": "#fca5a5",
@@ -626,17 +641,17 @@
         "ref": "ld"
       },
       "to": {
-        "x": 55.2,
-        "y": 21
+        "x": 55,
+        "y": 20
       },
       "via": [
         {
-          "x": 42.76735995230965,
-          "y": 11.842961509053163
+          "x": 47,
+          "y": 9.5
         },
         {
-          "x": 51.263436264029224,
-          "y": 15.356107970690038
+          "x": 52,
+          "y": 15
         }
       ],
       "color": "#93c5fd",
@@ -647,7 +662,7 @@
   "steps": [
     {
       "name": "WATCH · Kickoff setup — both wide mids at halfway",
-      "durationMs": 1500,
+      "durationMs": 1200,
       "pauseAfterMs": 0,
       "positions": {
         "gk": {
@@ -730,38 +745,38 @@
       }
     },
     {
-      "name": "WATCH · ST passes back; CAM goes left and LM sprints",
+      "name": "WATCH · ST lays off; CAM releases the left side",
       "durationMs": 1000,
       "pauseAfterMs": 0,
       "positions": {
         "gk": {
-          "x": 3.5,
-          "y": 19.8,
+          "x": 4,
+          "y": 20,
           "ease": "linear"
         },
         "ld": {
-          "x": 13,
+          "x": 14.5,
           "y": 10.8,
           "ease": "linear"
         },
         "rd": {
           "x": 13,
-          "y": 28.3,
+          "y": 28.5,
           "ease": "linear"
         },
         "cdm": {
-          "x": 18,
-          "y": 19.5,
+          "x": 18.5,
+          "y": 19.7,
           "ease": "linear"
         },
         "lm": {
-          "x": 32.5,
-          "y": 4.2,
+          "x": 33,
+          "y": 4.200000000000003,
           "ease": "linear"
         },
         "rm": {
-          "x": 30.5,
-          "y": 34.5,
+          "x": 32,
+          "y": 35.7,
           "ease": "linear"
         },
         "cam": {
@@ -770,8 +785,8 @@
           "ease": "linear"
         },
         "st": {
-          "x": 30.7,
-          "y": 19.5,
+          "x": 32,
+          "y": 19.8,
           "ease": "linear"
         },
         "ball": {
@@ -815,310 +830,304 @@
     },
     {
       "name": "WATCH · CAM releases early into the LM’s running lane",
-      "durationMs": 1050,
+      "durationMs": 1200,
       "pauseAfterMs": 0,
       "positions": {
         "gk": {
-          "x": 4.5,
-          "y": 19,
+          "x": 5,
+          "y": 20,
           "ease": "linear"
         },
         "ld": {
+          "x": 20.5,
+          "y": 10.399999999999999,
+          "ease": "linear"
+        },
+        "rd": {
           "x": 15.5,
+          "y": 28,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 21,
+          "y": 19.3,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 38.5,
+          "y": 4.799999999999997,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 36.5,
+          "y": 35.2,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 27.5,
+          "y": 15.2,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 36,
+          "y": 19.9,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 34,
+          "y": 10.7,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "WATCH · Pass enters the left channel; runners stay balanced",
+      "durationMs": 1300,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 6.2,
+          "y": 20,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 28,
           "y": 10,
           "ease": "linear"
         },
         "rd": {
-          "x": 15.5,
+          "x": 18.5,
           "y": 27,
           "ease": "linear"
         },
         "cdm": {
-          "x": 20.5,
-          "y": 18.5,
+          "x": 24,
+          "y": 18.6,
           "ease": "linear"
         },
         "lm": {
-          "x": 36.8,
-          "y": 4.5,
+          "x": 44.5,
+          "y": 5.799999999999997,
           "ease": "linear"
         },
         "rm": {
-          "x": 32.5,
-          "y": 31.5,
+          "x": 41.5,
+          "y": 34.5,
           "ease": "linear"
         },
         "cam": {
-          "x": 26.5,
-          "y": 15,
-          "ease": "linear"
-        },
-        "st": {
-          "x": 34,
-          "y": 17,
-          "ease": "linear"
-        },
-        "ball": {
-          "x": 34,
-          "y": 10.75,
-          "ease": "linear"
-        },
-        "watch-title": {
-          "x": 30,
-          "y": -1.8
-        },
-        "defensive-title": {
-          "x": 10,
-          "y": -1.8
-        },
-        "possession-title": {
-          "x": 30,
-          "y": -1.8
-        },
-        "attacking-title": {
-          "x": 50,
-          "y": -1.8
-        },
-        "left-title": {
-          "x": 56,
-          "y": 2
-        },
-        "centre-title": {
-          "x": 56,
-          "y": 15.3
-        },
-        "right-title": {
-          "x": 56,
-          "y": 28.7
-        },
-        "teach-title": {
-          "x": 30,
-          "y": 41.8
-        }
-      }
-    },
-    {
-      "name": "WATCH · Pass reaches the space; the whole team shifts left",
-      "durationMs": 1000,
-      "pauseAfterMs": 0,
-      "positions": {
-        "gk": {
-          "x": 5.5,
-          "y": 18,
-          "ease": "linear"
-        },
-        "ld": {
-          "x": 19,
-          "y": 9.3,
-          "ease": "linear"
-        },
-        "rd": {
-          "x": 19,
-          "y": 25.3,
-          "ease": "linear"
-        },
-        "cdm": {
-          "x": 23,
-          "y": 17.5,
-          "ease": "linear"
-        },
-        "lm": {
-          "x": 39.1,
-          "y": 5.2,
-          "ease": "linear"
-        },
-        "rm": {
-          "x": 34,
-          "y": 28,
-          "ease": "linear"
-        },
-        "cam": {
-          "x": 29,
-          "y": 13.5,
-          "ease": "linear"
-        },
-        "st": {
-          "x": 40.73,
-          "y": 17.69,
-          "ease": "linear"
-        },
-        "ball": {
-          "x": 40.2,
-          "y": 5.8,
-          "ease": "linear"
-        },
-        "watch-title": {
-          "x": 30,
-          "y": -1.8
-        },
-        "defensive-title": {
-          "x": 10,
-          "y": -1.8
-        },
-        "possession-title": {
-          "x": 30,
-          "y": -1.8
-        },
-        "attacking-title": {
-          "x": 50,
-          "y": -1.8
-        },
-        "left-title": {
-          "x": 56,
-          "y": 2
-        },
-        "centre-title": {
-          "x": 56,
-          "y": 15.3
-        },
-        "right-title": {
-          "x": 56,
-          "y": 28.7
-        },
-        "teach-title": {
-          "x": 30,
-          "y": 41.8
-        }
-      }
-    },
-    {
-      "name": "WATCH · Expected challenge — support inside and behind",
-      "durationMs": 700,
-      "pauseAfterMs": 0,
-      "positions": {
-        "gk": {
-          "x": 6,
-          "y": 17.5,
-          "ease": "linear"
-        },
-        "ld": {
-          "x": 21,
-          "y": 9,
-          "ease": "linear"
-        },
-        "rd": {
-          "x": 21,
-          "y": 24,
-          "ease": "linear"
-        },
-        "cdm": {
-          "x": 25,
-          "y": 16,
-          "ease": "linear"
-        },
-        "lm": {
-          "x": 40.7,
-          "y": 6.5,
-          "ease": "linear"
-        },
-        "rm": {
-          "x": 35,
-          "y": 26,
-          "ease": "linear"
-        },
-        "cam": {
-          "x": 31,
-          "y": 12,
-          "ease": "linear"
-        },
-        "st": {
-          "x": 40,
-          "y": 13,
-          "ease": "linear"
-        },
-        "ball": {
-          "x": 41.3,
-          "y": 5.8,
-          "ease": "linear"
-        },
-        "watch-title": {
-          "x": 30,
-          "y": -1.8
-        },
-        "defensive-title": {
-          "x": 10,
-          "y": -1.8
-        },
-        "possession-title": {
-          "x": 30,
-          "y": -1.8
-        },
-        "attacking-title": {
-          "x": 50,
-          "y": -1.8
-        },
-        "left-title": {
-          "x": 56,
-          "y": 2
-        },
-        "centre-title": {
-          "x": 56,
-          "y": 15.3
-        },
-        "right-title": {
-          "x": 56,
-          "y": 28.7
-        },
-        "teach-title": {
-          "x": 30,
-          "y": 41.8
-        }
-      }
-    },
-    {
-      "name": "WATCH · LM drives deep; 9 and 7 attack the goal",
-      "durationMs": 1400,
-      "pauseAfterMs": 700,
-      "positions": {
-        "gk": {
-          "x": 6,
-          "y": 17.5,
-          "ease": "linear"
-        },
-        "ld": {
-          "x": 42,
-          "y": 8.2,
-          "ease": "linear"
-        },
-        "rd": {
-          "x": 21,
-          "y": 24,
-          "ease": "linear"
-        },
-        "cdm": {
-          "x": 26,
-          "y": 16,
-          "ease": "linear"
-        },
-        "lm": {
-          "x": 50,
-          "y": 5.7,
-          "ease": "linear"
-        },
-        "rm": {
-          "x": 51,
-          "y": 22.7,
-          "via": [
-            {
-              "x": 43,
-              "y": 24.5
-            }
-          ],
-          "ease": "linear"
-        },
-        "cam": {
-          "x": 43,
+          "x": 31.5,
           "y": 14.5,
           "ease": "linear"
         },
         "st": {
-          "x": 52,
-          "y": 19.2,
+          "x": 41.5,
+          "y": 20,
           "ease": "linear"
         },
         "ball": {
-          "x": 50.5,
-          "y": 5.8,
+          "x": 43.5,
+          "y": 6.200000000000003,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "WATCH · LM receives; support and runners keep moving",
+      "durationMs": 1200,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 7.3,
+          "y": 20,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 36.5,
+          "y": 9.5,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 26.01,
+          "y": 26.86,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 29.47,
+          "y": 18.45,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 48.5,
+          "y": 6.600000000000001,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 46,
+          "y": 32,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 39.4,
+          "y": 14.899999999999999,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 47,
+          "y": 19.9,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 48.8,
+          "y": 6.799999999999997,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "WATCH · 11 drives deep; 9 and 7 arrive between the posts",
+      "durationMs": 1600,
+      "pauseAfterMs": 2500,
+      "positions": {
+        "gk": {
+          "x": 8.5,
+          "y": 20,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 40.85,
+          "y": 7.869999999999997,
+          "ease": "linear"
+        },
+        "rd": {
+          "x": 36.26,
+          "y": 26.59,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 35.7,
+          "y": 17.62,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 53,
+          "y": 7.799999999999997,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 54.04,
+          "y": 25.27,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 46.56,
+          "y": 17.41,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 54.2,
+          "y": 19.4,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 53.3,
+          "y": 7.600000000000001,
           "ease": "linear"
         },
         "watch-title": {
@@ -1158,7 +1167,7 @@
     {
       "name": "REPLAY · See the thirds and supporting runs",
       "durationMs": 1,
-      "pauseAfterMs": 1800,
+      "pauseAfterMs": 1400,
       "positions": {
         "gk": {
           "x": 3,
@@ -1241,52 +1250,52 @@
     },
     {
       "name": "REPLAY · CAM moves left: activate the left lane",
-      "durationMs": 400,
+      "durationMs": 450,
       "pauseAfterMs": 0,
       "positions": {
         "gk": {
-          "x": 3.2,
-          "y": 19.92,
+          "x": 3.4,
+          "y": 20,
           "ease": "linear"
         },
         "ld": {
-          "x": 12.4,
-          "y": 10.92,
+          "x": 13,
+          "y": 10.899999999999999,
           "ease": "linear"
         },
         "rd": {
           "x": 12.4,
-          "y": 28.72,
+          "y": 28.8,
           "ease": "linear"
         },
         "cdm": {
-          "x": 17.4,
-          "y": 19.8,
+          "x": 17.6,
+          "y": 19.9,
           "ease": "linear"
         },
         "lm": {
-          "x": 30.4,
-          "y": 4.08,
+          "x": 30.6,
+          "y": 4.049999999999997,
           "ease": "linear"
         },
         "rm": {
-          "x": 29.6,
-          "y": 35.4,
+          "x": 30.2,
+          "y": 35.9,
           "ease": "linear"
         },
         "cam": {
           "x": 25,
-          "y": 18.4,
+          "y": 18.2,
           "ease": "linear"
         },
         "st": {
-          "x": 29.68,
-          "y": 19.8,
+          "x": 30.2,
+          "y": 19.9,
           "ease": "linear"
         },
         "ball": {
-          "x": 28.32,
-          "y": 18.8,
+          "x": 28.2,
+          "y": 18.7,
           "ease": "linear"
         },
         "watch-title": {
@@ -1325,37 +1334,37 @@
     },
     {
       "name": "PAUSE · CAM receives in the possession third",
-      "durationMs": 600,
-      "pauseAfterMs": 1500,
+      "durationMs": 650,
+      "pauseAfterMs": 900,
       "positions": {
         "gk": {
-          "x": 3.5,
-          "y": 19.8,
+          "x": 4,
+          "y": 20,
           "ease": "linear"
         },
         "ld": {
-          "x": 13,
+          "x": 14.5,
           "y": 10.8,
           "ease": "linear"
         },
         "rd": {
           "x": 13,
-          "y": 28.3,
+          "y": 28.5,
           "ease": "linear"
         },
         "cdm": {
-          "x": 18,
-          "y": 19.5,
+          "x": 18.5,
+          "y": 19.7,
           "ease": "linear"
         },
         "lm": {
-          "x": 32.5,
-          "y": 4.2,
+          "x": 33,
+          "y": 4.200000000000003,
           "ease": "linear"
         },
         "rm": {
-          "x": 30.5,
-          "y": 34.5,
+          "x": 32,
+          "y": 35.7,
           "ease": "linear"
         },
         "cam": {
@@ -1364,8 +1373,8 @@
           "ease": "linear"
         },
         "st": {
-          "x": 30.7,
-          "y": 19.5,
+          "x": 32,
+          "y": 19.8,
           "ease": "linear"
         },
         "ball": {
@@ -1408,137 +1417,137 @@
       }
     },
     {
-      "name": "REPLAY · Pass early into the LM run",
-      "durationMs": 1050,
+      "name": "REPLAY · Pass early while 9 stays central and 7 stays wide",
+      "durationMs": 1200,
       "pauseAfterMs": 0,
       "positions": {
         "gk": {
-          "x": 4.5,
-          "y": 19,
+          "x": 5,
+          "y": 20,
           "ease": "linear"
         },
         "ld": {
+          "x": 20.5,
+          "y": 10.399999999999999,
+          "ease": "linear"
+        },
+        "rd": {
           "x": 15.5,
+          "y": 28,
+          "ease": "linear"
+        },
+        "cdm": {
+          "x": 21,
+          "y": 19.3,
+          "ease": "linear"
+        },
+        "lm": {
+          "x": 38.5,
+          "y": 4.799999999999997,
+          "ease": "linear"
+        },
+        "rm": {
+          "x": 36.5,
+          "y": 35.2,
+          "ease": "linear"
+        },
+        "cam": {
+          "x": 27.5,
+          "y": 15.2,
+          "ease": "linear"
+        },
+        "st": {
+          "x": 36,
+          "y": 19.9,
+          "ease": "linear"
+        },
+        "ball": {
+          "x": 34,
+          "y": 10.7,
+          "ease": "linear"
+        },
+        "watch-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "defensive-title": {
+          "x": 10,
+          "y": -1.8
+        },
+        "possession-title": {
+          "x": 30,
+          "y": -1.8
+        },
+        "attacking-title": {
+          "x": 50,
+          "y": -1.8
+        },
+        "left-title": {
+          "x": 56,
+          "y": 2
+        },
+        "centre-title": {
+          "x": 56,
+          "y": 15.3
+        },
+        "right-title": {
+          "x": 56,
+          "y": 28.7
+        },
+        "teach-title": {
+          "x": 30,
+          "y": 41.8
+        }
+      }
+    },
+    {
+      "name": "REPLAY · Pass enters the left channel; runners stay balanced",
+      "durationMs": 1300,
+      "pauseAfterMs": 0,
+      "positions": {
+        "gk": {
+          "x": 6.2,
+          "y": 20,
+          "ease": "linear"
+        },
+        "ld": {
+          "x": 28,
           "y": 10,
           "ease": "linear"
         },
         "rd": {
-          "x": 15.5,
+          "x": 18.5,
           "y": 27,
           "ease": "linear"
         },
         "cdm": {
-          "x": 20.5,
-          "y": 18.5,
+          "x": 24,
+          "y": 18.6,
           "ease": "linear"
         },
         "lm": {
-          "x": 36.8,
-          "y": 4.5,
+          "x": 44.5,
+          "y": 5.799999999999997,
           "ease": "linear"
         },
         "rm": {
-          "x": 32.5,
-          "y": 31.5,
+          "x": 41.5,
+          "y": 34.5,
           "ease": "linear"
         },
         "cam": {
-          "x": 26.5,
-          "y": 15,
-          "ease": "linear"
-        },
-        "st": {
-          "x": 34,
-          "y": 17,
-          "ease": "linear"
-        },
-        "ball": {
-          "x": 34,
-          "y": 10.75,
-          "ease": "linear"
-        },
-        "watch-title": {
-          "x": 30,
-          "y": -1.8
-        },
-        "defensive-title": {
-          "x": 10,
-          "y": -1.8
-        },
-        "possession-title": {
-          "x": 30,
-          "y": -1.8
-        },
-        "attacking-title": {
-          "x": 50,
-          "y": -1.8
-        },
-        "left-title": {
-          "x": 56,
-          "y": 2
-        },
-        "centre-title": {
-          "x": 56,
-          "y": 15.3
-        },
-        "right-title": {
-          "x": 56,
-          "y": 28.7
-        },
-        "teach-title": {
-          "x": 30,
-          "y": 41.8
-        }
-      }
-    },
-    {
-      "name": "REPLAY · The pass enters the attacking third",
-      "durationMs": 1000,
-      "pauseAfterMs": 0,
-      "positions": {
-        "gk": {
-          "x": 5.5,
-          "y": 18,
-          "ease": "linear"
-        },
-        "ld": {
-          "x": 19,
-          "y": 9.3,
-          "ease": "linear"
-        },
-        "rd": {
-          "x": 19,
-          "y": 25.3,
-          "ease": "linear"
-        },
-        "cdm": {
-          "x": 23,
-          "y": 17.5,
-          "ease": "linear"
-        },
-        "lm": {
-          "x": 39.1,
-          "y": 5.2,
-          "ease": "linear"
-        },
-        "rm": {
-          "x": 34,
-          "y": 28,
-          "ease": "linear"
-        },
-        "cam": {
-          "x": 29,
-          "y": 13.5,
-          "ease": "linear"
-        },
-        "st": {
-          "x": 37.5,
+          "x": 31.5,
           "y": 14.5,
           "ease": "linear"
         },
+        "st": {
+          "x": 41.5,
+          "y": 20,
+          "ease": "linear"
+        },
         "ball": {
-          "x": 40.2,
-          "y": 5.8,
+          "x": 43.5,
+          "y": 6.200000000000003,
           "ease": "linear"
         },
         "watch-title": {
@@ -1576,53 +1585,53 @@
       }
     },
     {
-      "name": "PAUSE · LM reaches the ball: support the challenge",
-      "durationMs": 700,
-      "pauseAfterMs": 1700,
+      "name": "PAUSE · LM receives: 4 and 10 arrive behind",
+      "durationMs": 1200,
+      "pauseAfterMs": 900,
       "positions": {
         "gk": {
-          "x": 6,
-          "y": 17.5,
+          "x": 7.3,
+          "y": 20,
           "ease": "linear"
         },
         "ld": {
-          "x": 21,
-          "y": 9,
+          "x": 36.5,
+          "y": 9.5,
           "ease": "linear"
         },
         "rd": {
-          "x": 21,
-          "y": 24,
+          "x": 26.01,
+          "y": 26.86,
           "ease": "linear"
         },
         "cdm": {
-          "x": 25,
-          "y": 16,
+          "x": 29.47,
+          "y": 18.45,
           "ease": "linear"
         },
         "lm": {
-          "x": 40.7,
-          "y": 6.5,
+          "x": 48.5,
+          "y": 6.600000000000001,
           "ease": "linear"
         },
         "rm": {
-          "x": 35,
-          "y": 26,
+          "x": 46,
+          "y": 32,
           "ease": "linear"
         },
         "cam": {
-          "x": 31,
-          "y": 12,
+          "x": 39.4,
+          "y": 14.899999999999999,
           "ease": "linear"
         },
         "st": {
-          "x": 40,
-          "y": 13,
+          "x": 47,
+          "y": 19.9,
           "ease": "linear"
         },
         "ball": {
-          "x": 41.3,
-          "y": 5.8,
+          "x": 48.8,
+          "y": 6.799999999999997,
           "ease": "linear"
         },
         "watch-title": {
@@ -1660,59 +1669,53 @@
       }
     },
     {
-      "name": "PAUSE · LM drives deep: cross, cut back, or use 4",
-      "durationMs": 1400,
+      "name": "PAUSE · 11 drives deep: back to 4 or 10, cross to 9 or 7",
+      "durationMs": 1600,
       "pauseAfterMs": 2000,
       "positions": {
         "gk": {
-          "x": 6,
-          "y": 17.5,
+          "x": 8.5,
+          "y": 20,
           "ease": "linear"
         },
         "ld": {
-          "x": 42,
-          "y": 8.2,
+          "x": 40.85,
+          "y": 7.869999999999997,
           "ease": "linear"
         },
         "rd": {
-          "x": 21,
-          "y": 24,
+          "x": 36.26,
+          "y": 26.59,
           "ease": "linear"
         },
         "cdm": {
-          "x": 26,
-          "y": 16,
+          "x": 35.7,
+          "y": 17.62,
           "ease": "linear"
         },
         "lm": {
-          "x": 50,
-          "y": 5.7,
+          "x": 53,
+          "y": 7.799999999999997,
           "ease": "linear"
         },
         "rm": {
-          "x": 51,
-          "y": 22.7,
-          "via": [
-            {
-              "x": 43,
-              "y": 24.5
-            }
-          ],
+          "x": 54.04,
+          "y": 25.27,
           "ease": "linear"
         },
         "cam": {
-          "x": 43,
-          "y": 14.5,
+          "x": 46.56,
+          "y": 17.41,
           "ease": "linear"
         },
         "st": {
-          "x": 52,
-          "y": 19.2,
+          "x": 54.2,
+          "y": 19.4,
           "ease": "linear"
         },
         "ball": {
-          "x": 50.5,
-          "y": 5.8,
+          "x": 53.3,
+          "y": 7.600000000000001,
           "ease": "linear"
         },
         "watch-title": {
