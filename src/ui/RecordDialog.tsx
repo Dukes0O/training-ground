@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Circle, Mic, Square } from "lucide-react";
 import { prepareNarration } from "../export/narrate";
 import type { NarrationSession } from "../export/narrate";
-import { api } from "../api/client";
+import { exportBaseName } from "../export/exportName";
 import { Modal } from "./Modal";
 import { useEditor } from "../state/store";
 
@@ -95,12 +95,12 @@ export function RecordDialog() {
   };
 
   const begin = async () => {
-    const { drillId, drill } = useEditor.getState();
+    const { drill } = useEditor.getState();
     const boardEl = document.querySelector<HTMLElement>("[data-board-root]");
     if (!boardEl || !micRef.current) return;
     try {
       sessionRef.current = await prepareNarration({
-        drillId: drillId ?? drill.id,
+        fileBaseName: exportBaseName(drill),
         boardEl,
         micStream: micRef.current,
         onSaving: () => {
@@ -112,10 +112,7 @@ export function RecordDialog() {
           cleanupMic();
           sessionRef.current = null;
           if (saved) {
-            addToast("success", `Narration saved: ${saved.path}`, {
-              label: "Reveal",
-              run: () => void api.reveal(saved.path),
-            });
+            addToast("success", `Narration downloaded: ${saved.name}`);
           } else {
             addToast("error", `Recording failed: ${error?.message ?? "unknown error"}`);
           }

@@ -31,9 +31,9 @@
       "label": "exports/<drill>/",
       "lane": "disk",
       "x": 40, "y": 510,
-      "summary": "Generated media: PNG, MP4/WebM, GIF, narrated takes, and the site-bundle/ folder handed to the team-site agent.",
+      "summary": "Generated Site bundle media and the site-bundle/ folder handed to the team-site agent.",
       "files": ["exports/"],
-      "details": "Gitignored output. site-bundle/ contains poster PNG + GIF + MP4 + drill JSON + manifest-snippet.json (matching the soccer-quizzes site's manifest shape) + AGENT-INSTRUCTIONS.md telling the site agent where each file goes."
+      "details": "Gitignored output used only for the multi-file Site bundle workflow. Ordinary PNG, GIF, video, and narrated exports download through the browser. site-bundle/ contains poster PNG + GIF + video + drill JSON + manifest-snippet.json (matching the soccer-quizzes site's manifest shape) + AGENT-INSTRUCTIONS.md telling the site agent where each file goes."
     },
     {
       "id": "docs.agent",
@@ -213,7 +213,7 @@
       "x": 1490, "y": 300,
       "summary": "WebCodecs + mediabunny encode H.264 MP4 (VP9/WebM fallback); gifenc quantizes per-frame palettes; PNG snapshots any instant.",
       "files": ["src/export/exportVideo.ts", "src/export/exportGif.ts", "src/export/exportPng.tsx", "src/export/runExport.ts"],
-      "details": "runExport guards one job at a time with progress modal + cancel (AbortSignal threads through the frame loop). Video settings offer 1280/1920/3840 px width and 25/30/60 fps; height follows the selected view. The site bundle orchestrates PNG + GIF + MP4 then asks the server to assemble site-bundle/."
+      "details": "runExport guards one job at a time with progress modal + cancel (AbortSignal threads through the frame loop). Video settings offer 1280/1920/3840 px width and 25/30/60 fps; height follows the selected view. Ordinary media downloads through the browser. The Site bundle explicitly selects repository output, then asks the server to assemble site-bundle/."
     },
     {
       "id": "export.narrate",
@@ -222,7 +222,7 @@
       "x": 1490, "y": 720,
       "summary": "Region-Capture tab recording cropped to the board + mic, MediaRecorder MP4/WebM — the one live (non-rasterized) capture.",
       "files": ["src/export/narrate.ts", "src/ui/RecordDialog.tsx"],
-      "details": "Mic check with level meter, 3-2-1 countdown, floating stop bar, red board ring; the browser's own Stop-sharing pill ends the take cleanly; 1s timeslices bound data loss."
+      "details": "Mic check with level meter, 3-2-1 countdown, floating stop bar, red board ring; the browser's own Stop-sharing pill ends the take cleanly; 1s timeslices bound data loss. Completed takes download through the browser with a drill-based timestamped filename."
     }
   ],
   "edges": [
@@ -255,8 +255,7 @@
     { "from": "ui.brief", "to": "ui.panels", "label": "open board to build manually" },
     { "from": "board.boardsvg", "to": "export.renderframes", "label": "rasterized per frame" },
     { "from": "export.renderframes", "to": "export.encoders", "label": "canvas frames" },
-    { "from": "export.encoders", "to": "server.express", "label": "POST blobs & bundle" },
-    { "from": "export.narrate", "to": "server.express", "label": "POST recording" },
-    { "from": "server.express", "to": "files.exports", "label": "writes media" }
+    { "from": "export.encoders", "to": "server.express", "label": "Site bundle assets only" },
+    { "from": "server.express", "to": "files.exports", "label": "writes Site bundle" }
   ]
 }

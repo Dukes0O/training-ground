@@ -61,11 +61,11 @@ window.ATLAS_DATA = {
         "lane": "disk",
         "x": 40,
         "y": 510,
-        "summary": "Generated media: PNG, MP4/WebM, GIF, narrated takes, and the site-bundle/ folder handed to the team-site agent.",
+        "summary": "Generated Site bundle media and the site-bundle/ folder handed to the team-site agent.",
         "files": [
           "exports/"
         ],
-        "details": "Gitignored output. site-bundle/ contains poster PNG + GIF + MP4 + drill JSON + manifest-snippet.json (matching the soccer-quizzes site's manifest shape) + AGENT-INSTRUCTIONS.md telling the site agent where each file goes."
+        "details": "Gitignored output used only for the multi-file Site bundle workflow. Ordinary PNG, GIF, video, and narrated exports download through the browser. site-bundle/ contains poster PNG + GIF + video + drill JSON + manifest-snippet.json (matching the soccer-quizzes site's manifest shape) + AGENT-INSTRUCTIONS.md telling the site agent where each file goes."
       },
       {
         "id": "docs.agent",
@@ -347,7 +347,7 @@ window.ATLAS_DATA = {
           "src/export/exportPng.tsx",
           "src/export/runExport.ts"
         ],
-        "details": "runExport guards one job at a time with progress modal + cancel (AbortSignal threads through the frame loop). Video settings offer 1280/1920/3840 px width and 25/30/60 fps; height follows the selected view. The site bundle orchestrates PNG + GIF + MP4 then asks the server to assemble site-bundle/."
+        "details": "runExport guards one job at a time with progress modal + cancel (AbortSignal threads through the frame loop). Video settings offer 1280/1920/3840 px width and 25/30/60 fps; height follows the selected view. Ordinary media downloads through the browser. The Site bundle explicitly selects repository output, then asks the server to assemble site-bundle/."
       },
       {
         "id": "export.narrate",
@@ -360,7 +360,7 @@ window.ATLAS_DATA = {
           "src/export/narrate.ts",
           "src/ui/RecordDialog.tsx"
         ],
-        "details": "Mic check with level meter, 3-2-1 countdown, floating stop bar, red board ring; the browser's own Stop-sharing pill ends the take cleanly; 1s timeslices bound data loss."
+        "details": "Mic check with level meter, 3-2-1 countdown, floating stop bar, red board ring; the browser's own Stop-sharing pill ends the take cleanly; 1s timeslices bound data loss. Completed takes download through the browser with a drill-based timestamped filename."
       }
     ],
     "edges": [
@@ -512,17 +512,12 @@ window.ATLAS_DATA = {
       {
         "from": "export.encoders",
         "to": "server.express",
-        "label": "POST blobs & bundle"
-      },
-      {
-        "from": "export.narrate",
-        "to": "server.express",
-        "label": "POST recording"
+        "label": "Site bundle assets only"
       },
       {
         "from": "server.express",
         "to": "files.exports",
-        "label": "writes media"
+        "label": "writes Site bundle"
       }
     ]
   },
@@ -655,9 +650,9 @@ window.ATLAS_DATA = {
             "detail": "Hardware encode runs faster than realtime; GIF defaults stay modest (720px/12fps) with a size warning past 20s."
           },
           {
-            "actor": "Server",
-            "action": "streams blobs to exports/<drill>/",
-            "detail": "Streaming + tmp/rename: no RAM spike on long narrations, no partial files."
+            "actor": "Browser",
+            "action": "downloads ordinary media",
+            "detail": "PNG, GIF, MP4/WebM, and narrated recordings use the browser's configured download location; browser settings may show a save prompt."
           },
           {
             "actor": "Site bundle",
@@ -665,9 +660,9 @@ window.ATLAS_DATA = {
             "detail": "The snippet matches the soccer-quizzes manifest shape; the instructions tell the site agent exactly where each file goes."
           },
           {
-            "actor": "Narration (the exception)",
+            "actor": "Narration",
             "action": "Region-Capture tab recording + mic via MediaRecorder",
-            "detail": "Live capture, deliberately: the coach's voice and cursor over real playback. Countdown stays out of the take; failed uploads fall back to a browser download."
+            "detail": "Live capture, deliberately: the coach's voice and cursor over real playback. Countdown stays out of the take; the completed recording downloads through the browser."
           }
         ]
       }
@@ -921,7 +916,7 @@ window.ATLAS_DATA = {
         "id": "export_pipeline",
         "title": "One frame loop, four outputs",
         "question": "Why don't exports need ffmpeg, screen capture, or luck?",
-        "narrative": "renderFrames is an async generator: it captures the selected display options, then calls sceneWithDisplay(t), renders BoardSvg to markup, rasterizes onto one reused canvas, and yields at each fixed-timestep instant. Deterministic by construction — every frame exists, timed exactly, no realtime capture to drop frames — and abortable mid-loop via AbortSignal.\n\nMP4 comes from WebCodecs hardware H.264 muxed by mediabunny (the maintained successor to the deprecated mp4-muxer/webm-muxer); when the OS lacks H.264 (Windows N editions) it degrades to VP9/WebM automatically. GIF comes from gifenc with per-frame rgb444 palettes — the flat-color board quantizes cleanly — at deliberately modest defaults. PNG snapshots any scrubbed instant at 1920px. All three POST to the server, which streams to disk with tmp+rename.\n\nNarrated takes are the deliberate exception: they capture the LIVE tab (cropped to the board via Region Capture) mixed with the mic, because the product is the coach's voice over real playback, cursor included. The recorder arms while the share dialog is up but starts only after the 3-2-1 countdown, the browser's own Stop-sharing pill ends takes cleanly, exports are blocked during a take (a progress modal would be filmed), and a failed upload falls back to a browser download so a spoken take is never lost.",
+        "narrative": "renderFrames is an async generator: it captures the selected display options, then calls sceneWithDisplay(t), renders BoardSvg to markup, rasterizes onto one reused canvas, and yields at each fixed-timestep instant. Deterministic by construction — every frame exists, timed exactly, no realtime capture to drop frames — and abortable mid-loop via AbortSignal.\n\nMP4 comes from WebCodecs hardware H.264 muxed by mediabunny (the maintained successor to the deprecated mp4-muxer/webm-muxer); when the OS lacks H.264 (Windows N editions) it degrades to VP9/WebM automatically. GIF comes from gifenc with per-frame rgb444 palettes — the flat-color board quantizes cleanly — at deliberately modest defaults. PNG snapshots any scrubbed instant at 1920px. Ordinary PNG, GIF, MP4/WebM, and narrated recordings download through the browser to its configured download location. Browsers may ask where to save. Site bundle is the deliberate server-side exception: its media assets POST to the server so it can assemble the multi-file handoff under exports/<drill>/site-bundle.\n\nNarrated takes capture the LIVE tab (cropped to the board via Region Capture) mixed with the mic, because the product is the coach's voice over real playback, cursor included. The recorder arms while the share dialog is up but starts only after the 3-2-1 countdown, the browser's own Stop-sharing pill ends takes cleanly, and offline exports are blocked during a take because a progress modal would be filmed.",
         "highlights": [
           "export.renderframes",
           "export.encoders",

@@ -7,16 +7,14 @@ import {
   WebMOutputFormat,
   getFirstEncodableVideoCodec,
 } from "mediabunny";
-import { api } from "../api/client";
 import { DEFAULT_BOARD_DISPLAY, type BoardDisplayOptions } from "../model/boardDisplay";
 import type { Drill } from "../model/types";
 import { exportBaseName } from "./exportName";
 import { exportDimensions, renderFrames } from "./renderFrames";
+import { saveExportBlob, type ExportDestination, type SavedExport } from "./saveExport";
 
-export interface VideoExportResult {
-  path: string;
+export interface VideoExportResult extends SavedExport {
   container: "mp4" | "webm";
-  bytes: number;
 }
 
 export interface VideoExportOptions {
@@ -24,6 +22,7 @@ export interface VideoExportOptions {
   fps?: number;
   signal?: AbortSignal;
   displayOptions?: BoardDisplayOptions;
+  destination?: ExportDestination;
   onProgress?: (done: number, total: number, phase: string) => void;
 }
 
@@ -34,7 +33,7 @@ export interface VideoExportOptions {
 export async function exportVideo(
   drill: Drill,
   gridOn: boolean,
-  { widthPx = 1280, fps = 30, signal, onProgress, displayOptions = DEFAULT_BOARD_DISPLAY }: VideoExportOptions = {}
+  { widthPx = 1280, fps = 30, signal, onProgress, displayOptions = DEFAULT_BOARD_DISPLAY, destination = "download" }: VideoExportOptions = {}
 ): Promise<VideoExportResult> {
   const display = { ...displayOptions };
   const { width, height } = exportDimensions(drill, widthPx, displayOptions);
@@ -87,6 +86,6 @@ export async function exportVideo(
   signal?.throwIfAborted();
   onProgress?.(1, 1, "Saving");
   const name = `${exportBaseName(drill)}.${container}`;
-  const saved = await api.postAsset(drill.id, name, new Blob([buffer]), signal);
-  return { path: saved.path, container, bytes: saved.bytes };
+  const saved = await saveExportBlob(drill.id, name, new Blob([buffer]), destination, signal);
+  return { ...saved, container };
 }

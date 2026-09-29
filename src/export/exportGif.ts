@@ -1,20 +1,18 @@
 import { GIFEncoder, applyPalette, quantize } from "gifenc";
-import { api } from "../api/client";
 import { DEFAULT_BOARD_DISPLAY, type BoardDisplayOptions } from "../model/boardDisplay";
 import type { Drill } from "../model/types";
 import { exportBaseName } from "./exportName";
 import { renderFrames } from "./renderFrames";
+import { saveExportBlob, type ExportDestination, type SavedExport } from "./saveExport";
 
-export interface GifExportResult {
-  path: string;
-  bytes: number;
-}
+export type GifExportResult = SavedExport;
 
 export interface GifExportOptions {
   widthPx?: number;
   fps?: number;
   signal?: AbortSignal;
   displayOptions?: BoardDisplayOptions;
+  destination?: ExportDestination;
   onProgress?: (done: number, total: number, phase: string) => void;
 }
 
@@ -26,7 +24,7 @@ export interface GifExportOptions {
 export async function exportGif(
   drill: Drill,
   gridOn: boolean,
-  { widthPx = 720, fps = 12, signal, onProgress, displayOptions = DEFAULT_BOARD_DISPLAY }: GifExportOptions = {}
+  { widthPx = 720, fps = 12, signal, onProgress, displayOptions = DEFAULT_BOARD_DISPLAY, destination = "download" }: GifExportOptions = {}
 ): Promise<GifExportResult> {
   const display = { ...displayOptions };
   const gif = GIFEncoder();
@@ -47,8 +45,7 @@ export async function exportGif(
   gif.finish();
   const bytes = new Uint8Array(gif.bytes()); // fresh ArrayBuffer-backed copy for Blob
   onProgress?.(1, 1, "Saving");
-  const saved = await api.postAsset(drill.id, `${exportBaseName(drill)}.gif`, new Blob([bytes], { type: "image/gif" }), signal);
-  return { path: saved.path, bytes: saved.bytes };
+  return await saveExportBlob(drill.id, `${exportBaseName(drill)}.gif`, new Blob([bytes], { type: "image/gif" }), destination, signal);
 }
 
 /** Rough size guard: long drills make heavy GIFs; suggest MP4 instead. */

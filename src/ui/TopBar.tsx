@@ -99,26 +99,26 @@ function ExportMenu() {
             <button onClick={() => run(runPngExport)} className={item}>
               Snapshot PNG
               <span className="block text-xs text-zinc-500">
-                Current frame at 1920 px
+                Downloads current frame at 1920 px
               </span>
             </button>
             <button onClick={() => run(runVideoExport)} className={item}>
               Video (MP4)
               <span className="block text-xs text-zinc-500">
-                Full animation, {settings.video?.width ?? 1280} px / {settings.video?.fps ?? 30} fps
+                Downloads full animation, {settings.video?.width ?? 1280} px / {settings.video?.fps ?? 30} fps
               </span>
             </button>
             <button onClick={() => run(runGifExport)} className={item}>
               GIF
               <span className="block text-xs text-zinc-500">
-                Loopable, {settings.gif?.width ?? 720} px / {settings.gif?.fps ?? 12} fps
+                Downloads loopable file, {settings.gif?.width ?? 720} px / {settings.gif?.fps ?? 12} fps
               </span>
             </button>
             <div className="my-1 h-px bg-zinc-100" />
             <button onClick={() => run(runBundleExport)} className={item}>
               Site bundle
               <span className="block text-xs text-zinc-500">
-                PNG + GIF + MP4 + manifest snippet for the team site
+                Project folder: PNG + GIF + video + site handoff files
               </span>
             </button>
           </div>

@@ -1,15 +1,15 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { api } from "../api/client";
 import { BoardSvg } from "../board/BoardSvg";
 import { DEFAULT_BOARD_DISPLAY, sceneWithDisplay, stepWithDisplay, type BoardDisplayOptions } from "../model/boardDisplay";
 import type { Drill } from "../model/types";
 import { boardExportDimensions } from "../model/boardCamera";
 import { fixedPitchFraming } from "../model/cameraTracking";
 import { exportBaseName } from "./exportName";
+import { saveExportBlob, type ExportDestination, type SavedExport } from "./saveExport";
 
 /**
  * Rasterize one moment of the drill to PNG via the same BoardSvg the editor
- * renders, and save it under exports/<drill-id>/.
+ * renders, and download it through the browser by default.
  */
 export async function exportPng(
   drill: Drill,
@@ -18,8 +18,9 @@ export async function exportPng(
   widthPx = 1920,
   signal?: AbortSignal,
   displayOptions: BoardDisplayOptions = DEFAULT_BOARD_DISPLAY,
-  timeMs?: number
-): Promise<{ path: string }> {
+  timeMs?: number,
+  destination: ExportDestination = "download"
+): Promise<SavedExport> {
   const snapshot = timeMs === undefined
     ? stepWithDisplay(drill, stepIndex, gridOn, displayOptions)
     : sceneWithDisplay(drill, timeMs, gridOn, displayOptions);
@@ -44,7 +45,7 @@ export async function exportPng(
       canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("PNG encoding failed"))), "image/png")
     );
     signal?.throwIfAborted();
-    return await api.postAsset(drill.id, `${exportBaseName(drill)}.png`, png, signal);
+    return await saveExportBlob(drill.id, `${exportBaseName(drill)}.png`, png, destination, signal);
   } finally {
     URL.revokeObjectURL(url);
   }

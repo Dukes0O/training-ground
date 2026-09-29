@@ -66,13 +66,14 @@ Use **Chrome or Edge** — video export and narrated recording rely on Chromium 
   players when both are selected. Copied players retain their display roles and overrides.
 - **Team roster** — manage players from the sidebar. Fill a token from the roster, or place
   a team using a formation preset.
-- **Exports** (Export menu) — snapshot PNG (1920 px), MP4 video (H.264; WebM fallback), GIF,
-  and **Site bundle**: PNG + GIF + MP4 + drill JSON + `manifest-snippet.json` +
+- **Exports** (Export menu) — snapshot PNG (1920 px), MP4 video (H.264; WebM fallback), and
+  GIF download through the browser to its configured download location. **Site bundle** writes
+  PNG + GIF + video + drill JSON + `manifest-snippet.json` +
   `AGENT-INSTRUCTIONS.md`, assembled under `exports\<drill>\site-bundle\` for handing to the
   agent that maintains the soccer-quizzes site. Settings offers video widths of 1280, 1920,
   or 3840 px at 25, 30, or 60 fps. Export height follows the chosen board view.
 - **Narrated takes** (Record button) — record the board plus your voice while you play and
-  scrub the drill. Saves `narration-<date>.mp4` (or `.webm`) next to the other exports.
+  scrub the drill. Downloads `<drill>-narration-<date>.mp4` (or `.webm`) through the browser.
 
 ## Create drills your way
 
@@ -149,7 +150,7 @@ Module map and conventions: `CLAUDE.md`. Data model source of truth:
 ```
 drills/      the drill library (one JSON per drill — this is the database)
 data/        rosters.json, settings.json, trash/
-exports/     generated PNG/GIF/MP4/narrations + site-bundle/ (gitignored)
+exports/     generated Site bundle handoffs (gitignored)
 docs/        drill-authoring.md — the agent/author guide
 server/      local Express file server (port 8123)
 src/         React app

@@ -59,7 +59,7 @@ export async function runPngExport(): Promise<void> {
     const { exportPng } = await import("./exportPng");
     signal.throwIfAborted();
     const r = await exportPng(drill, currentStep, gridOn, 1920, signal, displayOptions, mode === "playback" ? timeMs : undefined);
-    revealToast(`Snapshot saved: ${r.path}`, r.path);
+    useEditor.getState().addToast("success", `Snapshot downloaded: ${r.name}`);
     return r;
   });
 }
@@ -77,7 +77,7 @@ export async function runVideoExport(): Promise<void> {
       displayOptions,
       onProgress: progressFor("Video"),
     });
-    revealToast(`Video saved (${r.container.toUpperCase()}): ${r.path}`, r.path);
+    useEditor.getState().addToast("success", `Video downloaded (${r.container.toUpperCase()}): ${r.name}`);
     return r;
   });
 }
@@ -100,7 +100,7 @@ export async function runGifExport(): Promise<void> {
       displayOptions,
       onProgress: progressFor("GIF"),
     });
-    revealToast(`GIF saved: ${r.path}`, r.path);
+    useEditor.getState().addToast("success", `GIF downloaded: ${r.name}`);
     return r;
   });
 }
@@ -118,7 +118,8 @@ export async function runBundleExport(): Promise<void> {
     setJob({ kind: "Site bundle", phase: "Poster PNG", done: 0, total: 1 });
     const { exportPng } = await import("./exportPng");
     signal.throwIfAborted();
-    const png = await exportPng(drill, 0, gridOn, 1920, signal, displayOptions);
+    const png = await exportPng(drill, 0, gridOn, 1920, signal, displayOptions, undefined, "repository");
+    if (!png.path) throw new Error("Poster PNG was not saved to the project.");
     assets.push(png.path.split(/[\\/]/).pop()!);
 
     const { exportGif } = await import("./exportGif");
@@ -126,8 +127,10 @@ export async function runBundleExport(): Promise<void> {
     const gif = await exportGif(drill, gridOn, {
       signal,
       displayOptions,
+      destination: "repository",
       onProgress: (d, t, p) => setJob({ kind: "Site bundle", phase: `GIF — ${p}`, done: d, total: t }),
     });
+    if (!gif.path) throw new Error("GIF was not saved to the project.");
     assets.push(gif.path.split(/[\\/]/).pop()!);
 
     const { exportVideo } = await import("./exportVideo");
@@ -135,8 +138,10 @@ export async function runBundleExport(): Promise<void> {
     const video = await exportVideo(drill, gridOn, {
       signal,
       displayOptions,
+      destination: "repository",
       onProgress: (d, t, p) => setJob({ kind: "Site bundle", phase: `Video — ${p}`, done: d, total: t }),
     });
+    if (!video.path) throw new Error("Video was not saved to the project.");
     assets.push(video.path.split(/[\\/]/).pop()!);
 
     setJob({ kind: "Site bundle", phase: "Assembling bundle", done: 1, total: 1 });

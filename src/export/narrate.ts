@@ -1,4 +1,4 @@
-import { api } from "../api/client";
+import { downloadBlob } from "./saveExport";
 
 export interface NarrationSession {
   /** Start the recorder (call when the countdown finishes). */
@@ -29,15 +29,6 @@ function stamp(): string {
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
 }
 
-/** Last-resort save path: never lose a coach's spoken take over a failed upload. */
-function downloadFallback(blob: Blob, name: string) {
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
-}
-
 /**
  * Acquire the tab capture (cropped to the board via Region Capture) and build
  * the recorder, WITHOUT starting it — recording begins on session.begin() so
@@ -45,11 +36,11 @@ function downloadFallback(blob: Blob, name: string) {
  * the share dialog; the coach's mic is mixed in.
  */
 export async function prepareNarration(opts: {
-  drillId: string;
+  fileBaseName: string;
   boardEl: HTMLElement;
   micStream: MediaStream;
   onSaving: () => void;
-  onStopped: (saved: { path: string } | null, error?: Error) => void;
+  onStopped: (saved: { name: string } | null, error?: Error) => void;
 }): Promise<NarrationSession> {
   const display = await navigator.mediaDevices.getDisplayMedia({
     video: { displaySurface: "browser", frameRate: 30 },
@@ -84,20 +75,11 @@ export async function prepareNarration(opts: {
     finished = true;
     videoTrack.stop();
     opts.onSaving();
-    const name = `narration-${stamp()}.${ext}`;
+    const name = `${opts.fileBaseName}-narration-${stamp()}.${ext}`;
     try {
       const blob = new Blob(chunks, { type: mime.split(";")[0] });
       if (blob.size === 0) throw new Error("Recording was empty.");
-      try {
-        const saved = await api.postAsset(opts.drillId, name, blob);
-        opts.onStopped(saved);
-      } catch (uploadErr) {
-        // The take exists — don't lose it because the local server hiccuped.
-        downloadFallback(blob, name);
-        opts.onStopped(null, new Error(
-          `Saving to exports/ failed (${(uploadErr as Error).message}) — the take was downloaded by the browser instead.`
-        ));
-      }
+      opts.onStopped(downloadBlob(blob, name));
     } catch (err) {
       opts.onStopped(null, err as Error);
     }

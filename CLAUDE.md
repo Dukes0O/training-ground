@@ -54,7 +54,7 @@ asks later. Dictation happens in Codex itself, not through a Training Ground spe
 - `src/board/entities/miniatureAssets.tsx` — shared SVG definitions embed `src/assets/miniature-players.webp` as a data URI. The PNG source at `src/assets/miniature-players.png` was created with the built-in ImageGen tool and is retained alongside the smaller runtime WebP. `PlayerToken.tsx` places the artwork; `BallGlyph.tsx` draws the detailed ball in SVG. There is no runtime image-generation service.
 - `src/state/store.ts` — zustand store (undo via zundo; only `drill` is history-tracked)
 - `src/api/persistence.ts` — explicit draft save/discard, SSE reload, conflict handling (async lives here, not in the store)
-- `server/` — dumb file layer: drills/rosters/settings CRUD, SSE watch, exports writes; no validation server-side
+- `server/` — dumb file layer: drills/rosters/settings CRUD, SSE watch, and Site bundle export writes; no validation server-side. Ordinary media exports download through the browser.
 
 ## Conventions
 
@@ -63,7 +63,7 @@ asks later. Dictation happens in Codex itself, not through a Training Ground spe
 - The server stamps `rev`/`createdAt`/`updatedAt` — never hand-edit those.
 - Browser bookmarks and coaching-brief drafts are convenience state, not drill data. Their storage is optional; drill files remain the source of truth.
 - Appearance, view/camera, pitch/stadium, player size/roles/overrides, light trails, vision cones, and scanning are display preferences. Keep them out of the drill schema. Export jobs capture these preferences at their start and use the same display resolver and projected bounds as the board. Polygon points and arrow pathMode are drill content. Never describe vision cones as measured tracking data.
-- `exports/` is generated output (gitignored). Site bundles for the soccer-quizzes site land there.
+- `exports/` is generated output (gitignored). Only Site bundles for the soccer-quizzes site land there; ordinary PNG, GIF, video, and narrated exports use the browser's configured download location.
 - The architecture atlas (`docs/project_atlas`, served at `/atlas`) documents components, flows
   and accepted decisions — when your change adds/renames components or overturns a decision,
   update `docs/project_atlas/data/*.json` and run `npm run atlas`. Notably: drills stay JSON
